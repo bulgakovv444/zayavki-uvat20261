@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Заявки Уватский проект</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f9;
+    color: #1f2933;
+    padding: 20px;
+  }
+  h1 { font-size: 22px; margin-bottom: 16px; }
+  h2 { font-size: 18px; margin: 20px 0 12px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  .services {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .service-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    border: 2px solid transparent;
+    position: relative;
+  }
+  .service-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.1); }
+  .service-card.has-new { border-color: #ef4444; }
+  .service-card h3 { font-size: 16px; margin-bottom: 8px; }
+  .badge {
+    display: inline-block;
+    background: #ef4444;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .badge.ok { background: #10b981; }
+  .badge.wait { background: #f59e0b; }
+  .dot {
+    position: absolute; top: 12px; right: 12px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 4px rgba(239,68,68,.2);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 4px rgba(239,68,68,.2); }
+    50% { box-shadow: 0 0 0 8px rgba(239,68,68,.05); }
+  }
+
+  .btn {
+    display: inline-block;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .btn:hover { background: #1d4ed8; }
+  .btn.green { background: #10b981; }
+  .btn.green:hover { background: #059669; }
+  .btn.gray { background: #6b7280; }
+  .btn.gray:hover { background: #4b5563; }
+  .btn.red { background: #ef4444; }
+  .btn.red:hover { background: #dc2626; }
+  .btn.orange { background: #f59e0b; }
+  .btn.orange:hover { background: #d97706; }
+  .btn.small { padding: 6px 10px; font-size: 13px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Кнопки служб — увеличенные */
+  .service-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .service-pick-btn {
+    background: #eef2ff;
+    color: #1e3a8a;
+    border: 1px solid #c7d2fe;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s, transform .1s;
+    min-width: 120px;
+    text-align: center;
+  }
+  .service-pick-btn:hover { background: #e0e7ff; }
+  .service-pick-btn:active { transform: scale(.97); }
+  .service-pick-btn.active {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+    box-shadow: 0 2px 6px rgba(37,99,235,.35);
+  }
+  .service-pick-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  input, select, textarea {
+    font: inherit;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    width: 100%;
+  }
+  input:disabled, select:disabled, textarea:disabled {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    margin-bottom: 16px;
+  }
+
+  .closed-banner {
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .closed-banner.is-closed {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+  .closed-banner.is-open {
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+  }
+  .closed-banner .icon { font-size: 20px; }
+  .closed-banner .banner-text { flex: 1; min-width: 200px; }
+  .closed-banner .countdown {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 18px;
+    background: rgba(0,0,0,.06);
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: .5px;
+  }
+
+  .request {
+    border-left: 4px solid #ef4444;
+    background: #fff;
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  }
+  .request.status-service_done { border-left-color: #f59e0b; }
+  .request.status-closed { border-left-color: #10b981; opacity: .75; }
+  .request .meta { font-size: 12px; color: #6b7280; margin-top: 6px; }
+  .request .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .hidden { display: none; }
+  .back { margin-bottom: 16px; }
+  .empty { color: #6b7280; font-size: 14px; padding: 12px 0; }
+
+  .history-stats {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .stat {
+    background: #fff; border-radius: 10px; padding: 12px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); min-width: 120px;
+  }
+  .stat .num { font-size: 22px; font-weight: 700; }
+  .stat .lbl { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  .stat.red .num { color: #ef4444; }
+  .stat.wait .num { color: #f59e0b; }
+  .stat.ok .num { color: #10b981; }
+
+  .filters {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .filters select { width: auto; min-width: 160px; }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    font-size: 13px;
+  }
+  .history-table th {
+    text-align: left;
+    background: #f9fafb;
+    padding: 10px 12px;
+    font-weight: 600;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+  }
+  .history-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: top;
+  }
+  .history-table tr:last-child td { border-bottom: none; }
+  .history-table .status-new { color: #ef4444; font-weight: 600; }
+  .history-table .status-service_done { color: #f59e0b; font-weight: 600; }
+  .history-table .status-closed { color: #10b981; font-weight: 600; }
+
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #10b981;
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity .2s, transform .2s;
+    pointer-events: none;
+    z-index: 1001;
+  }
+  .toast.error { background: #ef4444; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  }
+  .modal h3 { font-size: 17px; margin-bottom: 6px; }
+  .modal p { font-size: 13px; color: #6b7280; margin-bottom: 14px; }
+  .modal input { margin-bottom: 14px; }
+  .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="homeView">
+    <h1>Заявки Уватский проект</h1>
+
+    <div id="closedBanner" class="closed-banner is-closed">
+      <span class="icon">⏰</span>
+      <span class="banner-text" id="bannerText">Загрузка…</span>
+      <span class="countdown" id="countdown">--:--:--</span>
+    </div>
+
+    <div class="card">
+      <h2>Подать заявку</h2>
+      <form id="requestForm">
+        <div class="form-row">
+          <div style="width:100%;">
+            <div style="font-size:13px;color:#6b7280;margin-bottom:8px;">Служба</div>
+            <div class="service-picker" id="servicePicker"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <select id="reqBrigade">
+            <option value="">— выберите бригаду —</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <textarea id="reqDesc" placeholder="Описание проблемы..."></textarea>
+        </div>
+        <button class="btn" type="submit" id="submitBtn">Отправить заявку</button>
+        <button class="btn gray" type="button" id="openHistoryBtn" style="margin-left:8px;">📋 История заявок</button>
+      </form>
+    </div>
+
+    <h2>Службы</h2>
+    <div class="services" id="servicesGrid"></div>
+  </div>
+
+  <div id="serviceView" class="hidden">
+    <div class="back"><button class="btn gray" id="backBtn">← Назад</button></div>
+    <h1 id="serviceTitle"></h1>
+    <div id="requestsList"></div>
+  </div>
+
+  <div id="historyView" class="hidden">
+    <div class="back"><button class="btn gray" id="backFromHistory">← Назад</button></div>
+    <h1>📋 История заявок</h1>
+
+    <div class="history-stats" id="historyStats"></div>
+
+    <div class="filters">
+      <select id="filterStatus">
+        <option value="">Все статусы</option>
+        <option value="new">Новые</option>
+        <option value="service_done">Ждут мастера</option>
+        <option value="closed">Закрытые</option>
+      </select>
+      <select id="filterService">
+        <option value="">Все службы</option>
+      </select>
+      <select id="filterBrigade">
+        <option value="">Все бригады</option>
+      </select>
+      <button class="btn green small" id="exportCsvBtn">⬇ Выгрузить в CSV</button>
+    </div>
+
+    <div id="historyContent"></div>
+  </div>
+
+</div>
+
+<div class="modal-overlay hidden" id="passwordModal">
+  <div class="modal">
+    <h3 id="passwordTitle">Подтверждение</h3>
+    <p id="passwordHint">Введите пароль.</p>
+    <input type="password" id="passwordInput" placeholder="Пароль" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn gray small" id="cancelPassword">Отмена</button>
+      <button class="btn green small" id="confirmPassword">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ====== ПАРОЛИ ======
+  var SERVICE_PASSWORD = '1234';
+  var MASTER_PASSWORD  = '11';
+
+  // ====== ОКНА ПРИЁМА ЗАЯВОК ======
+  var ACCEPT_WINDOWS = [
+    { start: 3,  end: 6  },   // 03:00 – 06:00
+    { start: 15, end: 18 }    // 15:00 – 18:00
+  ];
+
+  // ====== Службы ======
+  var SERVICES = [
+    { id: 'energy',   name: 'Энергетик' },
+    { id: 'kip',      name: 'КиП' },
+    { id: 'npo',      name: 'НПО' },
+    { id: 'vo',       name: 'ВО' },
+    { id: 'bpo',      name: 'БПО' },
+    { id: 'pipe',     name: 'Трубная база' },
+    { id: 'spt',      name: 'СПТ' }
+  ];
+
+  // ====== Бригады ======
+  var BRIGADES = [
+    'Бригада 2', 'Бригада 26', 'Бригада 37', 'Бригада 38', 'Бригада 45',
+    'Бригада 53', 'Бригада 59', 'Бригада 61', 'Бригада 62', 'Бригада 63',
+    'Бригада 65', 'Бригада 69', 'Бригада 70', 'Бригада 129', 'Бригада 136'
+  ];
+
+  var STORAGE_KEY = 'requests_v2';
+  var memoryStore = null;
+  var allRequests = [];
+
+  var selectedServiceId = '';
+
+  // ====== ПРОВЕРКА ВРЕМЕНИ ======
+  function isAcceptingNow() {
+    var h = new Date().getHours();
+    for (var i = 0; i < ACCEPT_WINDOWS.length; i++) {
+      var w = ACCEPT_WINDOWS[i];
+      if (h >= w.start && h < w.end) return true;
+    }
+    return false;
+  }
+
+  function fmtHour(h) {
+    return (h < 10 ? '0' : '') + h + ':00';
+  }
+
+  function acceptWindowText() {
+    var parts = [];
+    for (var i = 0; i < ACCEPT_WINDOWS.length; i++) {
+      parts.push('с ' + fmtHour(ACCEPT_WINDOWS[i].start) + ' до ' + fmtHour(ACCEPT_WINDOWS[i].end));
+    }
+    return 'Заявки принимаются ' + parts.join(' и ') + '.';
+  }
+
+  function nextWindowStart(from) {
+    from = from || new Date();
+    var best = null;
+    for (var i = 0; i < ACCEPT_WINDOWS.length; i++) {
+      var w = ACCEPT_WINDOWS[i];
+      var cand = new Date(from.getFullYear(), from.getMonth(), from.getDate(), w.start, 0, 0, 0);
+      if (cand <= from) {
+        cand = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 1, w.start, 0, 0, 0);
+      }
+      if (!best || cand < best) best = cand;
+    }
+    return best;
+  }
+
+  function currentWindowEnd(from) {
+    from = from || new Date();
+    var h = from.getHours();
+    for (var i = 0; i < ACCEPT_WINDOWS.length; i++) {
+      var w = ACCEPT_WINDOWS[i];
+      if (h >= w.start && h < w.end) {
+        return new Date(from.getFullYear(), from.getMonth(), from.getDate(), w.end, 0, 0, 0);
+      }
+    }
+    return null;
+  }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  function formatDuration(ms) {
+    if (ms < 0) ms = 0;
+    var totalSec = Math.floor(ms / 1000);
+    var h = Math.floor(totalSec / 3600);
+    var m = Math.floor((totalSec % 3600) / 60);
+    var s = totalSec % 60;
+    return pad2(h) + ':' + pad2(m) + ':' + pad2(s);
+  }
+
+  // ====== СЛОЙ ДАННЫХ ======
+  function loadRequests() {
+    if (memoryStore) return memoryStore;
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.warn('localStorage недоступен');
+      return memoryStore || [];
+    }
+  }
+
+  function saveRequests(list) {
+    memoryStore = list;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch (e) {
+      console.warn('Не удалось сохранить в localStorage');
+    }
+  }
+
+  function addRequest(req) {
+    var list = loadRequests();
+    list.push(req);
+    saveRequests(list);
+    allRequests = list;
+    renderHome();
+  }
+
+  function setServiceDone(id) {
+    var list = loadRequests();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) {
+        list[i].status = 'service_done';
+        list[i].serviceDoneAt = Date.now();
+      }
+    }
+    saveRequests(list);
+    allRequests = list;
+  }
+
+  function setClosed(id) {
+    var list = loadRequests();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) {
+        list[i].status = 'closed';
+        list[i].closedAt = Date.now();
+      }
+    }
+    saveRequests(list);
+    allRequests = list;
+  }
+
+  function syncRequests() {
+    allRequests = loadRequests();
+    renderHome();
+  }
+
+  // ====== Элементы ======
+  var servicesGrid = document.getElementById('servicesGrid');
+  var servicePicker = document.getElementById('servicePicker');
+  var reqBrigadeSelect = document.getElementById('reqBrigade');
+  var serviceView = document.getElementById('serviceView');
+  var homeView = document.getElementById('homeView');
+  var historyView = document.getElementById('historyView');
+  var serviceTitle = document.getElementById('serviceTitle');
+  var requestsList = document.getElementById('requestsList');
+  var toastEl = document.getElementById('toast');
+  var passwordModal = document.getElementById('passwordModal');
+  var passwordInput = document.getElementById('passwordInput');
+  var passwordTitle = document.getElementById('passwordTitle');
+  var passwordHint = document.getElementById('passwordHint');
+  var confirmBtn = document.getElementById('confirmPassword');
+  var submitBtn = document.getElementById('submitBtn');
+  var closedBanner = document.getElementById('closedBanner');
+  var bannerText = document.getElementById('bannerText');
+  var countdownEl = document.getElementById('countdown');
+  var reqDescEl = document.getElementById('reqDesc');
+
+  var pendingAction = null;
+
+  function showToast(msg, isError) {
+    toastEl.textContent = msg;
+    toastEl.classList.toggle('error', !!isError);
+    toastEl.classList.add('show');
+    setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+
+  function serviceName(id) {
+    for (var i = 0; i < SERVICES.length; i++) if (SERVICES[i].id === id) return SERVICES[i].name;
+    return id;
+  }
+
+  function statusLabel(status) {
+    if (status === 'new') return 'Новая';
+    if (status === 'service_done') return 'Ждёт мастера';
+    if (status === 'closed') return 'Закрыта';
+    return status;
+  }
+
+  function newCount(serviceId) {
+    var n = 0;
+    for (var i = 0; i < allRequests.length; i++) {
+      if (allRequests[i].serviceId === serviceId && allRequests[i].status === 'new') n++;
+    }
+    return n;
+  }
+
+  function waitCount(serviceId) {
+    var n = 0;
+    for (var i = 0; i < allRequests.length; i++) {
+      if (allRequests[i].serviceId === serviceId && allRequests[i].status === 'service_done') n++;
+    }
+    return n;
+  }
+
+  function updateBannerAndCountdown() {
+    var now = new Date();
+    var open = isAcceptingNow();
+
+    if (open) {
+      closedBanner.className = 'closed-banner is-open';
+      bannerText.textContent = 'Приём заявок открыт. До закрытия осталось:';
+      var end = currentWindowEnd(now);
+      countdownEl.textContent = end ? formatDuration(end - now) : '--:--:--';
+    } else {
+      closedBanner.className = 'closed-banner is-closed';
+      bannerText.textContent = 'Приём заявок закрыт. ' + acceptWindowText() + ' До открытия осталось:';
+      var start = nextWindowStart(now);
+      countdownEl.textContent = start ? formatDuration(start - now) : '--:--:--';
+    }
+  }
+
+  function applyAcceptWindow() {
+    var open = isAcceptingNow();
+    reqBrigadeSelect.disabled = !open;
+    reqDescEl.disabled = !open;
+    submitBtn.disabled = !open;
+
+    var pickBtns = servicePicker.querySelectorAll('.service-pick-btn');
+    for (var i = 0; i < pickBtns.length; i++) {
+      pickBtns[i].disabled = !open;
+    }
+
+    updateBannerAndCountdown();
+  }
+
+  function renderServicePicker() {
+    var html = '';
+    for (var i = 0; i < SERVICES.length; i++) {
+      var s = SERVICES[i];
+      var active = (s.id === selectedServiceId) ? ' active' : '';
+      html += '<button type="button" class="service-pick-btn' + active + '" data-id="' + s.id + '">' + s.name + '</button>';
+    }
+    servicePicker.innerHTML = html;
+
+    var btns = servicePicker.querySelectorAll('.service-pick-btn');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].addEventListener('click', function () {
+        var id = this.getAttribute('data-id');
+        selectedServiceId = (selectedServiceId === id) ? '' : id;
+        renderServicePicker();
+      });
+    }
+  }
+
+  function renderHome() {
+    var bopts = '<option value="">— выберите бригаду —</option>';
+    for (var b = 0; b < BRIGADES.length; b++) {
+      bopts += '<option value="' + BRIGADES[b] + '">' + BRIGADES[b] + '</option>';
+    }
+    reqBrigadeSelect.innerHTML = bopts;
+
+    renderServicePicker();
+
+    var html = '';
+    for (var j = 0; j < SERVICES.length; j++) {
+      var s = SERVICES[j];
+      var nNew = newCount(s.id);
+      var nWait = waitCount(s.id);
+      var hasNew = nNew > 0;
+      html += '<div class="service-card ' + (hasNew ? 'has-new' : '') + '" data-id="' + s.id + '">';
+      if (hasNew) html += '<span class="dot"></span>';
+      html += '<h3>' + s.name + '</h3>';
+      if (hasNew) {
+        html += '<span class="badge">' + nNew + ' новых</span>';
+      } else if (nWait > 0) {
+        html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
+      } else {
+        html += '<span class="badge ok">Нет новых</span>';
+      }
+      html += '</div>';
+    }
+    servicesGrid.innerHTML = html;
+
+    var cards = servicesGrid.querySelectorAll('.service-card');
+    for (var k = 0; k < cards.length; k++) {
+      cards[k].addEventListener('click', function () {
+        openService(this.getAttribute('data-id'));
+      });
+    }
+
+    applyAcceptWindow();
+  }
+
+  function openService(serviceId) {
+    var service = null;
+    for (var i = 0; i < SERVICES.length; i++) {
+      if (SERVICES[i].id === serviceId) service = SERVICES[i];
+    }
+    if (!service) return;
+    serviceTitle.textContent = service.name;
+    serviceTitle.setAttribute('data-service-id', serviceId);
+    homeView.classList.add('hidden');
+    historyView.classList.add('hidden');
+    serviceView.classList.remove('hidden');
+    renderServiceRequests(serviceId);
+  }
+
+  function renderServiceRequests(serviceId) {
+    var list = allRequests.filter(function (r) { return r.serviceId === serviceId; });
+    list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    if (!list.length) {
+      requestsList.innerHTML = '<p class="empty">Заявок нет.</p>';
+      return;
+    }
+
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i];
+      var status = r.status || 'new';
+      var author = r.brigade ? r.brigade : (r.name ? r.name : 'Без бригады');
+
+      html += '<div class="request status-' + status + '">';
+      html += '<div><strong>' + escapeHtml(author) + '</strong>: ' + escapeHtml(r.desc) + '</div>';
+      html += '<div class="meta">' +
+              new Date(r.createdAt).toLocaleString('ru-RU') +
+              ' · <b>' + statusLabel(status) + '</b>' +
+              (r.serviceDoneAt ? ' · служба: ' + new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '') +
+              (r.closedAt ? ' · закрыта: ' + new Date(r.closedAt).toLocaleString('ru-RU') : '') +
+              '</div>';
+      html += '<div class="actions">';
+      if (status === 'new') {
+        html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
+      } else if (status === 'service_done') {
+        html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
+      } else if (status === 'closed') {
+        html += '<span class="badge ok">Закрыта</span>';
+      }
+      html += '</div></div>';
+    }
+    requestsList.innerHTML = html;
+
+    var btns = requestsList.querySelectorAll('[data-action]');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].addEventListener('click', function () {
+        openPasswordModal(this.getAttribute('data-action'), this.getAttribute('data-id'));
+      });
+    }
+  }
+
+  function renderHistory() {
+    var fs = document.getElementById('filterService');
+    var fb = document.getElementById('filterBrigade');
+    var fsVal = fs.value;
+    var fbVal = fb.value;
+
+    var sopts = '<option value="">Все службы</option>';
+    for (var i = 0; i < SERVICES.length; i++) {
+      sopts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
+    }
+    fs.innerHTML = sopts;
+    fs.value = fsVal;
+
+    var bopts = '<option value="">Все бригады</option>';
+    for (var b = 0; b < BRIGADES.length; b++) {
+      bopts += '<option value="' + BRIGADES[b] + '">' + BRIGADES[b] + '</option>';
+    }
+    fb.innerHTML = bopts;
+    fb.value = fbVal;
+
+    var total = allRequests.length;
+    var nNew = 0, nWait = 0, nClosed = 0;
+    for (var s = 0; s < allRequests.length; s++) {
+      var st = allRequests[s].status || 'new';
+      if (st === 'new') nNew++;
+      else if (st === 'service_done') nWait++;
+      else if (st === 'closed') nClosed++;
+    }
+    document.getElementById('historyStats').innerHTML =
+      '<div class="stat"><div class="num">' + total + '</div><div class="lbl">Всего</div></div>' +
+      '<div class="stat red"><div class="num">' + nNew + '</div><div class="lbl">Новых</div></div>' +
+      '<div class="stat wait"><div class="num">' + nWait + '</div><div class="lbl">Ждут мастера</div></div>' +
+      '<div class="stat ok"><div class="num">' + nClosed + '</div><div class="lbl">Закрытых</div></div>';
+
+    var fStatus = document.getElementById('filterStatus').value;
+    var fService = fs.value;
+    var fBrigade = fb.value;
+
+    var filtered = allRequests.filter(function (r) {
+      if (fStatus && (r.status || 'new') !== fStatus) return false;
+      if (fService && r.serviceId !== fService) return false;
+      if (fBrigade && r.brigade !== fBrigade) return false;
+      return true;
+    });
+    filtered.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    if (!filtered.length) {
+      document.getElementById('historyContent').innerHTML = '<p class="empty">Заявок по выбранным фильтрам нет.</p>';
+      return;
+    }
+
+    var rows = '';
+    for (var k = 0; k < filtered.length; k++) {
+      var r = filtered[k];
+      var status = r.status || 'new';
+      rows += '<tr>';
+      rows += '<td>' + new Date(r.createdAt).toLocaleString('ru-RU') + '</td>';
+      rows += '<td>' + escapeHtml(serviceName(r.serviceId)) + '</td>';
+      rows += '<td>' + escapeHtml(r.brigade || '—') + '</td>';
+      rows += '<td>' + escapeHtml(r.desc) + '</td>';
+      rows += '<td class="status-' + status + '">' + statusLabel(status) + '</td>';
+      rows += '<td>' + (r.serviceDoneAt ? new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '—') + '</td>';
+      rows += '<td>' + (r.closedAt ? new Date(r.closedAt).toLocaleString('ru-RU') : '—') + '</td>';
+      rows += '</tr>';
+    }
+
+    document.getElementById('historyContent').innerHTML =
+      '<table class="history-table">' +
+      '<thead><tr>' +
+      '<th>Подана</th><th>Служба</th><th>Бригада</th><th>Описание</th>' +
+      '<th>Статус</th><th>Служба выполнила</th><th>Закрыта</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  function openHistory() {
+    homeView.classList.add('hidden');
+    serviceView.classList.add('hidden');
+    historyView.classList.remove('hidden');
+    renderHistory();
+  }
+
+  function exportCsv() {
+    var fStatus = document.getElementById('filterStatus').value;
+    var fService = document.getElementById('filterService').value;
+    var fBrigade = document.getElementById('filterBrigade').value;
+
+    var filtered = allRequests.filter(function (r) {
+      if (fStatus && (r.status || 'new') !== fStatus) return false;
+      if (fService && r.serviceId !== fService) return false;
+      if (fBrigade && r.brigade !== fBrigade) return false;
+      return true;
+    });
+    filtered.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    var headers = ['Подана', 'Служба', 'Бригада', 'Описание', 'Статус', 'Служба выполнила', 'Закрыта'];
+    var lines = [headers.join(';')];
+    for (var i = 0; i < filtered.length; i++) {
+      var r = filtered[i];
+      var status = r.status || 'new';
+      var row = [
+        new Date(r.createdAt).toLocaleString('ru-RU'),
+        serviceName(r.serviceId),
+        r.brigade || '',
+        (r.desc || '').replace(/[\r\n;]+/g, ' '),
+        statusLabel(status),
+        r.serviceDoneAt ? new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '',
+        r.closedAt ? new Date(r.closedAt).toLocaleString('ru-RU') : ''
+      ];
+      lines.push(row.join(';'));
+    }
+
+    var csv = '\uFEFF' + lines.join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'Заявки_история.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('История выгружена в CSV.');
+  }
+
+  function openPasswordModal(action, id) {
+    pendingAction = { type: action, id: id };
+    passwordInput.value = '';
+
+    if (action === 'service_done') {
+      passwordTitle.textContent = 'Подтверждение службы';
+      passwordHint.textContent = 'Введите пароль службы, чтобы отметить выполнение.';
+      confirmBtn.className = 'btn orange small';
+    } else if (action === 'closed') {
+      passwordTitle.textContent = 'Подтверждение мастера';
+      passwordHint.textContent = 'Введите пароль мастера, чтобы закрыть заявку.';
+      confirmBtn.className = 'btn green small';
+    }
+    passwordModal.classList.remove('hidden');
+    passwordInput.focus();
+  }
+
+  function closePasswordModal() {
+    passwordModal.classList.add('hidden');
+    passwordInput.value = '';
+    pendingAction = null;
+  }
+
+  function confirmPassword() {
+    if (!pendingAction) { closePasswordModal(); return; }
+    var type = pendingAction.type;
+    var id = pendingAction.id;
+
+    var requiredPassword = (type === 'service_done') ? SERVICE_PASSWORD : MASTER_PASSWORD;
+    if (passwordInput.value !== requiredPassword) {
+      showToast('Неверный пароль', true);
+      passwordInput.value = '';
+      passwordInput.focus();
+      return;
+    }
+
+    closePasswordModal();
+
+    if (type === 'service_done') {
+      setServiceDone(id);
+      showToast('Служба подтвердила выполнение. Ждём мастера.');
+    } else if (type === 'closed') {
+      setClosed(id);
+      showToast('Мастер подтвердил. Заявка закрыта.');
+    }
+
+    var currentServiceId = serviceTitle.getAttribute('data-service-id');
+    if (currentServiceId) renderServiceRequests(currentServiceId);
+    renderHome();
+    if (!historyView.classList.contains('hidden')) renderHistory();
+  }
+
+  confirmBtn.addEventListener('click', confirmPassword);
+  document.getElementById('cancelPassword').addEventListener('click', closePasswordModal);
+
+  passwordInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') confirmPassword();
+    if (e.key === 'Escape') closePasswordModal();
+  });
+
+  passwordModal.addEventListener('click', function (e) {
+    if (e.target === passwordModal) closePasswordModal();
+  });
+
+  document.getElementById('requestForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!isAcceptingNow()) {
+      showToast('Приём заявок закрыт. ' + acceptWindowText(), true);
+      applyAcceptWindow();
+      return;
+    }
+
+    var serviceId = selectedServiceId;
+    var brigade = reqBrigadeSelect.value;
+    var desc = reqDescEl.value.trim();
+
+    if (!serviceId) { showToast('Выберите службу', true); return; }
+    if (!brigade)   { showToast('Выберите бригаду', true); return; }
+    if (!desc)      { showToast('Введите описание', true); return; }
+
+    addRequest({
+      id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      serviceId: serviceId,
+      brigade: brigade,
+      desc: desc,
+      createdAt: Date.now(),
+      status: 'new'
+    });
+
+    reqDescEl.value = '';
+    reqBrigadeSelect.value = '';
+    selectedServiceId = '';
+    renderServicePicker();
+
+    showToast('Заявка отправлена! Служба подсвечена красным.');
+  });
+
+  document.getElementById('backBtn').addEventListener('click', function () {
+    serviceView.classList.add('hidden');
+    homeView.classList.remove('hidden');
+    serviceTitle.removeAttribute('data-service-id');
+    renderHome();
+  });
+
+  document.getElementById('openHistoryBtn').addEventListener('click', openHistory);
+  document.getElementById('backFromHistory').addEventListener('click', function () {
+    historyView.classList.add('hidden');
+    homeView.classList.remove('hidden');
+    renderHome();
+  });
+
+  document.getElementById('filterStatus').addEventListener('change', renderHistory);
+  document.getElementById('filterService').addEventListener('change', renderHistory);
+  document.getElementById('filterBrigade').addEventListener('change', renderHistory);
+  document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+
+  syncRequests();
+
+  var lastOpenState = isAcceptingNow();
+  setInterval(function () {
+    var open = isAcceptingNow();
+    if (open !== lastOpenState) {
+      lastOpenState = open;
+      applyAcceptWindow();
+    } else {
+      updateBannerAndCountdown();
+    }
+  }, 1000);
+</script>
+</body>
+</html>
