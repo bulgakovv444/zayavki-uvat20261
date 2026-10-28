@@ -409,6 +409,7 @@
   
   var loggedService = { name: '', phone: '', role: '' };
   var currentDetailServiceId = '';
+  var currentDetailViewMode = 'master'; // 'master' или 'service'
 
   // ====== ЭЛЕМЕНТЫ ======
   var tabMaster = document.getElementById('tabMaster');
@@ -582,14 +583,15 @@
     var cards = container.querySelectorAll('.service-card');
     for (var k = 0; k < cards.length; k++) {
       cards[k].addEventListener('click', function () { 
-        openServiceDetail(this.getAttribute('data-id'), isServiceMode); 
+        openServiceDetail(this.getAttribute('data-id'), isServiceMode ? 'service' : 'master'); 
       });
     }
   }
 
   // ====== ПРОСМОТР ДЕТАЛЕЙ СЛУЖБЫ ======
-  function openServiceDetail(serviceId, isServiceMode) {
+  function openServiceDetail(serviceId, mode) {
     currentDetailServiceId = serviceId;
+    currentDetailViewMode = mode;
     detailTitle.textContent = serviceName(serviceId);
     
     masterView.classList.add('hidden');
@@ -597,18 +599,17 @@
     historyView.classList.add('hidden');
     requestsDetailView.classList.remove('hidden');
     
-    renderDetailRequests(serviceId, isServiceMode);
+    renderDetailRequests(serviceId, mode);
   }
 
-  function renderDetailRequests(serviceId, isServiceMode) {
+  function renderDetailRequests(serviceId, mode) {
     var list = allRequests.filter(function (r) { return r.serviceId === serviceId; });
     list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
 
     if (!list.length) { detailRequestsList.innerHTML = '<p class="empty">Заявок нет.</p>'; return; }
 
-    // Проверяем, является ли эта служба "родной" для авторизованного сотрудника
     var isMyService = false;
-    if (isServiceMode && loggedService.role) {
+    if (mode === 'service' && loggedService.role) {
       var myServiceId = '';
       for (var i = 0; i < SERVICES.length; i++) {
         if (SERVICES[i].name === loggedService.role) myServiceId = SERVICES[i].id;
@@ -636,16 +637,18 @@
 
       html += '<div class="actions">';
       if (status === 'new') {
-        if (isMyService) {
+        if (mode === 'service' && isMyService) {
           html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
         } else {
           html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения</span>';
         }
       } else if (status === 'service_done') {
-        if (isMyService) {
-          html += '<span class="badge wait">Ожидает мастера</span>';
+        // Если мастер зашел - он может подтвердить. Если служба зашла - она видит, что ждут мастера.
+        if (mode === 'master') {
+          html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
+          html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
         } else {
-          html += '<span class="badge wait">Ждёт мастера</span>';
+          html += '<span class="badge wait">Ожидает мастера</span>';
         }
       } else if (status === 'closed') {
         html += '<span class="badge ok">Закрыта</span>';
@@ -662,7 +665,7 @@
 
   document.getElementById('backFromDetail').addEventListener('click', function() {
     requestsDetailView.classList.add('hidden');
-    if (loggedService.name) {
+    if (currentDetailViewMode === 'service') {
       serviceView.classList.remove('hidden');
       renderServicesGrid(serviceServicesGrid, true);
     } else {
@@ -680,6 +683,23 @@
       servicePasswordInput.value = '';
       servicePasswordModal.classList.remove('hidden');
       servicePasswordInput.focus();
+    } else if (action === 'return') {
+      pendingReturnId = id;
+      returnCommentInput.value = '';
+      returnModal.classList.remove('hidden');
+      returnCommentInput.focus();
+    } else if (action === 'closed') {
+      var updates = {};
+      var currentEvents = req.events || [];
+      var newEvent = { 
+        text: '🔒 Мастер подтвердил (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + ')', 
+        time: Date.now() 
+      };
+      updates.status = 'closed';
+      updates.closedAt = Date.now();
+      updates.events = currentEvents.concat([newEvent]);
+      await update(ref(db, 'requests/' + id), updates);
+      showToast('Мастер подтвердил. Заявка закрыта.');
     }
   }
 
@@ -716,6 +736,37 @@
   cancelServicePasswordBtn.addEventListener('click', function() {
     servicePasswordModal.classList.add('hidden');
     pendingServiceDoneId = null;
+  });
+
+  confirmReturnBtn.addEventListener('click', async function() {
+    var comment = returnCommentInput.value.trim();
+    if (!comment) { showToast('Укажите причину возврата', true); return; }
+    if (!pendingReturnId) return;
+
+    var req = allRequests.find(function(item) { return item.id === pendingReturnId; });
+    if (!req) return;
+
+    var currentEvents = req.events || [];
+    var newEvent = { 
+      text: '↩ Возврат в работу (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + '). Причина: ' + comment, 
+      time: Date.now() 
+    };
+
+    var updates = {
+      status: 'new',
+      serviceDoneAt: null,
+      events: currentEvents.concat([newEvent])
+    };
+
+    returnModal.classList.add('hidden');
+    pendingReturnId = null;
+    await update(ref(db, 'requests/' + req.id), updates);
+    showToast('Заявка возвращена в работу.');
+  });
+
+  cancelReturnBtn.addEventListener('click', function() {
+    returnModal.classList.add('hidden');
+    pendingReturnId = null;
   });
 
   // ====== ОТРИСОВКА ГЛАВНОГО ЭКРАНА (МАСТЕР) ======
@@ -991,7 +1042,7 @@
     if (loggedService.name) {
       renderServicesGrid(serviceServicesGrid, true);
       if (currentDetailServiceId && !requestsDetailView.classList.contains('hidden')) {
-        renderDetailRequests(currentDetailServiceId, true);
+        renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
       }
     }
     
