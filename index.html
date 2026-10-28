@@ -257,21 +257,21 @@
 
   <!-- Вкладки -->
   <div class="tabs">
-    <button class="tab-btn" id="tabMaster">Вход для мастера</button>
+    <button class="tab-btn" id="tabMaster">Вход для мастера, ИТР</button>
     <button class="tab-btn" id="tabService">Вход для службы</button>
     <button class="tab-btn" id="tabHistory">📋 История заявок</button>
     <button class="tab-btn" id="tabAdmin">🔐 Панель управления</button>
   </div>
 
-  <!-- ЭКРАН 1: МАСТЕР -->
+  <!-- ЭКРАН 1: МАСТЕР / ИТР -->
   <div id="masterView" class="hidden">
     <div id="masterLoginBlock" class="login-box">
-      <h2>Вход для мастера</h2>
+      <h2>Вход для мастера, ИТР</h2>
       <p>Введите ваши данные. При первом входе потребуется подтверждение Главного инженера.</p>
-      <input type="text" id="loginMasterName" placeholder="Ваше имя (мастер)" autocomplete="off">
+      <input type="text" id="loginMasterName" placeholder="Ваше имя" autocomplete="off">
       <input type="tel" id="loginMasterPhone" placeholder="Ваш номер телефона" autocomplete="off">
       <select id="loginMasterBrigade">
-        <option value="">— выберите вашу бригаду —</option>
+        <option value="">— выберите вашу должность / бригаду —</option>
       </select>
       <button class="btn block" id="loginMasterBtn">Войти в систему</button>
     </div>
@@ -279,7 +279,7 @@
     <div id="masterWorkBlock" class="hidden">
       <div class="header-bar">
         <div>
-          <h2>Рабочий стол мастера</h2>
+          <h2>Рабочий стол</h2>
           <div class="user-info">Вы вошли как: <strong id="loggedMasterBrigade"></strong> (<span id="loggedMasterName"></span>)</div>
         </div>
         <button class="btn gray small" id="logoutMasterBtn">Выйти</button>
@@ -546,17 +546,19 @@
     { id: 'bpo',      name: 'БПО' },
     { id: 'pipe',     name: 'Трубная база' },
     { id: 'spt',      name: 'СПТ' },
-    { id: 'shift',    name: 'Нач.Смены' } // Добавлено
+    { id: 'shift',    name: 'Нач.Смены' } 
   ];
   
   var BRIGADES = [
     'Главный энергетик', 
     'Технолог',
-    'Зам. исполнительного директора', // Добавлено
-    'Главный механик ВО',             // Добавлено
-    'Главный механик НПО',            // Добавлено
-    'Начальник БПО',                  // Добавлено
-    'Нач.смены',                      // Добавлено
+    'Зам. исполнительного директора', 
+    'Главный механик ВО',             
+    'Главный механик НПО',            
+    'Начальник БПО',                  
+    'Нач.смены',
+    'Начальник цеха',      
+    'Ведущий инженер',     
     'Бригада 2', 'Бригада 26', 'Бригада 37', 'Бригада 38', 'Бригада 45',
     'Бригада 53', 'Бригада 59', 'Бригада 61', 'Бригада 62', 'Бригада 63',
     'Бригада 65', 'Бригада 69', 'Бригада 70', 'Бригада 129', 'Бригада 136'
@@ -1069,7 +1071,7 @@
       usersHtml += '<div class="moderation-user ' + statusClass + '">';
       usersHtml += '<div class="info">';
       usersHtml += '<strong>' + escapeHtml(u.name) + '</strong> (' + escapeHtml(u.phone) + ')<br>';
-      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + '</span>';
+      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + '</span>';
       usersHtml += '</div>';
       usersHtml += '<div class="btns">';
       if (u.status !== 'approved') {
