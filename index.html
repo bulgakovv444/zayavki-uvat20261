@@ -147,7 +147,8 @@
   .history-table .status-closed { color: #10b981; font-weight: 600; }
 
   .event-log {
-    font-size: 12px; color: #4b5563; margin-top: 4px; line-height: 1.4;
+    font-size: 12px; color: #4b5563; margin-top: 6px; line-height: 1.5;
+    background: #f8fafc; padding: 8px; border-radius: 4px;
   }
   .event-log div { margin-bottom: 2px; }
 
@@ -266,22 +267,28 @@
 
 </div>
 
-<!-- Модальное окно для действий -->
-<div class="modal-overlay hidden" id="actionModal">
+<!-- Модальное окно для ввода причины возврата -->
+<div class="modal-overlay hidden" id="returnModal">
   <div class="modal">
-    <h3 id="actionTitle">Подтверждение</h3>
-    <p id="actionHint">Подтвердите действие.</p>
-    
-    <!-- Поля для ввода имени и телефона при действии -->
-    <input type="text" id="actionName" placeholder="Ваше имя" autocomplete="off">
-    <input type="tel" id="actionPhone" placeholder="Номер телефона" autocomplete="off">
-    
-    <!-- Поле для причины возврата (показывается только при возврате) -->
-    <textarea id="returnComment" placeholder="Укажите причину возврата..." class="hidden"></textarea>
-    
+    <h3>Возврат в работу</h3>
+    <p>Укажите причину, по которой заявка возвращается службе.</p>
+    <textarea id="returnCommentInput" placeholder="Например: Течь не устранена..." autocomplete="off"></textarea>
     <div class="modal-actions">
-      <button class="btn gray small" id="cancelAction">Отмена</button>
-      <button class="btn green small" id="confirmAction">Подтвердить</button>
+      <button class="btn gray small" id="cancelReturn">Отмена</button>
+      <button class="btn red small" id="confirmReturn">Вернуть</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для кода Главного энергетика -->
+<div class="modal-overlay hidden" id="chiefCodeModal">
+  <div class="modal">
+    <h3>Доступ для Главного энергетика</h3>
+    <p>Введите секретный код, чтобы отправить заявку.</p>
+    <input type="password" id="chiefCodeInput" placeholder="Секретный код" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn gray small" id="cancelChiefCode">Отмена</button>
+      <button class="btn green small" id="confirmChiefCode">Подтвердить</button>
     </div>
   </div>
 </div>
@@ -329,7 +336,7 @@
 
   var allRequests = [];
   var selectedServiceId = '';
-  var pendingAction = null;
+  var pendingReturnId = null;
 
   // ====== ЭЛЕМЕНТЫ ======
   var servicesGrid = document.getElementById('servicesGrid');
@@ -344,17 +351,19 @@
   var requestsList = document.getElementById('requestsList');
   var toastEl = document.getElementById('toast');
   
-  var actionModal = document.getElementById('actionModal');
-  var actionTitle = document.getElementById('actionTitle');
-  var actionHint = document.getElementById('actionHint');
-  var actionNameInput = document.getElementById('actionName');
-  var actionPhoneInput = document.getElementById('actionPhone');
-  var returnComment = document.getElementById('returnComment');
-  var confirmActionBtn = document.getElementById('confirmAction');
-  var cancelActionBtn = document.getElementById('cancelAction');
+  var returnModal = document.getElementById('returnModal');
+  var returnCommentInput = document.getElementById('returnCommentInput');
+  var confirmReturnBtn = document.getElementById('confirmReturn');
+  var cancelReturnBtn = document.getElementById('cancelReturn');
+  
+  var chiefCodeModal = document.getElementById('chiefCodeModal');
+  var chiefCodeInput = document.getElementById('chiefCodeInput');
+  var confirmChiefCodeBtn = document.getElementById('confirmChiefCode');
+  var cancelChiefCodeBtn = document.getElementById('cancelChiefCode');
   
   var reqDescEl = document.getElementById('reqDesc');
   var submitBtn = document.getElementById('submitBtn');
+  var pendingNewRequest = null;
 
   function showToast(msg, isError) {
     toastEl.textContent = msg;
@@ -539,10 +548,78 @@
 
     var btns = requestsList.querySelectorAll('[data-action]');
     for (var j = 0; j < btns.length; j++) {
-      btns[j].addEventListener('click', function () { openActionModal(this.getAttribute('data-action'), this.getAttribute('data-id')); });
+      btns[j].addEventListener('click', function () { handleAction(this.getAttribute('data-action'), this.getAttribute('data-id')); });
     }
   }
 
+  // ====== ОБРАБОТКА ДЕЙСТВИЙ (БЕЗ ПАРОЛЕЙ) ======
+  async function handleAction(action, id) {
+    var req = allRequests.find(function(item) { return item.id === id; });
+    if (!req) return;
+
+    if (action === 'return') {
+      // Для возврата нужно запросить причину
+      pendingReturnId = id;
+      returnCommentInput.value = '';
+      returnModal.classList.remove('hidden');
+      returnCommentInput.focus();
+      return;
+    }
+
+    // Для выполнения и закрытия пароли не нужны, данные подтягиваются из заявки
+    var updates = {};
+    var currentEvents = req.events || [];
+    var newEvent = { text: '', time: Date.now() };
+
+    if (action === 'service_done') {
+      updates.status = 'service_done';
+      updates.serviceDoneAt = Date.now();
+      newEvent.text = '✅ Служба выполнила (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + ')';
+      showToast('Служба подтвердила выполнение. Ждём мастера.');
+    } else if (action === 'closed') {
+      updates.status = 'closed';
+      updates.closedAt = Date.now();
+      newEvent.text = '🔒 Мастер подтвердил (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + ')';
+      showToast('Мастер подтвердил. Заявка закрыта.');
+    }
+
+    updates.events = currentEvents.concat([newEvent]);
+    await update(ref(db, 'requests/' + id), updates);
+  }
+
+  // Обработка модального окна возврата
+  confirmReturnBtn.addEventListener('click', async function() {
+    var comment = returnCommentInput.value.trim();
+    if (!comment) { showToast('Укажите причину возврата', true); return; }
+    if (!pendingReturnId) return;
+
+    var req = allRequests.find(function(item) { return item.id === pendingReturnId; });
+    if (!req) return;
+
+    var currentEvents = req.events || [];
+    var newEvent = { 
+      text: '↩ Возврат в работу (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + '). Причина: ' + comment, 
+      time: Date.now() 
+    };
+
+    var updates = {
+      status: 'new',
+      serviceDoneAt: null,
+      events: currentEvents.concat([newEvent])
+    };
+
+    returnModal.classList.add('hidden');
+    pendingReturnId = null;
+    await update(ref(db, 'requests/' + req.id), updates);
+    showToast('Заявка возвращена в работу.');
+  });
+
+  cancelReturnBtn.addEventListener('click', function() {
+    returnModal.classList.add('hidden');
+    pendingReturnId = null;
+  });
+
+  // ====== ИСТОРИЯ И ЭКСПОРТ ======
   function renderHistory() {
     var fs = document.getElementById('filterService');
     var fb = document.getElementById('filterBrigade');
@@ -584,7 +661,6 @@
     for (var k = 0; k < filtered.length; k++) {
       var r = filtered[k]; var status = r.status || 'new';
       
-      // Формируем текстовую хронологию для таблицы
       var historyText = '🕒 Подана: ' + formatDate(r.createdAt);
       if (r.events && r.events.length) {
         for (var e = 0; e < r.events.length; e++) {
@@ -609,7 +685,6 @@
     homeView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.remove('hidden'); renderHistory();
   }
 
-  // Выгрузка в Excel (CSV, который открывается в Excel)
   function exportCsv() {
     var fStatus = document.getElementById('filterStatus').value, fService = document.getElementById('filterService').value, fBrigade = document.getElementById('filterBrigade').value;
     var filtered = allRequests.filter(function (r) {
@@ -626,7 +701,6 @@
     for (var i = 0; i < filtered.length; i++) {
       var r = filtered[i]; var status = r.status || 'new';
       
-      // Собираем хронологию в одну строку через переносы
       var historyText = 'Подана: ' + formatDate(r.createdAt);
       if (r.events && r.events.length) {
         for (var e = 0; e < r.events.length; e++) {
@@ -655,94 +729,7 @@
     showToast('История выгружена в Excel (CSV).');
   }
 
-  // ====== МОДАЛЬНОЕ ОКНО ДЛЯ ДЕЙСТВИЙ ======
-  function openActionModal(action, id) {
-    pendingAction = { type: action, id: id };
-    actionNameInput.value = localStorage.getItem('sv_name') || '';
-    actionPhoneInput.value = localStorage.getItem('sv_phone') || '';
-    returnComment.value = '';
-    returnComment.classList.add('hidden');
-
-    if (action === 'service_done') {
-      actionTitle.textContent = 'Подтверждение службы';
-      actionHint.textContent = 'Укажите ваше имя и телефон, чтобы отметить выполнение.';
-      confirmActionBtn.className = 'btn orange small';
-    } else if (action === 'closed') {
-      actionTitle.textContent = 'Подтверждение мастера';
-      actionHint.textContent = 'Укажите ваше имя и телефон, чтобы закрыть заявку.';
-      confirmActionBtn.className = 'btn green small';
-    } else if (action === 'return') {
-      actionTitle.textContent = 'Возврат в работу';
-      actionHint.textContent = 'Укажите имя, телефон и причину возврата.';
-      confirmActionBtn.className = 'btn red small';
-      returnComment.classList.remove('hidden');
-    }
-    actionModal.classList.remove('hidden');
-    actionNameInput.focus();
-  }
-
-  function closeActionModal() {
-    actionModal.classList.add('hidden'); 
-    actionNameInput.value = ''; 
-    actionPhoneInput.value = '';
-    returnComment.value = ''; 
-    pendingAction = null;
-  }
-
-  async function confirmAction() {
-    if (!pendingAction) { closeActionModal(); return; }
-    
-    var name = actionNameInput.value.trim();
-    var phone = actionPhoneInput.value.trim();
-    var comment = returnComment.value.trim();
-    
-    if (!name) { showToast('Введите ваше имя', true); return; }
-    if (!phone) { showToast('Введите номер телефона', true); return; }
-    if (pendingAction.type === 'return' && !comment) { showToast('Укажите причину возврата', true); return; }
-
-    var type = pendingAction.type, id = pendingAction.id;
-    var updates = {};
-    
-    // Находим текущую заявку, чтобы добавить событие в историю
-    var req = allRequests.find(function(item) { return item.id === id; });
-    var currentEvents = req.events || [];
-    var newEvent = { text: '', time: Date.now() };
-    
-    if (type === 'service_done') {
-      updates.status = 'service_done';
-      updates.serviceDoneAt = Date.now();
-      newEvent.text = '✅ Служба выполнила (Сотрудник: ' + name + ', тел: ' + phone + ')';
-    } else if (type === 'closed') {
-      updates.status = 'closed';
-      updates.closedAt = Date.now();
-      newEvent.text = '🔒 Мастер подтвердил (Сотрудник: ' + name + ', тел: ' + phone + ')';
-    } else if (type === 'return') {
-      updates.status = 'new';
-      updates.serviceDoneAt = null;
-      newEvent.text = '↩ Возврат в работу (Сотрудник: ' + name + ', тел: ' + phone + '). Причина: ' + comment;
-    }
-    
-    updates.events = currentEvents.concat([newEvent]);
-
-    closeActionModal();
-    await update(ref(db, 'requests/' + id), updates);
-    
-    if (type === 'service_done') showToast('Служба подтвердила выполнение. Ждём мастера.');
-    else if (type === 'closed') showToast('Мастер подтвердил. Заявка закрыта.');
-    else if (type === 'return') showToast('Заявка возвращена в работу.');
-  }
-
-  confirmActionBtn.addEventListener('click', confirmAction);
-  cancelActionBtn.addEventListener('click', closeActionModal);
-  actionModal.addEventListener('click', function (e) { if (e.target === actionModal) closeActionModal(); });
-
-  // ====== МОДАЛЬНОЕ ОКНО ДЛЯ КОДА ГЛАВНОГО ЭНЕРГЕТИКА ======
-  var chiefCodeModal = document.getElementById('chiefCodeModal');
-  var chiefCodeInput = document.getElementById('chiefCodeInput');
-  var confirmChiefCodeBtn = document.getElementById('confirmChiefCode');
-  var cancelChiefCodeBtn = document.getElementById('cancelChiefCode');
-  var pendingNewRequest = null;
-
+  // ====== ОТПРАВКА ЗАЯВКИ (С КОДОМ ГЛАВНОГО ЭНЕРГЕТИКА) ======
   document.getElementById('requestForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -786,7 +773,7 @@
         desc: data.desc, 
         createdAt: Date.now(), 
         status: 'new',
-        events: [{ text: '📝 Заявка создана (Сотрудник: ' + data.name + ', тел: ' + data.phone + ')', time: Date.now() }]
+        events: [{ text: '📝 Заявка создана (Бригада: ' + data.brigade + ', Мастер: ' + data.name + ', Тел: ' + data.phone + ')', time: Date.now() }]
       });
 
       saveData(data.brigade, data.name, data.phone);
