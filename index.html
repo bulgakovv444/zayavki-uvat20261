@@ -402,43 +402,55 @@
         <button class="btn gray small" id="logoutAdminBtn">Выйти</button>
       </div>
 
-      <div class="card">
-        <h2>Управление приемом заявок</h2>
-        <div class="admin-controls">
-          <div>
-            <label>Интервал 1 (с)</label>
-            <input type="number" id="adminStart1" min="0" max="23" style="width:70px;">
-          </div>
-          <div>
-            <label>Интервал 1 (до)</label>
-            <input type="number" id="adminEnd1" min="0" max="23" style="width:70px;">
-          </div>
-          <div style="width:20px;"></div>
-          <div>
-            <label>Интервал 2 (с)</label>
-            <input type="number" id="adminStart2" min="0" max="23" style="width:70px;">
-          </div>
-          <div>
-            <label>Интервал 2 (до)</label>
-            <input type="number" id="adminEnd2" min="0" max="23" style="width:70px;">
-          </div>
-          <button class="btn small" id="saveScheduleBtn">Сохранить</button>
-          <button class="btn red small" id="toggleGlobalBtn">Остановить прием</button>
-        </div>
-        <div style="font-size:13px; color:#4b5563; margin-top:10px;">
-          Статус: <strong id="adminStatusText">Загрузка...</strong>
-        </div>
-      </div>
-      
-      <!-- Блок реестра пользователей -->
-      <div class="card" style="border-left: 4px solid #f59e0b;">
-        <h2>Реестр пользователей</h2>
-        <p style="color: #6b7280; font-size: 13px; margin-bottom: 12px;">Подтверждайте новых пользователей. Если пользователь сменил бригаду/службу, статус сохраняется.</p>
-        <div id="moderationList"></div>
+      <!-- Подвкладки админа -->
+      <div class="sub-tabs" style="margin-bottom: 20px;">
+        <button class="sub-tab-btn active" id="adminTabUsers">👥 Пользователи</button>
+        <button class="sub-tab-btn" id="adminTabRequests">📝 Заявки</button>
       </div>
 
-      <h2>Все заявки (полный доступ)</h2>
-      <div id="adminRequestsList"></div>
+      <!-- Блок пользователей -->
+      <div id="adminUsersBlock">
+        <div class="card" style="border-left: 4px solid #f59e0b;">
+          <h2>Реестр пользователей</h2>
+          <p style="color: #6b7280; font-size: 13px; margin-bottom: 12px;">Подтверждайте новых пользователей. Если пользователь сменил бригаду/службу, статус сохраняется.</p>
+          <div id="moderationList"></div>
+        </div>
+      </div>
+
+      <!-- Блок заявок -->
+      <div id="adminRequestsBlock" class="hidden">
+        <div class="card">
+          <h2>Управление приемом заявок</h2>
+          <div class="admin-controls">
+            <div>
+              <label>Интервал 1 (с)</label>
+              <input type="number" id="adminStart1" min="0" max="23" style="width:70px;">
+            </div>
+            <div>
+              <label>Интервал 1 (до)</label>
+              <input type="number" id="adminEnd1" min="0" max="23" style="width:70px;">
+            </div>
+            <div style="width:20px;"></div>
+            <div>
+              <label>Интервал 2 (с)</label>
+              <input type="number" id="adminStart2" min="0" max="23" style="width:70px;">
+            </div>
+            <div>
+              <label>Интервал 2 (до)</label>
+              <input type="number" id="adminEnd2" min="0" max="23" style="width:70px;">
+            </div>
+            <button class="btn small" id="saveScheduleBtn">Сохранить</button>
+            <button class="btn red small" id="toggleGlobalBtn">Остановить прием</button>
+          </div>
+          <div style="font-size:13px; color:#4b5563; margin-top:10px;">
+            Статус: <strong id="adminStatusText">Загрузка...</strong>
+          </div>
+        </div>
+
+        <h2>Все заявки (полный доступ)</h2>
+        <div id="adminRequestsList"></div>
+      </div>
+
     </div>
   </div>
 
@@ -518,7 +530,7 @@
   // ====== НАСТРОЙКИ ======
   var CHIEF_CODE = '7642';
   var SERVICE_PASSWORD = '1234';
-  var ADMIN_CODE = 'admin';
+  var ADMIN_CODE = 'admin2483'; // ОБНОВЛЕННЫЙ ПАРОЛЬ
 
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
@@ -590,6 +602,11 @@
 
   var adminLoginBlock = document.getElementById('adminLoginBlock');
   var adminWorkBlock = document.getElementById('adminWorkBlock');
+  var adminUsersBlock = document.getElementById('adminUsersBlock');
+  var adminRequestsBlock = document.getElementById('adminRequestsBlock');
+  var adminTabUsers = document.getElementById('adminTabUsers');
+  var adminTabRequests = document.getElementById('adminTabRequests');
+  
   var adminRequestsList = document.getElementById('adminRequestsList');
   var adminStatusText = document.getElementById('adminStatusText');
   var globalClosedAlert = document.getElementById('globalClosedAlert');
@@ -776,6 +793,17 @@
     renderMyRequests();
   });
 
+  // ====== ПОДВКЛАДКИ АДМИНА ======
+  adminTabUsers.addEventListener('click', function() {
+    adminTabUsers.classList.add('active'); adminTabRequests.classList.remove('active');
+    adminUsersBlock.classList.remove('hidden'); adminRequestsBlock.classList.add('hidden');
+  });
+  adminTabRequests.addEventListener('click', function() {
+    adminTabRequests.classList.add('active'); adminTabUsers.classList.remove('active');
+    adminUsersBlock.classList.add('hidden'); adminRequestsBlock.classList.remove('hidden');
+    renderAdminRequests(); // Перерисовываем заявки
+  });
+
   // ====== АВТОЗАПОЛНЕНИЕ И АВТОВХОД ======
   function loadSavedCredentials() {
     var mName = localStorage.getItem('save_m_name');
@@ -797,7 +825,6 @@
 
     if (savedMasterActive === 'true' && mName && mPhone && mBrigade) {
       loggedMaster = { name: mName, phone: mPhone, brigade: mBrigade, status: 'pending' };
-      // При загрузке мы проверим статус в базе данных ниже (в onValue)
       masterLoginBlock.classList.add('hidden');
       masterWorkBlock.classList.remove('hidden');
       loggedMasterBrigade.textContent = mBrigade;
@@ -954,7 +981,12 @@
     isAdminLoggedIn = true;
     adminLoginBlock.classList.add('hidden');
     adminWorkBlock.classList.remove('hidden');
-    renderAdminPanel();
+    
+    // По умолчанию показываем вкладку Пользователи
+    adminTabUsers.classList.add('active'); adminTabRequests.classList.remove('active');
+    adminUsersBlock.classList.remove('hidden'); adminRequestsBlock.classList.add('hidden');
+    
+    renderAdminUsers();
   });
 
   document.getElementById('logoutAdminBtn').addEventListener('click', function() {
@@ -990,8 +1022,62 @@
     showToast(newState ? 'Прием заявок остановлен' : 'Прием заявок возобновлен');
   });
 
-  // ====== АДМИН: ОТРИСОВКА ПАНЕЛИ ======
-  function renderAdminPanel() {
+  // ====== АДМИН: ОТРИСОВКА ПОЛЬЗОВАТЕЛЕЙ ======
+  function renderAdminUsers() {
+    var usersHtml = '';
+    var sortedUsers = allUsers.slice().sort(function(a,b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    if (!sortedUsers.length) {
+      moderationList.innerHTML = '<p class="empty">Пользователей пока нет.</p>';
+      return;
+    }
+
+    for (var i = 0; i < sortedUsers.length; i++) {
+      var u = sortedUsers[i];
+      var statusClass = u.status === 'approved' ? 'approved' : (u.status === 'rejected' ? 'rejected' : '');
+      var statusText = u.status === 'approved' ? 'Подтвержден' : (u.status === 'rejected' ? 'Отклонен' : 'На проверке');
+      
+      usersHtml += '<div class="moderation-user ' + statusClass + '">';
+      usersHtml += '<div class="info">';
+      usersHtml += '<strong>' + escapeHtml(u.name) + '</strong> (' + escapeHtml(u.phone) + ')<br>';
+      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + '</span>';
+      usersHtml += '</div>';
+      usersHtml += '<div class="btns">';
+      if (u.status !== 'approved') {
+         usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
+      }
+      if (u.status !== 'rejected') {
+         usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
+      }
+      usersHtml += '<button class="btn gray small" data-uid="' + u.id + '" data-action="delete_user" style="background:#dc2626;">Удалить</button>';
+      usersHtml += '</div></div>';
+    }
+    moderationList.innerHTML = usersHtml;
+    
+    var modBtns = moderationList.querySelectorAll('[data-uid]');
+    for (var j = 0; j < modBtns.length; j++) {
+      modBtns[j].addEventListener('click', async function() {
+        var uid = this.getAttribute('data-uid');
+        var action = this.getAttribute('data-action');
+
+        if (action === 'approve') {
+          await update(ref(db, 'users/' + uid), { status: 'approved' });
+          showToast('Пользователь подтвержден');
+        } else if (action === 'reject') {
+          await update(ref(db, 'users/' + uid), { status: 'rejected' });
+          showToast('Пользователь отклонен');
+        } else if (action === 'delete_user') {
+          if (confirm('Вы уверены, что хотите удалить аккаунт? Пользователь больше не сможет войти с этим телефоном.')) {
+            await remove(ref(db, 'users/' + uid));
+            showToast('Аккаунт удален');
+          }
+        }
+      });
+    }
+  }
+
+  // ====== АДМИН: ОТРИСОВКА ЗАЯВОК ======
+  function renderAdminRequests() {
     // Настройки времени
     if (settings.intervals.length > 0) {
       document.getElementById('adminStart1').value = settings.intervals[0].start;
@@ -1016,60 +1102,6 @@
       adminStatusText.style.color = '#059669';
     }
 
-    // Реестр пользователей
-    var usersHtml = '';
-    var sortedUsers = allUsers.slice().sort(function(a,b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-
-    if (!sortedUsers.length) {
-      moderationList.innerHTML = '<p class="empty">Пользователей пока нет.</p>';
-    } else {
-      for (var i = 0; i < sortedUsers.length; i++) {
-        var u = sortedUsers[i];
-        var statusClass = u.status === 'approved' ? 'approved' : (u.status === 'rejected' ? 'rejected' : '');
-        var statusText = u.status === 'approved' ? 'Подтвержден' : (u.status === 'rejected' ? 'Отклонен' : 'На проверке');
-        
-        usersHtml += '<div class="moderation-user ' + statusClass + '">';
-        usersHtml += '<div class="info">';
-        usersHtml += '<strong>' + escapeHtml(u.name) + '</strong> (' + escapeHtml(u.phone) + ')<br>';
-        usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + '</span>';
-        usersHtml += '</div>';
-        usersHtml += '<div class="btns">';
-        if (u.status !== 'approved') {
-           usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
-        }
-        if (u.status !== 'rejected') {
-           usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
-        }
-        // Кнопка удаления
-        usersHtml += '<button class="btn gray small" data-uid="' + u.id + '" data-action="delete_user" style="background:#dc2626;">Удалить</button>';
-        usersHtml += '</div></div>';
-      }
-      moderationList.innerHTML = usersHtml;
-      
-      // Обработчики для кнопок модерации
-      var modBtns = moderationList.querySelectorAll('[data-uid]');
-      for (var j = 0; j < modBtns.length; j++) {
-        modBtns[j].addEventListener('click', async function() {
-          var uid = this.getAttribute('data-uid');
-          var action = this.getAttribute('data-action');
-
-          if (action === 'approve') {
-            await update(ref(db, 'users/' + uid), { status: 'approved' });
-            showToast('Пользователь подтвержден');
-          } else if (action === 'reject') {
-            await update(ref(db, 'users/' + uid), { status: 'rejected' });
-            showToast('Пользователь отклонен');
-          } else if (action === 'delete_user') {
-            if (confirm('Вы уверены, что хотите удалить аккаунт? Пользователь больше не сможет войти с этим телефоном.')) {
-              await remove(ref(db, 'users/' + uid));
-              showToast('Аккаунт удален');
-            }
-          }
-        });
-      }
-    }
-
-    // Список заявок
     var list = allRequests.slice();
     list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
 
@@ -1107,6 +1139,18 @@
     var btns = adminRequestsList.querySelectorAll('[data-action]');
     for (var m = 0; m < btns.length; m++) {
       btns[m].addEventListener('click', function () { handleAdminAction(this.getAttribute('data-action'), this.getAttribute('data-id')); });
+    }
+  }
+
+  // Универсальная функция обновления панели (вызывается при изменениях)
+  function renderAdminPanel() {
+    if (!isAdminLoggedIn || adminWorkBlock.classList.contains('hidden')) return;
+    
+    if (!adminUsersBlock.classList.contains('hidden')) {
+      renderAdminUsers();
+    }
+    if (!adminRequestsBlock.classList.contains('hidden')) {
+      renderAdminRequests();
     }
   }
 
@@ -1742,7 +1786,7 @@
       }
     }
     
-    // Проверяем статус текущей службы (на будущее)
+    // Проверяем статус текущей службы
     if (loggedService.name) {
       var currentS = allUsers.find(function(u) { return u.phone === loggedService.phone; });
       if (currentS) {
