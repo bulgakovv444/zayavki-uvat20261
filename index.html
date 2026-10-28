@@ -28,14 +28,14 @@
   .tab-btn:hover { background: #e5e7eb; color: #1f2933; }
   .tab-btn.active { background: #2563eb; color: #fff; }
 
-  /* Блок регистрации службы */
-  .service-login-box {
+  /* Блоки регистрации */
+  .login-box {
     background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.08);
     max-width: 400px; margin: 0 auto; text-align: center;
   }
-  .service-login-box h2 { margin-top: 0; color: #1e3a8a; }
-  .service-login-box p { color: #6b7280; margin-bottom: 20px; font-size: 14px; }
-  .service-login-box input, .service-login-box select { margin-bottom: 12px; text-align: center; }
+  .login-box h2 { margin-top: 0; color: #1e3a8a; }
+  .login-box p { color: #6b7280; margin-bottom: 20px; font-size: 14px; }
+  .login-box input, .login-box select { margin-bottom: 12px; text-align: center; }
 
   /* Шаги формы */
   .step { margin-bottom: 16px; }
@@ -127,15 +127,15 @@
     box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 16px;
   }
 
-  /* Панель службы */
-  .service-header-bar {
+  /* Панель */
+  .header-bar {
     display: flex; justify-content: space-between; align-items: center;
     background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,.06); flex-wrap: wrap; gap: 10px;
   }
-  .service-header-bar h2 { margin: 0; font-size: 18px; }
-  .service-header-bar .user-info { font-size: 14px; color: #6b7280; }
-  .service-header-bar .user-info strong { color: #1e3a8a; }
+  .header-bar h2 { margin: 0; font-size: 18px; }
+  .header-bar .user-info { font-size: 14px; color: #6b7280; }
+  .header-bar .user-info strong { color: #1e3a8a; }
 
   /* Заявки */
   .request {
@@ -209,63 +209,69 @@
 
   <!-- Вкладки -->
   <div class="tabs">
-    <button class="tab-btn active" id="tabMaster">Подать заявку (Мастер)</button>
+    <button class="tab-btn active" id="tabMaster">Вход для мастера</button>
     <button class="tab-btn" id="tabService">Вход для службы</button>
     <button class="tab-btn" id="tabHistory">📋 История заявок</button>
   </div>
 
-  <!-- ЭКРАН 1: МАСТЕР (ПОДАЧА ЗАЯВОК) -->
+  <!-- ЭКРАН 1: МАСТЕР (ВХОД И РАБОТА) -->
   <div id="masterView">
-    <div class="card">
-      <form id="requestForm">
-        <div class="step">
-          <div class="step-header">
-            <div class="step-number">1</div>
-            <div class="step-title">Выберите службу</div>
-          </div>
-          <div class="service-picker" id="servicePicker"></div>
-        </div>
-
-        <div class="step">
-          <div class="step-header">
-            <div class="step-number">2</div>
-            <div class="step-title">Данные мастера</div>
-          </div>
-          <div class="form-row">
-            <select id="reqBrigade" style="flex: 1 1 100%;">
-              <option value="">— выберите бригаду —</option>
-            </select>
-          </div>
-          <div class="form-row" style="margin-top: 8px;">
-            <input id="reqName" type="text" placeholder="Ваше имя" style="flex: 1 1 45%;">
-            <input id="reqPhone" type="tel" placeholder="Номер телефона" style="flex: 1 1 45%;">
-          </div>
-        </div>
-
-        <div class="step">
-          <div class="step-header">
-            <div class="step-number">3</div>
-            <div class="step-title">Оформите заявку</div>
-          </div>
-          <div class="form-row">
-            <textarea id="reqDesc" placeholder="Опишите проблему..."></textarea>
-          </div>
-        </div>
-
-        <div style="margin-top: 16px;">
-          <button class="btn block" type="submit" id="submitBtn">Отправить заявку</button>
-        </div>
-      </form>
+    <!-- Блок входа -->
+    <div id="masterLoginBlock" class="login-box">
+      <h2>Вход для мастера</h2>
+      <p>Введите ваши данные, чтобы подавать заявки и видеть их статус.</p>
+      <input type="text" id="loginMasterName" placeholder="Ваше имя (мастер)" autocomplete="off">
+      <input type="tel" id="loginMasterPhone" placeholder="Ваш номер телефона" autocomplete="off">
+      <select id="loginMasterBrigade">
+        <option value="">— выберите вашу бригаду —</option>
+      </select>
+      <button class="btn block" id="loginMasterBtn">Войти в систему</button>
     </div>
 
-    <h2>Службы (нажмите для просмотра)</h2>
-    <div class="services" id="masterServicesGrid"></div>
+    <!-- Рабочий стол мастера -->
+    <div id="masterWorkBlock" class="hidden">
+      <div class="header-bar">
+        <div>
+          <h2>Рабочий стол мастера</h2>
+          <div class="user-info">Вы вошли как: <strong id="loggedMasterBrigade"></strong> (<span id="loggedMasterName"></span>)</div>
+        </div>
+        <button class="btn gray small" id="logoutMasterBtn">Выйти</button>
+      </div>
+
+      <div class="card">
+        <form id="requestForm">
+          <div class="step">
+            <div class="step-header">
+              <div class="step-number">1</div>
+              <div class="step-title">Выберите службу</div>
+            </div>
+            <div class="service-picker" id="servicePicker"></div>
+          </div>
+
+          <div class="step">
+            <div class="step-header">
+              <div class="step-number">2</div>
+              <div class="step-title">Оформите заявку</div>
+            </div>
+            <div class="form-row">
+              <textarea id="reqDesc" placeholder="Опишите проблему..."></textarea>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px;">
+            <button class="btn block" type="submit" id="submitBtn">Отправить заявку</button>
+          </div>
+        </form>
+      </div>
+
+      <h2>Все службы (нажмите для просмотра)</h2>
+      <div class="services" id="masterServicesGrid"></div>
+    </div>
   </div>
 
   <!-- ЭКРАН 2: СЛУЖБА (ВХОД) -->
   <div id="serviceView" class="hidden">
-    <!-- Блок входа -->
-    <div id="serviceLoginBlock" class="service-login-box">
+    <div id="serviceLoginBlock" class="login-box">
       <h2>Вход для службы</h2>
       <p>Введите ваши данные, чтобы видеть заявки и подтверждать их выполнение.</p>
       <input type="text" id="loginServiceName" placeholder="Ваше имя (сотрудник)" autocomplete="off">
@@ -276,11 +282,10 @@
       <button class="btn block green" id="loginServiceBtn">Войти в систему</button>
     </div>
 
-    <!-- Рабочий стол службы -->
     <div id="serviceWorkBlock" class="hidden">
-      <div class="service-header-bar">
+      <div class="header-bar">
         <div>
-          <h2>Рабочий стол</h2>
+          <h2>Рабочий стол службы</h2>
           <div class="user-info">Вы вошли как: <strong id="loggedServiceName"></strong> (<span id="loggedServicePhone"></span>)</div>
         </div>
         <button class="btn gray small" id="logoutServiceBtn">Выйти</button>
@@ -407,7 +412,9 @@
   var pendingReturnId = null;
   var pendingNewRequest = null;
   
+  var loggedMaster = { name: '', phone: '', brigade: '' };
   var loggedService = { name: '', phone: '', role: '' };
+  
   var currentDetailServiceId = '';
   var currentDetailViewMode = 'master'; // 'master' или 'service'
 
@@ -421,6 +428,11 @@
   var historyView = document.getElementById('historyView');
   var requestsDetailView = document.getElementById('requestsDetailView');
   
+  var masterLoginBlock = document.getElementById('masterLoginBlock');
+  var masterWorkBlock = document.getElementById('masterWorkBlock');
+  var loggedMasterBrigade = document.getElementById('loggedMasterBrigade');
+  var loggedMasterName = document.getElementById('loggedMasterName');
+
   var serviceLoginBlock = document.getElementById('serviceLoginBlock');
   var serviceWorkBlock = document.getElementById('serviceWorkBlock');
   var loggedServiceName = document.getElementById('loggedServiceName');
@@ -431,9 +443,6 @@
   var detailRequestsList = document.getElementById('detailRequestsList');
   var detailTitle = document.getElementById('detailTitle');
   var servicePicker = document.getElementById('servicePicker');
-  var reqBrigadeSelect = document.getElementById('reqBrigade');
-  var reqNameInput = document.getElementById('reqName');
-  var reqPhoneInput = document.getElementById('reqPhone');
   var reqDescEl = document.getElementById('reqDesc');
   var submitBtn = document.getElementById('submitBtn');
 
@@ -504,6 +513,15 @@
   tabMaster.addEventListener('click', function() {
     tabMaster.classList.add('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active');
     masterView.classList.remove('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden');
+    
+    if (loggedMaster.name) {
+      masterLoginBlock.classList.add('hidden');
+      masterWorkBlock.classList.remove('hidden');
+      renderServicesGrid(masterServicesGrid, 'master');
+    } else {
+      masterLoginBlock.classList.remove('hidden');
+      masterWorkBlock.classList.add('hidden');
+    }
   });
 
   tabService.addEventListener('click', function() {
@@ -513,7 +531,7 @@
     if (loggedService.name) {
       serviceLoginBlock.classList.add('hidden');
       serviceWorkBlock.classList.remove('hidden');
-      renderServicesGrid(serviceServicesGrid, true);
+      renderServicesGrid(serviceServicesGrid, 'service');
     } else {
       serviceLoginBlock.classList.remove('hidden');
       serviceWorkBlock.classList.add('hidden');
@@ -525,6 +543,37 @@
     masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.remove('hidden'); requestsDetailView.classList.add('hidden');
     renderHistory();
   });
+
+  // ====== ВХОД МАСТЕРА ======
+  document.getElementById('loginMasterBtn').addEventListener('click', function() {
+    var name = document.getElementById('loginMasterName').value.trim();
+    var phone = document.getElementById('loginMasterPhone').value.trim();
+    var brigade = document.getElementById('loginMasterBrigade').value;
+
+    if (!name) { showToast('Введите ваше имя', true); return; }
+    if (!phone) { showToast('Введите телефон', true); return; }
+    if (!brigade) { showToast('Выберите бригаду', true); return; }
+
+    loggedMaster = { name: name, phone: phone, brigade: brigade };
+    
+    masterLoginBlock.classList.add('hidden');
+    masterWorkBlock.classList.remove('hidden');
+    loggedMasterBrigade.textContent = brigade;
+    loggedMasterName.textContent = name + ', ' + phone;
+    
+    renderServicesGrid(masterServicesGrid, 'master');
+  });
+
+  document.getElementById('logoutMasterBtn').addEventListener('click', function() {
+    loggedMaster = { name: '', phone: '', brigade: '' };
+    masterLoginBlock.classList.remove('hidden');
+    masterWorkBlock.classList.add('hidden');
+  });
+
+  var loginMasterBrigadeSelect = document.getElementById('loginMasterBrigade');
+  var bopts = '<option value="">— выберите вашу бригаду —</option>';
+  for (var i = 0; i < BRIGADES.length; i++) bopts += '<option value="' + BRIGADES[i] + '">' + BRIGADES[i] + '</option>';
+  loginMasterBrigadeSelect.innerHTML = bopts;
 
   // ====== ВХОД СЛУЖБЫ ======
   document.getElementById('loginServiceBtn').addEventListener('click', function() {
@@ -543,7 +592,7 @@
     loggedServiceName.textContent = role;
     loggedServicePhone.textContent = name + ', ' + phone;
     
-    renderServicesGrid(serviceServicesGrid, true);
+    renderServicesGrid(serviceServicesGrid, 'service');
   });
 
   document.getElementById('logoutServiceBtn').addEventListener('click', function() {
@@ -558,7 +607,7 @@
   loginRoleSelect.innerHTML = roleOpts;
 
   // ====== УНИВЕРСАЛЬНАЯ ОТРИСОВКА СЕТКИ СЛУЖБ ======
-  function renderServicesGrid(container, isServiceMode) {
+  function renderServicesGrid(container, mode) {
     var html = '';
     for (var j = 0; j < SERVICES.length; j++) {
       var s = SERVICES[j];
@@ -583,7 +632,7 @@
     var cards = container.querySelectorAll('.service-card');
     for (var k = 0; k < cards.length; k++) {
       cards[k].addEventListener('click', function () { 
-        openServiceDetail(this.getAttribute('data-id'), isServiceMode ? 'service' : 'master'); 
+        openServiceDetail(this.getAttribute('data-id'), mode); 
       });
     }
   }
@@ -643,7 +692,6 @@
           html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения</span>';
         }
       } else if (status === 'service_done') {
-        // Если мастер зашел - он может подтвердить. Если служба зашла - она видит, что ждут мастера.
         if (mode === 'master') {
           html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
           html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
@@ -667,9 +715,10 @@
     requestsDetailView.classList.add('hidden');
     if (currentDetailViewMode === 'service') {
       serviceView.classList.remove('hidden');
-      renderServicesGrid(serviceServicesGrid, true);
+      renderServicesGrid(serviceServicesGrid, 'service');
     } else {
       masterView.classList.remove('hidden');
+      renderServicesGrid(masterServicesGrid, 'master');
     }
   });
 
@@ -769,7 +818,7 @@
     pendingReturnId = null;
   });
 
-  // ====== ОТРИСОВКА ГЛАВНОГО ЭКРАНА (МАСТЕР) ======
+  // ====== ОТРИСОВКА ГЛАВНОГО ЭКРАНА ======
   function renderServicePicker() {
     var html = '';
     for (var i = 0; i < SERVICES.length; i++) {
@@ -788,41 +837,27 @@
     }
   }
 
-  function renderHome() {
-    var bopts = '<option value="">— выберите бригаду —</option>';
-    for (var b = 0; b < BRIGADES.length; b++) bopts += '<option value="' + BRIGADES[b] + '">' + BRIGADES[b] + '</option>';
-    reqBrigadeSelect.innerHTML = bopts;
-
-    var savedBrigade = localStorage.getItem('sv_brigade') || '';
-    var savedName = localStorage.getItem('sv_name') || '';
-    var savedPhone = localStorage.getItem('sv_phone') || '';
-    if (savedBrigade) reqBrigadeSelect.value = savedBrigade;
-    if (savedName) reqNameInput.value = savedName;
-    if (savedPhone) reqPhoneInput.value = savedPhone;
-
-    renderServicePicker();
-    renderServicesGrid(masterServicesGrid, false);
-  }
-
   // ====== ОТПРАВКА ЗАЯВКИ (МАСТЕР) ======
   document.getElementById('requestForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
+    if (!loggedMaster.name) { showToast('Сначала войдите в систему', true); return; }
+
     var serviceId = selectedServiceId;
-    var brigade = reqBrigadeSelect.value;
-    var name = reqNameInput.value.trim();
-    var phone = reqPhoneInput.value.trim();
     var desc = reqDescEl.value.trim();
 
     if (!serviceId) { showToast('Шаг 1: Выберите службу', true); return; }
-    if (!brigade)   { showToast('Шаг 2: Выберите бригаду', true); return; }
-    if (!name)      { showToast('Шаг 2: Введите имя', true); return; }
-    if (!phone)     { showToast('Шаг 2: Введите телефон', true); return; }
-    if (!desc)      { showToast('Шаг 3: Введите описание', true); return; }
+    if (!desc)      { showToast('Шаг 2: Введите описание', true); return; }
 
-    pendingNewRequest = { serviceId, brigade, name, phone, desc };
+    pendingNewRequest = { 
+      serviceId: serviceId, 
+      brigade: loggedMaster.brigade, 
+      name: loggedMaster.name, 
+      phone: loggedMaster.phone, 
+      desc: desc 
+    };
 
-    if (brigade === 'Главный энергетик') {
+    if (loggedMaster.brigade === 'Главный энергетик') {
       chiefCodeInput.value = '';
       chiefCodeModal.classList.remove('hidden');
       chiefCodeInput.focus();
@@ -850,10 +885,6 @@
         status: 'new',
         events: [{ text: '📝 Заявка создана (Бригада: ' + data.brigade + ', ' + data.name + ', Тел: ' + data.phone + ')', time: Date.now() }]
       });
-
-      localStorage.setItem('sv_brigade', data.brigade);
-      localStorage.setItem('sv_name', data.name);
-      localStorage.setItem('sv_phone', data.phone);
 
       reqDescEl.value = ''; 
       selectedServiceId = ''; 
@@ -1037,22 +1068,24 @@
         allRequests.push({ id: key, ...data[key] });
       }
     }
-    renderHome();
     
-    if (loggedService.name) {
-      renderServicesGrid(serviceServicesGrid, true);
-      if (currentDetailServiceId && !requestsDetailView.classList.contains('hidden')) {
-        renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
-      }
+    if (loggedMaster.name && !masterWorkBlock.classList.contains('hidden')) {
+      renderServicesGrid(masterServicesGrid, 'master');
     }
-    
+    if (loggedService.name && !serviceWorkBlock.classList.contains('hidden')) {
+      renderServicesGrid(serviceServicesGrid, 'service');
+    }
+    if (currentDetailServiceId && !requestsDetailView.classList.contains('hidden')) {
+      renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
+    }
     if (!historyView.classList.contains('hidden')) {
       renderHistory();
     }
+    renderServicePicker();
   });
 
   // Первичный рендер
-  renderHome();
+  renderServicePicker();
 
 </script>
 </body>
