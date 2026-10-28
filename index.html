@@ -217,6 +217,27 @@
   .moderation-user .info { flex: 1; min-width: 200px; }
   .moderation-user .btns { display: flex; gap: 6px; }
 
+  /* Чат */
+  .chat-window {
+    display: flex; flex-direction: column; height: 400px;
+  }
+  .chat-messages {
+    flex: 1; overflow-y: auto; background: #f8fafc; border-radius: 8px; padding: 10px; margin-bottom: 10px;
+    border: 1px solid #e5e7eb;
+  }
+  .chat-msg { margin-bottom: 8px; display: flex; flex-direction: column; }
+  .chat-msg.right { align-items: flex-end; }
+  .chat-msg .bubble {
+    background: #fff; padding: 8px 12px; border-radius: 8px; max-width: 80%;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05); border: 1px solid #e5e7eb;
+  }
+  .chat-msg.right .bubble {
+    background: #dcfce7; border-color: #bbf7d0;
+  }
+  .chat-msg .meta { font-size: 10px; color: #9ca3af; margin-bottom: 2px; }
+  .chat-input-row { display: flex; gap: 8px; }
+  .chat-input-row input { flex: 1; }
+
   /* Тост и модалка */
   .toast {
     position: fixed; top: 15px; right: 15px; background: #10b981; color: #fff;
@@ -233,7 +254,7 @@
   }
   .modal-overlay.hidden { display: none !important; }
   .modal {
-    background: #fff; border-radius: 10px; padding: 20px; max-width: 380px; width: 100%;
+    background: #fff; border-radius: 10px; padding: 20px; max-width: 600px; width: 100%;
     box-shadow: 0 20px 50px rgba(0,0,0,.3);
   }
   .modal h3 { font-size: 16px; margin-bottom: 6px; }
@@ -512,6 +533,26 @@
   </div>
 </div>
 
+<!-- НОВОЕ Модальное окно для чата -->
+<div class="modal-overlay hidden" id="chatModal">
+  <div class="modal" style="max-width: 500px;">
+    <h3 id="chatTitle">Чат по заявке</h3>
+    <p style="margin-bottom: 10px;">Обсуждение деталей выполнения.</p>
+    
+    <div class="chat-window">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Написать сообщение..." autocomplete="off">
+        <button class="btn green small" id="sendChatBtn">Отправить</button>
+      </div>
+    </div>
+    
+    <div class="modal-actions" style="margin-top: 15px;">
+      <button class="btn gray small" id="closeChatBtn">Закрыть</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Firebase -->
@@ -580,6 +621,7 @@
   var pendingReturnId = null;
   var pendingNewRequest = null;
   var pendingTransferId = null;
+  var currentChatRequestId = null; // Для чата
   
   var loggedMaster = { name: '', phone: '', brigade: '', status: 'pending' };
   var loggedService = { name: '', phone: '', role: '', status: 'pending' };
@@ -659,6 +701,14 @@
   var transferServiceSelect = document.getElementById('transferServiceSelect');
   var confirmTransferBtn = document.getElementById('confirmTransfer');
   var cancelTransferBtn = document.getElementById('cancelTransfer');
+
+  // Элементы чата
+  var chatModal = document.getElementById('chatModal');
+  var chatTitle = document.getElementById('chatTitle');
+  var chatMessages = document.getElementById('chatMessages');
+  var chatInput = document.getElementById('chatInput');
+  var sendChatBtn = document.getElementById('sendChatBtn');
+  var closeChatBtn = document.getElementById('closeChatBtn');
 
   function showToast(msg, isError) {
     toastEl.textContent = msg;
@@ -1161,6 +1211,7 @@
       } else {
          html += '<span class="badge ok">Закрыта</span>';
       }
+      html += '<button class="btn gray small" data-action="chat" data-id="' + r.id + '">💬 Чат</button>'; // Добавлена кнопка чата для админа
       html += '<button class="btn red small" data-action="admin_delete" data-id="' + r.id + '">Удалить заявку</button>';
       html += '</div></div>';
     }
@@ -1168,7 +1219,12 @@
 
     var btns = adminRequestsList.querySelectorAll('[data-action]');
     for (var m = 0; m < btns.length; m++) {
-      btns[m].addEventListener('click', function () { handleAdminAction(this.getAttribute('data-action'), this.getAttribute('data-id')); });
+      btns[m].addEventListener('click', function () { 
+        var action = this.getAttribute('data-action');
+        var id = this.getAttribute('data-id');
+        if (action === 'chat') { openChat(id); } 
+        else { handleAdminAction(action, id); }
+      });
     }
   }
 
@@ -1278,13 +1334,19 @@
       } else if (status === 'new') {
         html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения</span>';
       }
+      html += '<button class="btn gray small" data-action="chat" data-id="' + r.id + '">💬 Чат</button>'; // Добавлена кнопка чата
       html += '</div></div>';
     }
     myRequestsList.innerHTML = html;
 
     var btns = myRequestsList.querySelectorAll('[data-action]');
     for (var j = 0; j < btns.length; j++) {
-      btns[j].addEventListener('click', function () { handleAction(this.getAttribute('data-action'), this.getAttribute('data-id')); });
+      btns[j].addEventListener('click', function () { 
+        var action = this.getAttribute('data-action');
+        var id = this.getAttribute('data-id');
+        if (action === 'chat') { openChat(id); } 
+        else { handleAction(action, id); }
+      });
     }
   }
 
@@ -1347,13 +1409,19 @@
           html += '<span class="badge ok">Закрыта</span>';
         }
       }
+      html += '<button class="btn gray small" data-action="chat" data-id="' + r.id + '">💬 Чат</button>'; // Кнопка чата
       html += '</div></div>';
     }
     detailRequestsList.innerHTML = html;
 
     var btns = detailRequestsList.querySelectorAll('[data-action]');
     for (var j = 0; j < btns.length; j++) {
-      btns[j].addEventListener('click', function () { handleAction(this.getAttribute('data-action'), this.getAttribute('data-id')); });
+      btns[j].addEventListener('click', function () { 
+        var action = this.getAttribute('data-action');
+        var id = this.getAttribute('data-id');
+        if (action === 'chat') { openChat(id); } 
+        else { handleAction(action, id); }
+      });
     }
   }
 
@@ -1528,6 +1596,87 @@
   cancelTransferBtn.addEventListener('click', function() {
     transferModal.classList.add('hidden');
     pendingTransferId = null;
+  });
+
+  // ====== ЧАТ ======
+  function openChat(requestId) {
+    currentChatRequestId = requestId;
+    var req = allRequests.find(function(r) { return r.id === requestId; });
+    if (req) {
+      chatTitle.textContent = 'Чат по заявке: ' + escapeHtml(serviceName(req.serviceId)) + ' (' + escapeHtml(req.brigade || '—') + ')';
+    }
+    chatInput.value = '';
+    chatModal.classList.remove('hidden');
+    loadChatMessages(requestId);
+    chatInput.focus();
+  }
+
+  function loadChatMessages(requestId) {
+    onValue(ref(db, 'requests/' + requestId + '/messages'), (snapshot) => {
+      var data = snapshot.val();
+      chatMessages.innerHTML = '';
+      
+      if (!data) {
+        chatMessages.innerHTML = '<p class="empty" style="text-align:center;">Сообщений пока нет. Напишите первым!</p>';
+        return;
+      }
+
+      var msgs = [];
+      for (var key in data) {
+        msgs.push({ id: key, ...data[key] });
+      }
+      msgs.sort(function(a,b) { return a.time - b.time; });
+
+      var myPhone = loggedMaster.phone || loggedService.phone || '';
+      
+      for (var i = 0; i < msgs.length; i++) {
+        var m = msgs[i];
+        var isMine = (m.phone === myPhone);
+        var className = isMine ? 'chat-msg right' : 'chat-msg';
+        
+        chatMessages.innerHTML += 
+          '<div class="' + className + '">' +
+            '<div class="meta">' + escapeHtml(m.author) + ' · ' + formatDate(m.time) + '</div>' +
+            '<div class="bubble">' + escapeHtml(m.text) + '</div>' +
+          '</div>';
+      }
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+  }
+
+  async function sendChatMessage() {
+    if (!currentChatRequestId) return;
+    var text = chatInput.value.trim();
+    if (!text) return;
+
+    var author = loggedMaster.name || loggedService.name || 'Неизвестный';
+    var phone = loggedMaster.phone || loggedService.phone || '';
+
+    var newMsgRef = push(ref(db, 'requests/' + currentChatRequestId + '/messages'));
+    await set(newMsgRef, {
+      author: author,
+      phone: phone,
+      text: text,
+      time: Date.now()
+    });
+
+    chatInput.value = '';
+    chatInput.focus();
+  }
+
+  sendChatBtn.addEventListener('click', sendChatMessage);
+  chatInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendChatMessage();
+  });
+  closeChatBtn.addEventListener('click', function() {
+    chatModal.classList.add('hidden');
+    currentChatRequestId = null;
+  });
+  chatModal.addEventListener('click', function(e) {
+    if (e.target === chatModal) {
+      chatModal.classList.add('hidden');
+      currentChatRequestId = null;
+    }
   });
 
   // ====== ОТРИСОВКА ГЛАВНОГО ЭКРАНА ======
