@@ -96,6 +96,8 @@
   .btn.red:hover { background: #dc2626; }
   .btn.orange { background: #f59e0b; }
   .btn.orange:hover { background: #d97706; }
+  .btn.purple { background: #8b5cf6; }
+  .btn.purple:hover { background: #7c3aed; }
   .btn.small { padding: 6px 10px; font-size: 12px; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
   .btn.block { display: block; width: 100%; }
@@ -195,12 +197,12 @@
   }
   .modal-overlay.hidden { display: none !important; }
   .modal {
-    background: #fff; border-radius: 10px; padding: 20px; max-width: 360px; width: 100%;
+    background: #fff; border-radius: 10px; padding: 20px; max-width: 380px; width: 100%;
     box-shadow: 0 20px 50px rgba(0,0,0,.3);
   }
   .modal h3 { font-size: 16px; margin-bottom: 6px; }
   .modal p { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
-  .modal input, .modal textarea { margin-bottom: 12px; }
+  .modal input, .modal textarea, .modal select { margin-bottom: 12px; }
   .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 </style>
 </head>
@@ -364,6 +366,19 @@
   </div>
 </div>
 
+<!-- Новое модальное окно для передачи заявки -->
+<div class="modal-overlay hidden" id="transferModal">
+  <div class="modal">
+    <h3>Передать в другую службу</h3>
+    <p>Выберите службу, в которую нужно перенаправить эту заявку.</p>
+    <select id="transferServiceSelect"></select>
+    <div class="modal-actions">
+      <button class="btn gray small" id="cancelTransfer">Отмена</button>
+      <button class="btn purple small" id="confirmTransfer">Передать</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Firebase -->
@@ -411,6 +426,7 @@
   var pendingServiceDoneId = null;
   var pendingReturnId = null;
   var pendingNewRequest = null;
+  var pendingTransferId = null;
   
   var loggedMaster = { name: '', phone: '', brigade: '' };
   var loggedService = { name: '', phone: '', role: '' };
@@ -462,6 +478,11 @@
   var returnCommentInput = document.getElementById('returnCommentInput');
   var confirmReturnBtn = document.getElementById('confirmReturn');
   var cancelReturnBtn = document.getElementById('cancelReturn');
+
+  var transferModal = document.getElementById('transferModal');
+  var transferServiceSelect = document.getElementById('transferServiceSelect');
+  var confirmTransferBtn = document.getElementById('confirmTransfer');
+  var cancelTransferBtn = document.getElementById('cancelTransfer');
 
   function showToast(msg, isError) {
     toastEl.textContent = msg;
@@ -606,6 +627,11 @@
   for (var i = 0; i < SERVICES.length; i++) roleOpts += '<option value="' + SERVICES[i].name + '">' + SERVICES[i].name + '</option>';
   loginRoleSelect.innerHTML = roleOpts;
 
+  // Список для передачи заявки
+  var transferOpts = '';
+  for (var i = 0; i < SERVICES.length; i++) transferOpts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
+  transferServiceSelect.innerHTML = transferOpts;
+
   // ====== УНИВЕРСАЛЬНАЯ ОТРИСОВКА СЕТКИ СЛУЖБ ======
   function renderServicesGrid(container, mode) {
     var html = '';
@@ -657,15 +683,6 @@
 
     if (!list.length) { detailRequestsList.innerHTML = '<p class="empty">Заявок нет.</p>'; return; }
 
-    var isMyService = false;
-    if (mode === 'service' && loggedService.role) {
-      var myServiceId = '';
-      for (var i = 0; i < SERVICES.length; i++) {
-        if (SERVICES[i].name === loggedService.role) myServiceId = SERVICES[i].id;
-      }
-      if (myServiceId === serviceId) isMyService = true;
-    }
-
     var html = '';
     for (var i = 0; i < list.length; i++) {
       var r = list[i];
@@ -685,22 +702,30 @@
       html += '</div>';
 
       html += '<div class="actions">';
-      if (status === 'new') {
-        if (mode === 'service' && isMyService) {
-          html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
-        } else {
-          html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения</span>';
-        }
-      } else if (status === 'service_done') {
-        if (mode === 'master') {
+      
+      // Кнопки для Мастера (подтверждение и возврат)
+      if (mode === 'master') {
+        if (status === 'service_done') {
           html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
           html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
-        } else {
-          html += '<span class="badge wait">Ожидает мастера</span>';
+        } else if (status === 'new') {
+          html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения службой</span>';
+        } else if (status === 'closed') {
+          html += '<span class="badge ok">Закрыта</span>';
         }
-      } else if (status === 'closed') {
-        html += '<span class="badge ok">Закрыта</span>';
+      } 
+      // Кнопки для Службы (выполнение любых заявок, передача)
+      else if (mode === 'service') {
+        if (status === 'new') {
+          html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
+          html += '<button class="btn purple small" data-action="transfer" data-id="' + r.id + '">Передать</button>';
+        } else if (status === 'service_done') {
+          html += '<span class="badge wait">Ожидает мастера</span>';
+        } else if (status === 'closed') {
+          html += '<span class="badge ok">Закрыта</span>';
+        }
       }
+      
       html += '</div></div>';
     }
     detailRequestsList.innerHTML = html;
@@ -749,6 +774,10 @@
       updates.events = currentEvents.concat([newEvent]);
       await update(ref(db, 'requests/' + id), updates);
       showToast('Мастер подтвердил. Заявка закрыта.');
+    } else if (action === 'transfer') {
+      pendingTransferId = id;
+      transferServiceSelect.value = req.serviceId; // По умолчанию текущая
+      transferModal.classList.remove('hidden');
     }
   }
 
@@ -816,6 +845,41 @@
   cancelReturnBtn.addEventListener('click', function() {
     returnModal.classList.add('hidden');
     pendingReturnId = null;
+  });
+
+  // Подтверждение переноса заявки
+  confirmTransferBtn.addEventListener('click', async function() {
+    if (!pendingTransferId) return;
+    var newServiceId = transferServiceSelect.value;
+    
+    var req = allRequests.find(function(item) { return item.id === pendingTransferId; });
+    if (!req) return;
+
+    if (newServiceId === req.serviceId) {
+      showToast('Заявка уже находится в этой службе', true);
+      return;
+    }
+
+    var currentEvents = req.events || [];
+    var newEvent = { 
+      text: '🔄 Заявка передана в службу "' + serviceName(newServiceId) + '" (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', 
+      time: Date.now() 
+    };
+
+    var updates = {
+      serviceId: newServiceId,
+      events: currentEvents.concat([newEvent])
+    };
+
+    transferModal.classList.add('hidden');
+    pendingTransferId = null;
+    await update(ref(db, 'requests/' + req.id), updates);
+    showToast('Заявка успешно передана.');
+  });
+
+  cancelTransferBtn.addEventListener('click', function() {
+    transferModal.classList.add('hidden');
+    pendingTransferId = null;
   });
 
   // ====== ОТРИСОВКА ГЛАВНОГО ЭКРАНА ======
