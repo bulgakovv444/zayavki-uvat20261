@@ -723,7 +723,7 @@
         submitBtn.textContent = 'Ожидает подтверждения';
       } else if (loggedMaster.status === 'rejected') {
         globalPendingAlert.classList.remove('hidden');
-        globalPendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен Главным инженером. Обратитесь к администратору.';
+        globalPendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен или удален. Обратитесь к администратору.';
         submitBtn.disabled = true;
         submitBtn.textContent = 'Доступ закрыт';
       } else {
@@ -744,7 +744,7 @@
         servicePendingAlert.classList.remove('hidden');
         serviceContentBlock.classList.add('hidden'); // Скрываем заявки
         if (loggedService.status === 'rejected') {
-          servicePendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен Главным инженером. Обратитесь к администратору.';
+          servicePendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен или удален. Обратитесь к администратору.';
         } else {
           servicePendingAlert.innerHTML = '<span>⏳</span> Ваш аккаунт службы находится на проверке. Вы не можете просматривать и выполнять заявки, пока Главный инженер не подтвердит вас.';
         }
@@ -1375,6 +1375,13 @@
       returnModal.classList.remove('hidden');
       returnCommentInput.focus();
     } else if (action === 'closed') {
+      // СТРОГАЯ ПРОВЕРКА: перед закрытием проверяем, не удален ли аккаунт мастера
+      var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
+      if (!userCheck || userCheck.status !== 'approved') {
+        showToast('Ваш аккаунт удален или не подтвержден. Вы не можете закрыть заявку.', true);
+        return;
+      }
+
       var updates = {};
       var currentEvents = req.events || [];
       
@@ -1403,6 +1410,14 @@
       showToast('Неверный код службы', true); 
       serviceCodeInput.value = ''; 
       serviceCodeInput.focus(); 
+      return;
+    }
+
+    // СТРОГАЯ ПРОВЕРКА: перед выполнением проверяем, не удален ли аккаунт службы
+    var userCheck = allUsers.find(function(u) { return u.phone === loggedService.phone; });
+    if (!userCheck || userCheck.status !== 'approved') {
+      showToast('Ваш аккаунт службы удален или не подтвержден. Вы не можете выполнить заявку.', true);
+      serviceCodeModal.classList.add('hidden');
       return;
     }
 
@@ -1436,6 +1451,14 @@
     if (!comment) { showToast('Укажите причину возврата', true); return; }
     if (!pendingReturnId) return;
 
+    // Проверка статуса мастера
+    var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
+    if (!userCheck || userCheck.status !== 'approved') {
+      showToast('Ваш аккаунт удален или не подтвержден.', true);
+      returnModal.classList.add('hidden');
+      return;
+    }
+
     var req = allRequests.find(function(item) { return item.id === pendingReturnId; });
     if (!req) return;
 
@@ -1463,6 +1486,14 @@
     if (!pendingTransferId) return;
     var newServiceId = transferServiceSelect.value;
     
+    // Проверка статуса службы
+    var userCheck = allUsers.find(function(u) { return u.phone === loggedService.phone; });
+    if (!userCheck || userCheck.status !== 'approved') {
+      showToast('Ваш аккаунт службы удален или не подтвержден.', true);
+      transferModal.classList.add('hidden');
+      return;
+    }
+
     var req = allRequests.find(function(item) { return item.id === pendingTransferId; });
     if (!req) return;
 
@@ -1510,16 +1541,19 @@
   }
 
   // ====== ОТПРАВКА ЗАЯВКИ (МАСТЕР) ======
-  document.getElementById('requestForm').addEventListener('submit', function (e) {
+  document.getElementById('requestForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    if (loggedMaster.status !== 'approved') {
-      showToast('Ваш аккаунт еще не подтвержден.', true);
+    if (!loggedMaster.name) { showToast('Сначала войдите в систему', true); return; }
+
+    // СТРОГАЯ ПРОВЕРКА: перед отправкой проверяем, не удален ли аккаунт
+    var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
+    if (!userCheck || userCheck.status !== 'approved') {
+      showToast('Ваш аккаунт удален или не подтвержден. Вы не можете подать заявку.', true);
       return;
     }
 
     if (!isAcceptingNow()) { showToast('Прием заявок закрыт', true); return; }
-    if (!loggedMaster.name) { showToast('Сначала войдите в систему', true); return; }
 
     var serviceId = selectedServiceId;
     var desc = reqDescEl.value.trim();
@@ -1797,8 +1831,10 @@
       var currentM = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
       if (currentM) {
         loggedMaster.status = currentM.status;
-        updateUIState();
+      } else {
+        loggedMaster.status = 'rejected'; // Если аккаунт удален, блокируем
       }
+      updateUIState();
     }
     
     // Проверяем статус текущей службы
@@ -1806,8 +1842,10 @@
       var currentS = allUsers.find(function(u) { return u.phone === loggedService.phone; });
       if (currentS) {
         loggedService.status = currentS.status;
-        updateUIState();
+      } else {
+        loggedService.status = 'rejected'; // Если аккаунт удален, блокируем
       }
+      updateUIState();
     }
 
     if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) {
