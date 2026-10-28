@@ -176,22 +176,24 @@
   .chat-btn.unread {
     background: #ef4444 !important; /* Красный, если есть новые */
     color: #fff;
+    border-color: #dc2626 !important;
   }
   .chat-badge {
     position: absolute;
-    top: -5px;
-    right: -5px;
+    top: -6px;
+    right: -6px;
     background: #fff;
     color: #ef4444;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: bold;
     border-radius: 50%;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    border: 1px solid #ef4444;
   }
 
   .hidden { display: none !important; }
@@ -1237,7 +1239,7 @@
          html += '<span class="badge ok">Закрыта</span>';
       }
       
-      // Чат для админа (без уведомлений)
+      // Чат для админа
       html += '<button class="btn gray small chat-btn" data-action="chat" data-id="' + r.id + '">💬 Чат</button>';
       
       html += '<button class="btn red small" data-action="admin_delete" data-id="' + r.id + '">Удалить заявку</button>';
@@ -1363,20 +1365,27 @@
         html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения</span>';
       }
       
-      // Кнопка чата с логикой непрочитанных
+      // Логика непрочитанных для мастера
       var lastRead = localStorage.getItem('last_read_chat_' + r.id) || 0;
       var lastMsgTime = 0;
+      var lastMsgPhone = '';
+      
       if (r.messages) {
         for (var mKey in r.messages) {
-          if (r.messages[mKey].time > lastMsgTime) lastMsgTime = r.messages[mKey].time;
+          if (r.messages[mKey].time > lastMsgTime) {
+            lastMsgTime = r.messages[mKey].time;
+            lastMsgPhone = r.messages[mKey].phone;
+          }
         }
       }
-      var isUnread = lastMsgTime > Number(lastRead) && (r.messages && Object.keys(r.messages).length > 0);
       
+      // Если последнее сообщение НЕ от меня и время больше прочитанного -> есть новые
+      var isUnread = (lastMsgTime > Number(lastRead)) && (lastMsgPhone !== loggedMaster.phone);
+
       html += '<button class="btn small chat-btn ' + (isUnread ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">';
       html += '💬 Чат';
       if (isUnread) {
-        html += '<span class="chat-badge">1</span>';
+        html += '<span class="chat-badge">!</span>';
       }
       html += '</button>';
       
@@ -1458,17 +1467,24 @@
       // Логика непрочитанных для службы
       var lastReadS = localStorage.getItem('last_read_chat_' + r.id) || 0;
       var lastMsgTimeS = 0;
+      var lastMsgPhoneS = '';
+      
       if (r.messages) {
         for (var mKeyS in r.messages) {
-          if (r.messages[mKeyS].time > lastMsgTimeS) lastMsgTimeS = r.messages[mKeyS].time;
+          if (r.messages[mKeyS].time > lastMsgTimeS) {
+            lastMsgTimeS = r.messages[mKeyS].time;
+            lastMsgPhoneS = r.messages[mKeyS].phone;
+          }
         }
       }
-      var isUnreadS = lastMsgTimeS > Number(lastReadS) && (r.messages && Object.keys(r.messages).length > 0);
+      
+      // Если последнее сообщение НЕ от меня (не мой телефон) и время больше прочитанного -> есть новые
+      var isUnreadS = (lastMsgTimeS > Number(lastReadS)) && (lastMsgPhoneS !== loggedService.phone);
 
       html += '<button class="btn small chat-btn ' + (isUnreadS ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">';
       html += '💬 Чат';
       if (isUnreadS) {
-        html += '<span class="chat-badge">1</span>';
+        html += '<span class="chat-badge">!</span>';
       }
       html += '</button>';
       
