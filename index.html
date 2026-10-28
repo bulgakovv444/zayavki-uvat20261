@@ -123,6 +123,7 @@
   .back { margin-bottom: 12px; }
   .empty { color: #6b7280; font-size: 14px; padding: 12px 0; }
 
+  /* История */
   .history-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
   .stat { background: #fff; border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); min-width: 100px; }
   .stat .num { font-size: 20px; font-weight: 700; }
@@ -145,6 +146,12 @@
   .history-table .status-service_done { color: #f59e0b; font-weight: 600; }
   .history-table .status-closed { color: #10b981; font-weight: 600; }
 
+  .event-log {
+    font-size: 12px; color: #4b5563; margin-top: 4px; line-height: 1.4;
+  }
+  .event-log div { margin-bottom: 2px; }
+
+  /* Тост и модалка */
   .toast {
     position: fixed; top: 15px; right: 15px; background: #10b981; color: #fff;
     padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500;
@@ -251,7 +258,7 @@
       <select id="filterBrigade">
         <option value="">Все бригады</option>
       </select>
-      <button class="btn green small" id="exportCsvBtn">⬇ В CSV</button>
+      <button class="btn green small" id="exportCsvBtn">⬇ Выгрузить в Excel</button>
     </div>
 
     <div id="historyContent"></div>
@@ -259,29 +266,22 @@
 
 </div>
 
-<!-- Модальное окно для паролей и причин возврата -->
-<div class="modal-overlay hidden" id="passwordModal">
+<!-- Модальное окно для действий -->
+<div class="modal-overlay hidden" id="actionModal">
   <div class="modal">
-    <h3 id="passwordTitle">Подтверждение</h3>
-    <p id="passwordHint">Введите пароль.</p>
-    <input type="password" id="passwordInput" placeholder="Пароль" autocomplete="off">
+    <h3 id="actionTitle">Подтверждение</h3>
+    <p id="actionHint">Подтвердите действие.</p>
+    
+    <!-- Поля для ввода имени и телефона при действии -->
+    <input type="text" id="actionName" placeholder="Ваше имя" autocomplete="off">
+    <input type="tel" id="actionPhone" placeholder="Номер телефона" autocomplete="off">
+    
+    <!-- Поле для причины возврата (показывается только при возврате) -->
     <textarea id="returnComment" placeholder="Укажите причину возврата..." class="hidden"></textarea>
+    
     <div class="modal-actions">
-      <button class="btn gray small" id="cancelPassword">Отмена</button>
-      <button class="btn green small" id="confirmPassword">Подтвердить</button>
-    </div>
-  </div>
-</div>
-
-<!-- НОВОЕ Модальное окно для кода Главного энергетика -->
-<div class="modal-overlay hidden" id="chiefCodeModal">
-  <div class="modal">
-    <h3>Доступ для Главного энергетика</h3>
-    <p>Введите секретный код, чтобы отправить заявку.</p>
-    <input type="password" id="chiefCodeInput" placeholder="Секретный код" autocomplete="off">
-    <div class="modal-actions">
-      <button class="btn gray small" id="cancelChiefCode">Отмена</button>
-      <button class="btn green small" id="confirmChiefCode">Подтвердить</button>
+      <button class="btn gray small" id="cancelAction">Отмена</button>
+      <button class="btn green small" id="confirmAction">Подтвердить</button>
     </div>
   </div>
 </div>
@@ -308,9 +308,7 @@
   const db = getDatabase(app);
 
   // ====== НАСТРОЙКИ ======
-  var SERVICE_PASSWORD = '1234';
-  var MASTER_PASSWORD  = '11';
-  var CHIEF_CODE       = '7642'; // Секретный код главного энергетика
+  var CHIEF_CODE = '7642'; // Секретный код главного энергетика
 
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
@@ -345,18 +343,17 @@
   var serviceTitle = document.getElementById('serviceTitle');
   var requestsList = document.getElementById('requestsList');
   var toastEl = document.getElementById('toast');
-  var passwordModal = document.getElementById('passwordModal');
-  var passwordInput = document.getElementById('passwordInput');
-  var passwordTitle = document.getElementById('passwordTitle');
-  var passwordHint = document.getElementById('passwordHint');
-  var confirmBtn = document.getElementById('confirmPassword');
-  var returnComment = document.getElementById('returnComment');
-  var reqDescEl = document.getElementById('reqDesc');
   
-  var chiefCodeModal = document.getElementById('chiefCodeModal');
-  var chiefCodeInput = document.getElementById('chiefCodeInput');
-  var confirmChiefCodeBtn = document.getElementById('confirmChiefCode');
-  var cancelChiefCodeBtn = document.getElementById('cancelChiefCode');
+  var actionModal = document.getElementById('actionModal');
+  var actionTitle = document.getElementById('actionTitle');
+  var actionHint = document.getElementById('actionHint');
+  var actionNameInput = document.getElementById('actionName');
+  var actionPhoneInput = document.getElementById('actionPhone');
+  var returnComment = document.getElementById('returnComment');
+  var confirmActionBtn = document.getElementById('confirmAction');
+  var cancelActionBtn = document.getElementById('cancelAction');
+  
+  var reqDescEl = document.getElementById('reqDesc');
   var submitBtn = document.getElementById('submitBtn');
 
   function showToast(msg, isError) {
@@ -496,6 +493,11 @@
     renderServiceRequests(serviceId);
   }
 
+  function formatDate(ts) {
+    if (!ts) return '';
+    return new Date(ts).toLocaleString('ru-RU');
+  }
+
   function renderServiceRequests(serviceId) {
     var list = allRequests.filter(function (r) { return r.serviceId === serviceId; });
     list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
@@ -511,14 +513,17 @@
       html += '<div class="request status-' + status + '">';
       html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>' + escapeHtml(author) + '</strong> (' + escapeHtml(r.name) + ', тел: ' + escapeHtml(r.phone) + ')<br>' + escapeHtml(r.desc) + '</div>';
       
-      if (r.returnComment) {
-        html += '<div class="return-info"><strong>↩ Возврат:</strong> ' + escapeHtml(r.returnComment) + '</div>';
+      // Вывод хронологии событий
+      html += '<div class="event-log">';
+      html += '<div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
+      if (r.events && r.events.length) {
+        for (var e = 0; e < r.events.length; e++) {
+          var ev = r.events[e];
+          html += '<div>' + escapeHtml(ev.text) + ' (' + formatDate(ev.time) + ')</div>';
+        }
       }
+      html += '</div>';
 
-      html += '<div class="meta">' + new Date(r.createdAt).toLocaleString('ru-RU') + ' · <b>' + statusLabel(status) + '</b>' +
-              (r.serviceDoneAt ? ' · служба: ' + new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '') +
-              (r.closedAt ? ' · закрыта: ' + new Date(r.closedAt).toLocaleString('ru-RU') : '') + '</div>';
-      
       html += '<div class="actions">';
       if (status === 'new') {
         html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
@@ -534,7 +539,7 @@
 
     var btns = requestsList.querySelectorAll('[data-action]');
     for (var j = 0; j < btns.length; j++) {
-      btns[j].addEventListener('click', function () { openPasswordModal(this.getAttribute('data-action'), this.getAttribute('data-id')); });
+      btns[j].addEventListener('click', function () { openActionModal(this.getAttribute('data-action'), this.getAttribute('data-id')); });
     }
   }
 
@@ -578,24 +583,33 @@
     var rows = '';
     for (var k = 0; k < filtered.length; k++) {
       var r = filtered[k]; var status = r.status || 'new';
+      
+      // Формируем текстовую хронологию для таблицы
+      var historyText = '🕒 Подана: ' + formatDate(r.createdAt);
+      if (r.events && r.events.length) {
+        for (var e = 0; e < r.events.length; e++) {
+          historyText += '<br>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')';
+        }
+      }
+
       rows += '<tr>';
-      rows += '<td>' + new Date(r.createdAt).toLocaleString('ru-RU') + '</td>';
+      rows += '<td>' + formatDate(r.createdAt) + '</td>';
       rows += '<td>' + escapeHtml(serviceName(r.serviceId)) + '</td>';
       rows += '<td>' + escapeHtml(r.brigade || '—') + '</td>';
-      rows += '<td>' + escapeHtml(r.name || '') + ' (' + escapeHtml(r.phone || '') + ')</td>';
-      rows += '<td>' + escapeHtml(r.desc) + (r.returnComment ? ' <br><small style="color:#dc2626;">↩ ' + escapeHtml(r.returnComment) + '</small>' : '') + '</td>';
+      rows += '<td>' + escapeHtml(r.name || '') + '<br><small>' + escapeHtml(r.phone || '') + '</small></td>';
+      rows += '<td>' + escapeHtml(r.desc) + '</td>';
       rows += '<td class="status-' + status + '">' + statusLabel(status) + '</td>';
-      rows += '<td>' + (r.serviceDoneAt ? new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '—') + '</td>';
-      rows += '<td>' + (r.closedAt ? new Date(r.closedAt).toLocaleString('ru-RU') : '—') + '</td>';
+      rows += '<td style="font-size:12px;">' + historyText + '</td>';
       rows += '</tr>';
     }
-    document.getElementById('historyContent').innerHTML = '<table class="history-table"><thead><tr><th>Подана</th><th>Служба</th><th>Бригада</th><th>Мастер</th><th>Описание</th><th>Статус</th><th>Служба выполнила</th><th>Закрыта</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    document.getElementById('historyContent').innerHTML = '<table class="history-table"><thead><tr><th>Подана</th><th>Служба</th><th>Бригада</th><th>Мастер</th><th>Описание</th><th>Статус</th><th>Хронология</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 
   function openHistory() {
     homeView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.remove('hidden'); renderHistory();
   }
 
+  // Выгрузка в Excel (CSV, который открывается в Excel)
   function exportCsv() {
     var fStatus = document.getElementById('filterStatus').value, fService = document.getElementById('filterService').value, fBrigade = document.getElementById('filterBrigade').value;
     var filtered = allRequests.filter(function (r) {
@@ -605,91 +619,128 @@
       return true;
     });
     filtered.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-    var headers = ['Подана', 'Служба', 'Бригада', 'Мастер', 'Телефон', 'Описание', 'Причина возврата', 'Статус', 'Служба выполнила', 'Закрыта'];
+    
+    var headers = ['Подана', 'Служба', 'Бригада', 'Имя мастера', 'Телефон', 'Описание', 'Статус', 'Хронология событий'];
     var lines = [headers.join(';')];
+    
     for (var i = 0; i < filtered.length; i++) {
       var r = filtered[i]; var status = r.status || 'new';
+      
+      // Собираем хронологию в одну строку через переносы
+      var historyText = 'Подана: ' + formatDate(r.createdAt);
+      if (r.events && r.events.length) {
+        for (var e = 0; e < r.events.length; e++) {
+          historyText += ' | ' + r.events[e].text + ' (' + formatDate(r.events[e].time) + ')';
+        }
+      }
+
       var row = [
-        new Date(r.createdAt).toLocaleString('ru-RU'), serviceName(r.serviceId), r.brigade || '',
-        r.name || '', r.phone || '',
+        formatDate(r.createdAt), 
+        serviceName(r.serviceId), 
+        r.brigade || '',
+        r.name || '', 
+        r.phone || '',
         (r.desc || '').replace(/[\r\n;]+/g, ' '), 
-        (r.returnComment || '').replace(/[\r\n;]+/g, ' '),
         statusLabel(status),
-        r.serviceDoneAt ? new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '',
-        r.closedAt ? new Date(r.closedAt).toLocaleString('ru-RU') : ''
+        historyText.replace(/[\r\n;]+/g, ' ')
       ];
       lines.push(row.join(';'));
     }
+    
     var csv = '\uFEFF' + lines.join('\r\n');
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
-    var a = document.createElement('a'); a.href = url; a.download = 'Заявки_история.csv';
+    var a = document.createElement('a'); a.href = url; a.download = 'Заявки_Уватский_проект.csv';
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    showToast('История выгружена в CSV.');
+    showToast('История выгружена в Excel (CSV).');
   }
 
-  // ====== МОДАЛЬНОЕ ОКНО (пароли) ======
-  function openPasswordModal(action, id) {
+  // ====== МОДАЛЬНОЕ ОКНО ДЛЯ ДЕЙСТВИЙ ======
+  function openActionModal(action, id) {
     pendingAction = { type: action, id: id };
-    passwordInput.value = '';
+    actionNameInput.value = localStorage.getItem('sv_name') || '';
+    actionPhoneInput.value = localStorage.getItem('sv_phone') || '';
     returnComment.value = '';
     returnComment.classList.add('hidden');
 
     if (action === 'service_done') {
-      passwordTitle.textContent = 'Подтверждение службы';
-      passwordHint.textContent = 'Введите пароль службы, чтобы отметить выполнение.';
-      confirmBtn.className = 'btn orange small';
+      actionTitle.textContent = 'Подтверждение службы';
+      actionHint.textContent = 'Укажите ваше имя и телефон, чтобы отметить выполнение.';
+      confirmActionBtn.className = 'btn orange small';
     } else if (action === 'closed') {
-      passwordTitle.textContent = 'Подтверждение мастера';
-      passwordHint.textContent = 'Введите пароль мастера, чтобы закрыть заявку.';
-      confirmBtn.className = 'btn green small';
+      actionTitle.textContent = 'Подтверждение мастера';
+      actionHint.textContent = 'Укажите ваше имя и телефон, чтобы закрыть заявку.';
+      confirmActionBtn.className = 'btn green small';
     } else if (action === 'return') {
-      passwordTitle.textContent = 'Возврат в работу';
-      passwordHint.textContent = 'Введите пароль мастера и причину возврата.';
-      confirmBtn.className = 'btn red small';
+      actionTitle.textContent = 'Возврат в работу';
+      actionHint.textContent = 'Укажите имя, телефон и причину возврата.';
+      confirmActionBtn.className = 'btn red small';
       returnComment.classList.remove('hidden');
     }
-    passwordModal.classList.remove('hidden');
-    passwordInput.focus();
+    actionModal.classList.remove('hidden');
+    actionNameInput.focus();
   }
 
-  function closePasswordModal() {
-    passwordModal.classList.add('hidden'); passwordInput.value = ''; returnComment.value = ''; pendingAction = null;
+  function closeActionModal() {
+    actionModal.classList.add('hidden'); 
+    actionNameInput.value = ''; 
+    actionPhoneInput.value = '';
+    returnComment.value = ''; 
+    pendingAction = null;
   }
 
-  async function confirmPassword() {
-    if (!pendingAction) { closePasswordModal(); return; }
+  async function confirmAction() {
+    if (!pendingAction) { closeActionModal(); return; }
+    
+    var name = actionNameInput.value.trim();
+    var phone = actionPhoneInput.value.trim();
+    var comment = returnComment.value.trim();
+    
+    if (!name) { showToast('Введите ваше имя', true); return; }
+    if (!phone) { showToast('Введите номер телефона', true); return; }
+    if (pendingAction.type === 'return' && !comment) { showToast('Укажите причину возврата', true); return; }
+
     var type = pendingAction.type, id = pendingAction.id;
-    var requiredPassword = (type === 'service_done') ? SERVICE_PASSWORD : MASTER_PASSWORD;
-    
-    if (passwordInput.value !== requiredPassword) {
-      showToast('Неверный пароль', true); passwordInput.value = ''; passwordInput.focus(); return;
-    }
-
     var updates = {};
+    
+    // Находим текущую заявку, чтобы добавить событие в историю
+    var req = allRequests.find(function(item) { return item.id === id; });
+    var currentEvents = req.events || [];
+    var newEvent = { text: '', time: Date.now() };
+    
     if (type === 'service_done') {
-      updates = { status: 'service_done', serviceDoneAt: Date.now(), returnComment: null };
-      showToast('Служба подтвердила выполнение. Ждём мастера.');
+      updates.status = 'service_done';
+      updates.serviceDoneAt = Date.now();
+      newEvent.text = '✅ Служба выполнила (Сотрудник: ' + name + ', тел: ' + phone + ')';
     } else if (type === 'closed') {
-      updates = { status: 'closed', closedAt: Date.now() };
-      showToast('Мастер подтвердил. Заявка закрыта.');
+      updates.status = 'closed';
+      updates.closedAt = Date.now();
+      newEvent.text = '🔒 Мастер подтвердил (Сотрудник: ' + name + ', тел: ' + phone + ')';
     } else if (type === 'return') {
-      var comment = returnComment.value.trim();
-      if (!comment) { showToast('Укажите причину возврата', true); return; }
-      updates = { status: 'new', serviceDoneAt: null, returnComment: comment };
-      showToast('Заявка возвращена в работу службе.');
+      updates.status = 'new';
+      updates.serviceDoneAt = null;
+      newEvent.text = '↩ Возврат в работу (Сотрудник: ' + name + ', тел: ' + phone + '). Причина: ' + comment;
     }
     
-    closePasswordModal();
+    updates.events = currentEvents.concat([newEvent]);
+
+    closeActionModal();
     await update(ref(db, 'requests/' + id), updates);
+    
+    if (type === 'service_done') showToast('Служба подтвердила выполнение. Ждём мастера.');
+    else if (type === 'closed') showToast('Мастер подтвердил. Заявка закрыта.');
+    else if (type === 'return') showToast('Заявка возвращена в работу.');
   }
 
-  confirmBtn.addEventListener('click', confirmPassword);
-  document.getElementById('cancelPassword').addEventListener('click', closePasswordModal);
-  passwordInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') confirmPassword(); if (e.key === 'Escape') closePasswordModal(); });
-  passwordModal.addEventListener('click', function (e) { if (e.target === passwordModal) closePasswordModal(); });
+  confirmActionBtn.addEventListener('click', confirmAction);
+  cancelActionBtn.addEventListener('click', closeActionModal);
+  actionModal.addEventListener('click', function (e) { if (e.target === actionModal) closeActionModal(); });
 
-  // ====== ЛОГИКА ОТПРАВКИ С ПРОВЕРКОЙ КОДА ======
+  // ====== МОДАЛЬНОЕ ОКНО ДЛЯ КОДА ГЛАВНОГО ЭНЕРГЕТИКА ======
+  var chiefCodeModal = document.getElementById('chiefCodeModal');
+  var chiefCodeInput = document.getElementById('chiefCodeInput');
+  var confirmChiefCodeBtn = document.getElementById('confirmChiefCode');
+  var cancelChiefCodeBtn = document.getElementById('cancelChiefCode');
   var pendingNewRequest = null;
 
   document.getElementById('requestForm').addEventListener('submit', function (e) {
@@ -707,21 +758,17 @@
     if (!phone)     { showToast('Шаг 2: Введите телефон', true); return; }
     if (!desc)      { showToast('Шаг 3: Введите описание', true); return; }
 
-    // Сохраняем данные для отправки
     pendingNewRequest = { serviceId, brigade, name, phone, desc };
 
-    // Если выбран Главный энергетик, просим код
     if (brigade === 'Главный энергетик') {
       chiefCodeInput.value = '';
       chiefCodeModal.classList.remove('hidden');
       chiefCodeInput.focus();
     } else {
-      // Для остальных отправляем сразу
       submitPendingRequest();
     }
   });
 
-  // Функция фактической отправки в Firebase
   async function submitPendingRequest() {
     if (!pendingNewRequest) return;
     var data = pendingNewRequest;
@@ -738,13 +785,11 @@
         phone: data.phone,
         desc: data.desc, 
         createdAt: Date.now(), 
-        status: 'new'
+        status: 'new',
+        events: [{ text: '📝 Заявка создана (Сотрудник: ' + data.name + ', тел: ' + data.phone + ')', time: Date.now() }]
       });
 
-      // Сохраняем данные в браузер
       saveData(data.brigade, data.name, data.phone);
-
-      // Очищаем форму
       reqDescEl.value = ''; 
       selectedServiceId = ''; 
       renderServicePicker();
@@ -759,10 +804,8 @@
     }
   }
 
-  // Обработка ввода кода в модальном окне
   confirmChiefCodeBtn.addEventListener('click', async function() {
     var code = chiefCodeInput.value.trim();
-    
     if (code !== CHIEF_CODE) {
       showToast('Неверный код доступа!', true);
       chiefCodeInput.value = '';
@@ -770,7 +813,6 @@
       return;
     }
 
-    // Код верный, проверяем номер телефона
     confirmChiefCodeBtn.disabled = true;
     confirmChiefCodeBtn.textContent = 'Проверка...';
 
@@ -784,12 +826,10 @@
         return;
       }
       
-      // Всё верно, закрываем окно и отправляем
       chiefCodeModal.classList.add('hidden');
       confirmChiefCodeBtn.disabled = false;
       confirmChiefCodeBtn.textContent = 'Подтвердить';
       await submitPendingRequest();
-      
     } catch (error) {
       showToast('Ошибка сети. Попробуйте еще раз.', true);
       confirmChiefCodeBtn.disabled = false;
@@ -841,7 +881,6 @@
       renderHistory();
     }
   });
-
 </script>
 </body>
 </html>
