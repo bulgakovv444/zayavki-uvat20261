@@ -250,7 +250,7 @@
     <span>⛔</span> Прием заявок временно приостановлен Главным инженером.
   </div>
   
-  <!-- Плашка ожидания (общая) -->
+  <!-- Плашка ожидания (мастер) -->
   <div id="globalPendingAlert" class="pending-alert hidden">
     <span>⏳</span> Ваш аккаунт находится на проверке у Главного инженера. Ожидайте подтверждения.
   </div>
@@ -350,12 +350,15 @@
         <button class="btn gray small" id="logoutServiceBtn">Выйти</button>
       </div>
       
+      <!-- Плашка для неподтвержденной службы -->
       <div id="servicePendingAlert" class="pending-alert hidden" style="margin-top: 10px;">
-        <span>⏳</span> Ваш аккаунт службы находится на проверке. Вы не можете выполнять заявки, пока Главный инженер не подтвердит вас.
+        <span>⏳</span> Ваш аккаунт службы находится на проверке. Вы не можете просматривать и выполнять заявки, пока Главный инженер не подтвердит вас.
       </div>
 
-      <h2>Все службы (нажмите для просмотра)</h2>
-      <div class="services" id="serviceServicesGrid"></div>
+      <div id="serviceContentBlock">
+        <h2>Все службы (нажмите для просмотра)</h2>
+        <div class="services" id="serviceServicesGrid"></div>
+      </div>
     </div>
   </div>
 
@@ -461,15 +464,14 @@
 </div>
 
 <!-- Модальные окна -->
-<div class="modal-overlay hidden" id="servicePasswordModal">
+<div class="modal-overlay hidden" id="serviceCodeModal">
   <div class="modal">
     <h3>Подтверждение службы</h3>
-    <p>Введите пароль службы (1234) и, если нужно, комментарий.</p>
-    <input type="password" id="servicePasswordInput" placeholder="Пароль" autocomplete="off">
-    <textarea id="serviceCommentInput" placeholder="Комментарий (необязательно)..." style="min-height: 50px; margin-top: 10px;"></textarea>
+    <p>Введите код службы.</p>
+    <input type="password" id="serviceCodeInput" placeholder="Код службы" autocomplete="off">
     <div class="modal-actions">
-      <button class="btn gray small" id="cancelServicePassword">Отмена</button>
-      <button class="btn orange small" id="confirmServicePassword">Подтвердить</button>
+      <button class="btn gray small" id="cancelServiceCode">Отмена</button>
+      <button class="btn orange small" id="confirmServiceCode">Подтвердить</button>
     </div>
   </div>
 </div>
@@ -602,6 +604,7 @@
   var serviceLoginBlock = document.getElementById('serviceLoginBlock');
   var serviceWorkBlock = document.getElementById('serviceWorkBlock');
   var servicePendingAlert = document.getElementById('servicePendingAlert');
+  var serviceContentBlock = document.getElementById('serviceContentBlock');
   var loggedServiceName = document.getElementById('loggedServiceName');
   var loggedServicePhone = document.getElementById('loggedServicePhone');
 
@@ -628,11 +631,10 @@
 
   var toastEl = document.getElementById('toast');
   
-  var servicePasswordModal = document.getElementById('servicePasswordModal');
-  var servicePasswordInput = document.getElementById('servicePasswordInput');
-  var serviceCommentInput = document.getElementById('serviceCommentInput');
-  var confirmServicePasswordBtn = document.getElementById('confirmServicePassword');
-  var cancelServicePasswordBtn = document.getElementById('cancelServicePassword');
+  var serviceCodeModal = document.getElementById('serviceCodeModal');
+  var serviceCodeInput = document.getElementById('serviceCodeInput');
+  var confirmServiceCodeBtn = document.getElementById('confirmServiceCode');
+  var cancelServiceCodeBtn = document.getElementById('cancelServiceCode');
   
   var chiefCodeModal = document.getElementById('chiefCodeModal');
   var chiefCodeInput = document.getElementById('chiefCodeInput');
@@ -738,13 +740,17 @@
 
     // Проверка статуса службы (для ее рабочего стола)
     if (loggedService.name) {
-      if (loggedService.status === 'pending') {
+      if (loggedService.status !== 'approved') {
         servicePendingAlert.classList.remove('hidden');
-      } else if (loggedService.status === 'rejected') {
-        servicePendingAlert.classList.remove('hidden');
-        servicePendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен Главным инженером.';
+        serviceContentBlock.classList.add('hidden'); // Скрываем заявки
+        if (loggedService.status === 'rejected') {
+          servicePendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен Главным инженером. Обратитесь к администратору.';
+        } else {
+          servicePendingAlert.innerHTML = '<span>⏳</span> Ваш аккаунт службы находится на проверке. Вы не можете просматривать и выполнять заявки, пока Главный инженер не подтвердит вас.';
+        }
       } else {
         servicePendingAlert.classList.add('hidden');
+        serviceContentBlock.classList.remove('hidden'); // Показываем заявки
       }
     }
   }
@@ -792,6 +798,7 @@
         adminWorkBlock.classList.add('hidden');
       }
     }
+    updateUIState();
   }
 
   tabMaster.addEventListener('click', function() { switchToTab('master'); });
@@ -1357,20 +1364,11 @@
     var req = allRequests.find(function(item) { return item.id === id; });
     if (!req) return;
 
-    // Проверка статуса службы перед действием "service_done" или "transfer"
-    if (action === 'service_done' || action === 'transfer') {
-      if (loggedService.status !== 'approved') {
-        showToast('Ваш аккаунт службы не подтвержден. Вы не можете выполнять заявки.', true);
-        return;
-      }
-    }
-
     if (action === 'service_done') {
       pendingServiceDoneId = id;
-      servicePasswordInput.value = '';
-      serviceCommentInput.value = '';
-      servicePasswordModal.classList.remove('hidden');
-      servicePasswordInput.focus();
+      serviceCodeInput.value = '';
+      serviceCodeModal.classList.remove('hidden');
+      serviceCodeInput.focus();
     } else if (action === 'return') {
       pendingReturnId = id;
       returnCommentInput.value = '';
@@ -1398,31 +1396,21 @@
     }
   }
 
-  confirmServicePasswordBtn.addEventListener('click', async function() {
-    var pwd = servicePasswordInput.value.trim();
-    var comment = serviceCommentInput.value.trim();
+  confirmServiceCodeBtn.addEventListener('click', async function() {
+    var code = serviceCodeInput.value.trim();
 
-    if (loggedService.status !== 'approved') {
-      showToast('Ваш аккаунт службы не подтвержден.', true);
-      servicePasswordModal.classList.add('hidden');
-      return;
-    }
-
-    if (pwd !== SERVICE_PASSWORD) {
-      showToast('Неверный пароль службы', true); 
-      servicePasswordInput.value = ''; 
-      servicePasswordInput.focus(); 
+    if (code !== SERVICE_PASSWORD) {
+      showToast('Неверный код службы', true); 
+      serviceCodeInput.value = ''; 
+      serviceCodeInput.focus(); 
       return;
     }
 
     var req = allRequests.find(function(item) { return item.id === pendingServiceDoneId; });
-    if (!req) { servicePasswordModal.classList.add('hidden'); return; }
+    if (!req) { serviceCodeModal.classList.add('hidden'); return; }
 
     var currentEvents = req.events || [];
     var eventText = '✅ Служба выполнила (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')';
-    if (comment) {
-      eventText += '. Комментарий: ' + comment;
-    }
     
     var newEvent = { text: eventText, time: Date.now() };
     
@@ -1432,14 +1420,14 @@
       events: currentEvents.concat([newEvent])
     };
 
-    servicePasswordModal.classList.add('hidden');
+    serviceCodeModal.classList.add('hidden');
     pendingServiceDoneId = null;
     await update(ref(db, 'requests/' + req.id), updates);
     showToast('Служба подтвердила выполнение. Ждём мастера.');
   });
 
-  cancelServicePasswordBtn.addEventListener('click', function() {
-    servicePasswordModal.classList.add('hidden');
+  cancelServiceCodeBtn.addEventListener('click', function() {
+    serviceCodeModal.classList.add('hidden');
     pendingServiceDoneId = null;
   });
 
@@ -1472,12 +1460,6 @@
   });
 
   confirmTransferBtn.addEventListener('click', async function() {
-    if (loggedService.status !== 'approved') {
-      showToast('Ваш аккаунт службы не подтвержден.', true);
-      transferModal.classList.add('hidden');
-      return;
-    }
-
     if (!pendingTransferId) return;
     var newServiceId = transferServiceSelect.value;
     
