@@ -27,6 +27,19 @@
   .step-title { font-size: 15px; font-weight: 600; }
   .step-hint { font-size: 12px; color: #6b7280; margin-left: 32px; margin-bottom: 8px; }
 
+  /* Переключатель роли */
+  .role-switch {
+    display: flex; gap: 10px; margin-bottom: 10px; margin-left: 32px;
+  }
+  .role-btn {
+    padding: 6px 12px; border: 2px solid #cbd5e1; border-radius: 6px;
+    background: #f8fafc; cursor: pointer; font-weight: 600; font-size: 13px;
+    transition: all .15s;
+  }
+  .role-btn.active {
+    background: #2563eb; color: #fff; border-color: #2563eb;
+  }
+
   .services {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -189,6 +202,17 @@
         <div class="step">
           <div class="step-header">
             <div class="step-number">1</div>
+            <div class="step-title">Кто вы?</div>
+          </div>
+          <div class="role-switch">
+            <button type="button" class="role-btn active" id="roleMasterBtn">Я — Мастер (Бригада)</button>
+            <button type="button" class="role-btn" id="roleServiceBtn">Я — Служба</button>
+          </div>
+        </div>
+
+        <div class="step" id="servicePickStep">
+          <div class="step-header">
+            <div class="step-number">2</div>
             <div class="step-title">Выберите службу</div>
           </div>
           <div class="step-hint">Нажмите на нужную кнопку</div>
@@ -197,24 +221,34 @@
 
         <div class="step">
           <div class="step-header">
-            <div class="step-number">2</div>
-            <div class="step-title">Данные мастера</div>
+            <div class="step-number">3</div>
+            <div class="step-title">Данные</div>
           </div>
-          <div class="step-hint">Бригада, имя и телефон для связи</div>
-          <div class="form-row">
+          <div class="step-hint" id="dataHint">Бригада, имя и телефон для связи</div>
+          
+          <!-- Блок для мастера -->
+          <div class="form-row" id="brigadeRow">
             <select id="reqBrigade" style="flex: 1 1 100%;">
               <option value="">— выберите бригаду —</option>
             </select>
           </div>
+
+          <!-- Блок для службы -->
+          <div class="form-row hidden" id="serviceSelectRow" style="margin-top: 8px;">
+            <select id="reqServiceSelect" style="flex: 1 1 100%;">
+              <option value="">— выберите службу (кто вы) —</option>
+            </select>
+          </div>
+
           <div class="form-row" style="margin-top: 8px;">
-            <input id="reqName" type="text" placeholder="Ваше имя (мастер)" style="flex: 1 1 45%;">
+            <input id="reqName" type="text" placeholder="Ваше имя" style="flex: 1 1 45%;">
             <input id="reqPhone" type="tel" placeholder="Номер телефона" style="flex: 1 1 45%;">
           </div>
         </div>
 
         <div class="step">
           <div class="step-header">
-            <div class="step-number">3</div>
+            <div class="step-number">4</div>
             <div class="step-title">Оформите заявку</div>
           </div>
           <div class="step-hint">Кратко опишите проблему</div>
@@ -267,7 +301,7 @@
 
 </div>
 
-<!-- Модальное окно для ввода причины возврата -->
+<!-- Модальное окно для ввода причины возврата (Мастер) -->
 <div class="modal-overlay hidden" id="returnModal">
   <div class="modal">
     <h3>Возврат в работу</h3>
@@ -276,6 +310,19 @@
     <div class="modal-actions">
       <button class="btn gray small" id="cancelReturn">Отмена</button>
       <button class="btn red small" id="confirmReturn">Вернуть</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для пароля службы (1234) -->
+<div class="modal-overlay hidden" id="servicePasswordModal">
+  <div class="modal">
+    <h3>Подтверждение службы</h3>
+    <p>Введите пароль службы, чтобы отметить выполнение.</p>
+    <input type="password" id="servicePasswordInput" placeholder="Пароль" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn gray small" id="cancelServicePassword">Отмена</button>
+      <button class="btn orange small" id="confirmServicePassword">Подтвердить</button>
     </div>
   </div>
 </div>
@@ -315,7 +362,8 @@
   const db = getDatabase(app);
 
   // ====== НАСТРОЙКИ ======
-  var CHIEF_CODE = '7642'; // Секретный код главного энергетика
+  var CHIEF_CODE = '7642';
+  var SERVICE_PASSWORD = '1234';
 
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
@@ -337,11 +385,14 @@
   var allRequests = [];
   var selectedServiceId = '';
   var pendingReturnId = null;
+  var pendingServiceDoneId = null;
+  var currentRole = 'master'; // 'master' или 'service'
 
   // ====== ЭЛЕМЕНТЫ ======
   var servicesGrid = document.getElementById('servicesGrid');
   var servicePicker = document.getElementById('servicePicker');
   var reqBrigadeSelect = document.getElementById('reqBrigade');
+  var reqServiceSelect = document.getElementById('reqServiceSelect');
   var reqNameInput = document.getElementById('reqName');
   var reqPhoneInput = document.getElementById('reqPhone');
   var serviceView = document.getElementById('serviceView');
@@ -356,6 +407,11 @@
   var confirmReturnBtn = document.getElementById('confirmReturn');
   var cancelReturnBtn = document.getElementById('cancelReturn');
   
+  var servicePasswordModal = document.getElementById('servicePasswordModal');
+  var servicePasswordInput = document.getElementById('servicePasswordInput');
+  var confirmServicePasswordBtn = document.getElementById('confirmServicePassword');
+  var cancelServicePasswordBtn = document.getElementById('cancelServicePassword');
+  
   var chiefCodeModal = document.getElementById('chiefCodeModal');
   var chiefCodeInput = document.getElementById('chiefCodeInput');
   var confirmChiefCodeBtn = document.getElementById('confirmChiefCode');
@@ -364,6 +420,31 @@
   var reqDescEl = document.getElementById('reqDesc');
   var submitBtn = document.getElementById('submitBtn');
   var pendingNewRequest = null;
+
+  // ====== ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ ======
+  var roleMasterBtn = document.getElementById('roleMasterBtn');
+  var roleServiceBtn = document.getElementById('roleServiceBtn');
+  var brigadeRow = document.getElementById('brigadeRow');
+  var serviceSelectRow = document.getElementById('serviceSelectRow');
+  var dataHint = document.getElementById('dataHint');
+
+  roleMasterBtn.addEventListener('click', function() {
+    currentRole = 'master';
+    roleMasterBtn.classList.add('active');
+    roleServiceBtn.classList.remove('active');
+    brigadeRow.classList.remove('hidden');
+    serviceSelectRow.classList.add('hidden');
+    dataHint.textContent = 'Бригада, имя и телефон для связи';
+  });
+
+  roleServiceBtn.addEventListener('click', function() {
+    currentRole = 'service';
+    roleServiceBtn.classList.add('active');
+    roleMasterBtn.classList.remove('active');
+    brigadeRow.classList.add('hidden');
+    serviceSelectRow.classList.remove('hidden');
+    dataHint.textContent = 'Служба, имя и телефон сотрудника';
+  });
 
   function showToast(msg, isError) {
     toastEl.textContent = msg;
@@ -460,6 +541,11 @@
     var bopts = '<option value="">— выберите бригаду —</option>';
     for (var b = 0; b < BRIGADES.length; b++) bopts += '<option value="' + BRIGADES[b] + '">' + BRIGADES[b] + '</option>';
     reqBrigadeSelect.innerHTML = bopts;
+
+    var sopts = '<option value="">— выберите службу (кто вы) —</option>';
+    for (var s = 0; s < SERVICES.length; s++) sopts += '<option value="' + SERVICES[s].name + '">' + SERVICES[s].name + '</option>';
+    reqServiceSelect.innerHTML = sopts;
+
     loadSavedData();
     renderServicePicker();
 
@@ -517,12 +603,11 @@
     for (var i = 0; i < list.length; i++) {
       var r = list[i];
       var status = r.status || 'new';
-      var author = r.brigade ? r.brigade : 'Без бригады';
+      var author = r.brigade ? r.brigade : (r.serviceAuthor || 'Без автора');
       
       html += '<div class="request status-' + status + '">';
       html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>' + escapeHtml(author) + '</strong> (' + escapeHtml(r.name) + ', тел: ' + escapeHtml(r.phone) + ')<br>' + escapeHtml(r.desc) + '</div>';
       
-      // Вывод хронологии событий
       html += '<div class="event-log">';
       html += '<div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
       if (r.events && r.events.length) {
@@ -552,13 +637,21 @@
     }
   }
 
-  // ====== ОБРАБОТКА ДЕЙСТВИЙ (БЕЗ ПАРОЛЕЙ) ======
+  // ====== ОБРАБОТКА ДЕЙСТВИЙ ======
   async function handleAction(action, id) {
     var req = allRequests.find(function(item) { return item.id === id; });
     if (!req) return;
 
+    if (action === 'service_done') {
+      // Запрашиваем пароль службы
+      pendingServiceDoneId = id;
+      servicePasswordInput.value = '';
+      servicePasswordModal.classList.remove('hidden');
+      servicePasswordInput.focus();
+      return;
+    }
+
     if (action === 'return') {
-      // Для возврата нужно запросить причину
       pendingReturnId = id;
       returnCommentInput.value = '';
       returnModal.classList.remove('hidden');
@@ -566,28 +659,63 @@
       return;
     }
 
-    // Для выполнения и закрытия пароли не нужны, данные подтягиваются из заявки
-    var updates = {};
-    var currentEvents = req.events || [];
-    var newEvent = { text: '', time: Date.now() };
-
-    if (action === 'service_done') {
-      updates.status = 'service_done';
-      updates.serviceDoneAt = Date.now();
-      newEvent.text = '✅ Служба выполнила (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + ')';
-      showToast('Служба подтвердила выполнение. Ждём мастера.');
-    } else if (action === 'closed') {
+    if (action === 'closed') {
+      // Мастер подтверждает без пароля, данные из заявки
+      var updates = {};
+      var currentEvents = req.events || [];
+      var newEvent = { 
+        text: '🔒 Мастер подтвердил (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + ')', 
+        time: Date.now() 
+      };
       updates.status = 'closed';
       updates.closedAt = Date.now();
-      newEvent.text = '🔒 Мастер подтвердил (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + ')';
+      updates.events = currentEvents.concat([newEvent]);
+      await update(ref(db, 'requests/' + id), updates);
       showToast('Мастер подтвердил. Заявка закрыта.');
     }
-
-    updates.events = currentEvents.concat([newEvent]);
-    await update(ref(db, 'requests/' + id), updates);
   }
 
-  // Обработка модального окна возврата
+  // Подтверждение пароля службы
+  confirmServicePasswordBtn.addEventListener('click', async function() {
+    var pwd = servicePasswordInput.value.trim();
+    if (pwd !== SERVICE_PASSWORD) {
+      showToast('Неверный пароль службы', true); 
+      servicePasswordInput.value = ''; 
+      servicePasswordInput.focus(); 
+      return;
+    }
+
+    var req = allRequests.find(function(item) { return item.id === pendingServiceDoneId; });
+    if (!req) { servicePasswordModal.classList.add('hidden'); return; }
+
+    var currentEvents = req.events || [];
+    // Берем имя того, кто в форме (если служба заполнила данные), иначе "Служба"
+    var workerName = reqNameInput.value.trim() || 'Сотрудник службы';
+    var workerPhone = reqPhoneInput.value.trim() || '';
+
+    var newEvent = { 
+      text: '✅ Служба выполнила (Сотрудник: ' + workerName + ', Тел: ' + workerPhone + ')', 
+      time: Date.now() 
+    };
+    
+    var updates = {
+      status: 'service_done',
+      serviceDoneAt: Date.now(),
+      events: currentEvents.concat([newEvent])
+    };
+
+    servicePasswordModal.classList.add('hidden');
+    pendingServiceDoneId = null;
+    await update(ref(db, 'requests/' + req.id), updates);
+    showToast('Служба подтвердила выполнение. Ждём мастера.');
+  });
+
+  cancelServicePasswordBtn.addEventListener('click', function() {
+    servicePasswordModal.classList.add('hidden');
+    pendingServiceDoneId = null;
+  });
+
+  // Возврат в работу (мастер)
   confirmReturnBtn.addEventListener('click', async function() {
     var comment = returnCommentInput.value.trim();
     if (!comment) { showToast('Укажите причину возврата', true); return; }
@@ -671,7 +799,7 @@
       rows += '<tr>';
       rows += '<td>' + formatDate(r.createdAt) + '</td>';
       rows += '<td>' + escapeHtml(serviceName(r.serviceId)) + '</td>';
-      rows += '<td>' + escapeHtml(r.brigade || '—') + '</td>';
+      rows += '<td>' + escapeHtml(r.brigade || r.serviceAuthor || '—') + '</td>';
       rows += '<td>' + escapeHtml(r.name || '') + '<br><small>' + escapeHtml(r.phone || '') + '</small></td>';
       rows += '<td>' + escapeHtml(r.desc) + '</td>';
       rows += '<td class="status-' + status + '">' + statusLabel(status) + '</td>';
@@ -695,7 +823,7 @@
     });
     filtered.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
     
-    var headers = ['Подана', 'Служба', 'Бригада', 'Имя мастера', 'Телефон', 'Описание', 'Статус', 'Хронология событий'];
+    var headers = ['Подана', 'Служба', 'Бригада', 'Имя', 'Телефон', 'Описание', 'Статус', 'Хронология событий'];
     var lines = [headers.join(';')];
     
     for (var i = 0; i < filtered.length; i++) {
@@ -711,7 +839,7 @@
       var row = [
         formatDate(r.createdAt), 
         serviceName(r.serviceId), 
-        r.brigade || '',
+        r.brigade || r.serviceAuthor || '',
         r.name || '', 
         r.phone || '',
         (r.desc || '').replace(/[\r\n;]+/g, ' '), 
@@ -729,24 +857,33 @@
     showToast('История выгружена в Excel (CSV).');
   }
 
-  // ====== ОТПРАВКА ЗАЯВКИ (С КОДОМ ГЛАВНОГО ЭНЕРГЕТИКА) ======
+  // ====== ОТПРАВКА ЗАЯВКИ ======
   document.getElementById('requestForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
     var serviceId = selectedServiceId;
-    var brigade = reqBrigadeSelect.value;
     var name = reqNameInput.value.trim();
     var phone = reqPhoneInput.value.trim();
     var desc = reqDescEl.value.trim();
+    var brigade = '';
+    var serviceAuthor = '';
 
-    if (!serviceId) { showToast('Шаг 1: Выберите службу', true); return; }
-    if (!brigade)   { showToast('Шаг 2: Выберите бригаду', true); return; }
-    if (!name)      { showToast('Шаг 2: Введите ваше имя', true); return; }
-    if (!phone)     { showToast('Шаг 2: Введите телефон', true); return; }
-    if (!desc)      { showToast('Шаг 3: Введите описание', true); return; }
+    if (currentRole === 'master') {
+      brigade = reqBrigadeSelect.value;
+      if (!brigade) { showToast('Шаг 3: Выберите бригаду', true); return; }
+    } else {
+      serviceAuthor = reqServiceSelect.value;
+      if (!serviceAuthor) { showToast('Шаг 3: Выберите службу (кто вы)', true); return; }
+    }
 
-    pendingNewRequest = { serviceId, brigade, name, phone, desc };
+    if (!serviceId) { showToast('Шаг 2: Выберите службу', true); return; }
+    if (!name)      { showToast('Шаг 3: Введите ваше имя', true); return; }
+    if (!phone)     { showToast('Шаг 3: Введите телефон', true); return; }
+    if (!desc)      { showToast('Шаг 4: Введите описание', true); return; }
 
+    pendingNewRequest = { serviceId, brigade, serviceAuthor, name, phone, desc };
+
+    // Если Главный энергетик, запрашиваем код
     if (brigade === 'Главный энергетик') {
       chiefCodeInput.value = '';
       chiefCodeModal.classList.remove('hidden');
@@ -765,23 +902,28 @@
 
     try {
       var newRef = push(ref(db, 'requests'));
+      
+      var authorString = data.brigade ? 'Бригада: ' + data.brigade : 'Служба: ' + data.serviceAuthor;
+      
       await set(newRef, {
         serviceId: data.serviceId, 
-        brigade: data.brigade, 
+        brigade: data.brigade || null, 
+        serviceAuthor: data.serviceAuthor || null,
         name: data.name,
         phone: data.phone,
         desc: data.desc, 
         createdAt: Date.now(), 
         status: 'new',
-        events: [{ text: '📝 Заявка создана (Бригада: ' + data.brigade + ', Мастер: ' + data.name + ', Тел: ' + data.phone + ')', time: Date.now() }]
+        events: [{ text: '📝 Заявка создана (' + authorString + ', ' + data.name + ', Тел: ' + data.phone + ')', time: Date.now() }]
       });
 
-      saveData(data.brigade, data.name, data.phone);
+      if (data.brigade) saveData(data.brigade, data.name, data.phone);
+
       reqDescEl.value = ''; 
       selectedServiceId = ''; 
       renderServicePicker();
       
-      showToast('Заявка отправлена! Служба подсвечена красным.');
+      showToast('Заявка отправлена!');
       pendingNewRequest = null;
     } catch (error) {
       showToast('Ошибка сети. Попробуйте еще раз.', true);
@@ -830,11 +972,6 @@
     pendingNewRequest = null;
   });
 
-  chiefCodeInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') confirmChiefCodeBtn.click();
-    if (e.key === 'Escape') cancelChiefCodeBtn.click();
-  });
-
   // ====== НАВИГАЦИЯ ======
   document.getElementById('backBtn').addEventListener('click', function () {
     serviceView.classList.add('hidden'); homeView.classList.remove('hidden'); serviceTitle.removeAttribute('data-service-id'); renderHome();
@@ -850,7 +987,7 @@
   document.getElementById('filterBrigade').addEventListener('change', renderHistory);
   document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
 
-  // ====== СЛУШАЕМ БАЗУ В РЕАЛЬНОМ ВРЕМЕНИ ======
+  // ====== СЛУШАЕМ БАЗУ ======
   onValue(ref(db, 'requests'), (snapshot) => {
     var data = snapshot.val();
     allRequests = [];
