@@ -17,7 +17,6 @@
   h2 { font-size: 16px; margin: 16px 0 10px; }
   .container { max-width: 1100px; margin: 0 auto; }
 
-  /* --- Шаги формы --- */
   .step { margin-bottom: 16px; }
   .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .step-number {
@@ -28,7 +27,6 @@
   .step-title { font-size: 15px; font-weight: 600; }
   .step-hint { font-size: 12px; color: #6b7280; margin-left: 32px; margin-bottom: 8px; }
 
-  /* --- Карточки служб --- */
   .services {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -41,16 +39,10 @@
     border: 2px solid transparent; position: relative;
   }
   .service-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
-  
-  /* Рамки */
   .service-card.has-new { border-color: #ef4444; }
   .service-card.has-wait { border-color: #f59e0b; }
-  /* Если есть и то и другое, приоритет красной рамке (новым) */
-  .service-card.has-new.has-wait { border-color: #ef4444; }
-  
   .service-card h3 { font-size: 15px; margin-bottom: 8px; }
   
-  /* Бейджи */
   .badges-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
   .badge {
     display: inline-block; background: #ef4444; color: #fff;
@@ -69,7 +61,6 @@
     50% { box-shadow: 0 0 0 6px rgba(239,68,68,.05); }
   }
 
-  /* --- Кнопки --- */
   .btn {
     display: inline-block; background: #2563eb; color: #fff; border: none;
     padding: 8px 16px; border-radius: 6px; cursor: pointer;
@@ -87,7 +78,6 @@
   .btn.small { padding: 6px 10px; font-size: 12px; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-  /* --- Выбор службы --- */
   .service-picker { display: flex; flex-wrap: wrap; gap: 8px; }
   .service-pick-btn {
     background: #eef2ff; color: #1e3a8a; border: 2px solid #c7d2fe;
@@ -100,7 +90,6 @@
     box-shadow: 0 2px 4px rgba(37,99,235,.3);
   }
 
-  /* --- Поля ввода --- */
   .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
   input, select, textarea {
     font: inherit; padding: 10px 12px; border: 2px solid #d1d5db; border-radius: 6px;
@@ -116,7 +105,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 16px;
   }
 
-  /* --- Заявки (внутри службы) --- */
   .request {
     border-left: 4px solid #ef4444; background: #fff; padding: 12px;
     border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05);
@@ -135,7 +123,6 @@
   .back { margin-bottom: 12px; }
   .empty { color: #6b7280; font-size: 14px; padding: 12px 0; }
 
-  /* --- История --- */
   .history-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
   .stat { background: #fff; border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); min-width: 100px; }
   .stat .num { font-size: 20px; font-weight: 700; }
@@ -158,7 +145,6 @@
   .history-table .status-service_done { color: #f59e0b; font-weight: 600; }
   .history-table .status-closed { color: #10b981; font-weight: 600; }
 
-  /* --- Тост и модалка --- */
   .toast {
     position: fixed; top: 15px; right: 15px; background: #10b981; color: #fff;
     padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500;
@@ -192,7 +178,6 @@
     <div class="card">
       <form id="requestForm">
         
-        <!-- Шаг 1 -->
         <div class="step">
           <div class="step-header">
             <div class="step-number">1</div>
@@ -202,21 +187,23 @@
           <div class="service-picker" id="servicePicker"></div>
         </div>
 
-        <!-- Шаг 2 -->
         <div class="step">
           <div class="step-header">
             <div class="step-number">2</div>
-            <div class="step-title">Выберите бригаду</div>
+            <div class="step-title">Данные мастера</div>
           </div>
-          <div class="step-hint">Укажите вашу бригаду из списка</div>
+          <div class="step-hint">Бригада, имя и телефон для связи</div>
           <div class="form-row">
-            <select id="reqBrigade">
+            <select id="reqBrigade" style="flex: 1 1 100%;">
               <option value="">— выберите бригаду —</option>
             </select>
           </div>
+          <div class="form-row" style="margin-top: 8px;">
+            <input id="reqName" type="text" placeholder="Ваше имя (мастер)" style="flex: 1 1 45%;">
+            <input id="reqPhone" type="tel" placeholder="Номер телефона" style="flex: 1 1 45%;">
+          </div>
         </div>
 
-        <!-- Шаг 3 -->
         <div class="step">
           <div class="step-header">
             <div class="step-number">3</div>
@@ -228,7 +215,6 @@
           </div>
         </div>
 
-        <!-- Кнопки -->
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 16px;">
           <button class="btn" type="submit" id="submitBtn" style="flex:1;">Отправить заявку</button>
           <button class="btn gray" type="button" id="openHistoryBtn">📋 История</button>
@@ -279,10 +265,7 @@
     <h3 id="passwordTitle">Подтверждение</h3>
     <p id="passwordHint">Введите пароль.</p>
     <input type="password" id="passwordInput" placeholder="Пароль" autocomplete="off">
-    
-    <!-- Поле для комментария при возврате -->
     <textarea id="returnComment" placeholder="Укажите причину возврата..." class="hidden"></textarea>
-    
     <div class="modal-actions">
       <button class="btn gray small" id="cancelPassword">Отмена</button>
       <button class="btn green small" id="confirmPassword">Подтвердить</button>
@@ -295,7 +278,7 @@
 <!-- Подключаем Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getDatabase, ref, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+  import { getDatabase, ref, push, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAvZIkCpFbH199-U2B6GUok3xzllCOtoJI",
@@ -340,27 +323,27 @@
   var servicesGrid = document.getElementById('servicesGrid');
   var servicePicker = document.getElementById('servicePicker');
   var reqBrigadeSelect = document.getElementById('reqBrigade');
+  var reqNameInput = document.getElementById('reqName');
+  var reqPhoneInput = document.getElementById('reqPhone');
   var serviceView = document.getElementById('serviceView');
   var homeView = document.getElementById('homeView');
   var historyView = document.getElementById('historyView');
   var serviceTitle = document.getElementById('serviceTitle');
   var requestsList = document.getElementById('requestsList');
   var toastEl = document.getElementById('toast');
-  
   var passwordModal = document.getElementById('passwordModal');
   var passwordInput = document.getElementById('passwordInput');
   var passwordTitle = document.getElementById('passwordTitle');
   var passwordHint = document.getElementById('passwordHint');
   var confirmBtn = document.getElementById('confirmPassword');
   var returnComment = document.getElementById('returnComment');
-  
   var reqDescEl = document.getElementById('reqDesc');
-
+  
   function showToast(msg, isError) {
     toastEl.textContent = msg;
     toastEl.classList.toggle('error', !!isError);
     toastEl.classList.add('show');
-    setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+    setTimeout(function () { toastEl.classList.remove('show'); }, 3500);
   }
 
   function escapeHtml(str) {
@@ -397,6 +380,40 @@
     return n;
   }
 
+  // ====== АВТОЗАПОЛНЕНИЕ ДАННЫХ ======
+  function loadSavedData() {
+    var savedBrigade = localStorage.getItem('sv_brigade') || '';
+    var savedName = localStorage.getItem('sv_name') || '';
+    var savedPhone = localStorage.getItem('sv_phone') || '';
+    
+    if (savedBrigade) reqBrigadeSelect.value = savedBrigade;
+    if (savedName) reqNameInput.value = savedName;
+    if (savedPhone) reqPhoneInput.value = savedPhone;
+  }
+
+  function saveData(brigade, name, phone) {
+    if (brigade) {
+      localStorage.setItem('sv_brigade', brigade);
+      localStorage.setItem('sv_name', name);
+      localStorage.setItem('sv_phone', phone);
+    }
+  }
+
+  // ====== ПРОВЕРКА ГЛАВНОГО ЭНЕРГЕТИКА ======
+  async function isChiefEnergyPhoneValid(phone) {
+    const chiefRef = ref(db, 'settings/chief_energy_phone');
+    const snapshot = await get(chiefRef);
+    
+    if (!snapshot.exists()) {
+      // Если в базе еще нет главного энергетика, записываем текущий номер
+      await set(chiefRef, phone);
+      return true;
+    }
+    
+    // Если номер уже есть, сравниваем
+    return snapshot.val() === phone;
+  }
+
   // ====== ОТРИСОВКА ======
   function renderServicePicker() {
     var html = '';
@@ -420,6 +437,7 @@
     var bopts = '<option value="">— выберите бригаду —</option>';
     for (var b = 0; b < BRIGADES.length; b++) bopts += '<option value="' + BRIGADES[b] + '">' + BRIGADES[b] + '</option>';
     reqBrigadeSelect.innerHTML = bopts;
+    loadSavedData();
     renderServicePicker();
 
     var html = '';
@@ -428,34 +446,17 @@
       var nNew = newCount(s.id);
       var nWait = waitCount(s.id);
       
-      // Определяем классы для рамки карточки
       var cardClass = 'service-card';
       if (nNew > 0) cardClass += ' has-new';
       if (nWait > 0) cardClass += ' has-wait';
       
       html += '<div class="' + cardClass + '" data-id="' + s.id + '">';
-      
-      // Красная точка, если есть новые
       if (nNew > 0) html += '<span class="dot"></span>';
-      
       html += '<h3>' + s.name + '</h3>';
       html += '<div class="badges-wrap">';
-      
-      // Плашка для новых
-      if (nNew > 0) {
-        html += '<span class="badge">' + nNew + ' новых</span>';
-      }
-      
-      // Плашка для ждущих мастера
-      if (nWait > 0) {
-        html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
-      }
-      
-      // Если вообще ничего нет
-      if (nNew === 0 && nWait === 0) {
-        html += '<span class="badge ok">Нет заявок</span>';
-      }
-      
+      if (nNew > 0) html += '<span class="badge">' + nNew + ' новых</span>';
+      if (nWait > 0) html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
+      if (nNew === 0 && nWait === 0) html += '<span class="badge ok">Нет заявок</span>';
       html += '</div></div>';
     }
     servicesGrid.innerHTML = html;
@@ -491,7 +492,7 @@
       var author = r.brigade ? r.brigade : 'Без бригады';
       
       html += '<div class="request status-' + status + '">';
-      html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>' + escapeHtml(author) + '</strong>: ' + escapeHtml(r.desc) + '</div>';
+      html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>' + escapeHtml(author) + '</strong> (' + escapeHtml(r.name) + ', тел: ' + escapeHtml(r.phone) + ')<br>' + escapeHtml(r.desc) + '</div>';
       
       if (r.returnComment) {
         html += '<div class="return-info"><strong>↩ Возврат:</strong> ' + escapeHtml(r.returnComment) + '</div>';
@@ -564,13 +565,14 @@
       rows += '<td>' + new Date(r.createdAt).toLocaleString('ru-RU') + '</td>';
       rows += '<td>' + escapeHtml(serviceName(r.serviceId)) + '</td>';
       rows += '<td>' + escapeHtml(r.brigade || '—') + '</td>';
+      rows += '<td>' + escapeHtml(r.name || '') + ' (' + escapeHtml(r.phone || '') + ')</td>';
       rows += '<td>' + escapeHtml(r.desc) + (r.returnComment ? ' <br><small style="color:#dc2626;">↩ ' + escapeHtml(r.returnComment) + '</small>' : '') + '</td>';
       rows += '<td class="status-' + status + '">' + statusLabel(status) + '</td>';
       rows += '<td>' + (r.serviceDoneAt ? new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '—') + '</td>';
       rows += '<td>' + (r.closedAt ? new Date(r.closedAt).toLocaleString('ru-RU') : '—') + '</td>';
       rows += '</tr>';
     }
-    document.getElementById('historyContent').innerHTML = '<table class="history-table"><thead><tr><th>Подана</th><th>Служба</th><th>Бригада</th><th>Описание</th><th>Статус</th><th>Служба выполнила</th><th>Закрыта</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    document.getElementById('historyContent').innerHTML = '<table class="history-table"><thead><tr><th>Подана</th><th>Служба</th><th>Бригада</th><th>Мастер</th><th>Описание</th><th>Статус</th><th>Служба выполнила</th><th>Закрыта</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 
   function openHistory() {
@@ -586,12 +588,13 @@
       return true;
     });
     filtered.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-    var headers = ['Подана', 'Служба', 'Бригада', 'Описание', 'Причина возврата', 'Статус', 'Служба выполнила', 'Закрыта'];
+    var headers = ['Подана', 'Служба', 'Бригада', 'Мастер', 'Телефон', 'Описание', 'Причина возврата', 'Статус', 'Служба выполнила', 'Закрыта'];
     var lines = [headers.join(';')];
     for (var i = 0; i < filtered.length; i++) {
       var r = filtered[i]; var status = r.status || 'new';
       var row = [
         new Date(r.createdAt).toLocaleString('ru-RU'), serviceName(r.serviceId), r.brigade || '',
+        r.name || '', r.phone || '',
         (r.desc || '').replace(/[\r\n;]+/g, ' '), 
         (r.returnComment || '').replace(/[\r\n;]+/g, ' '),
         statusLabel(status),
@@ -673,17 +676,57 @@
   document.getElementById('requestForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    var serviceId = selectedServiceId, brigade = reqBrigadeSelect.value, desc = reqDescEl.value.trim();
+    var serviceId = selectedServiceId;
+    var brigade = reqBrigadeSelect.value;
+    var name = reqNameInput.value.trim();
+    var phone = reqPhoneInput.value.trim();
+    var desc = reqDescEl.value.trim();
+
     if (!serviceId) { showToast('Шаг 1: Выберите службу', true); return; }
     if (!brigade)   { showToast('Шаг 2: Выберите бригаду', true); return; }
+    if (!name)      { showToast('Шаг 2: Введите ваше имя', true); return; }
+    if (!phone)     { showToast('Шаг 2: Введите телефон', true); return; }
     if (!desc)      { showToast('Шаг 3: Введите описание', true); return; }
+
+    // Проверка для Главного энергетика
+    if (brigade === 'Главный энергетик') {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Проверка...';
+      try {
+        var isValid = await isChiefEnergyPhoneValid(phone);
+        if (!isValid) {
+          showToast('Ошибка: Под бригадой "Главный энергетик" может подавать заявки только зарегистрированный номер!', true);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Отправить заявку';
+          return;
+        }
+      } catch (error) {
+        showToast('Ошибка сети. Попробуйте еще раз.', true);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Отправить заявку';
+        return;
+      }
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Отправить заявку';
+    }
+
+    // Сохраняем данные в браузер
+    saveData(brigade, name, phone);
 
     var newRef = push(ref(db, 'requests'));
     await set(newRef, {
-      serviceId: serviceId, brigade: brigade, desc: desc, createdAt: Date.now(), status: 'new'
+      serviceId: serviceId, 
+      brigade: brigade, 
+      name: name,
+      phone: phone,
+      desc: desc, 
+      createdAt: Date.now(), 
+      status: 'new'
     });
 
-    reqDescEl.value = ''; reqBrigadeSelect.value = ''; selectedServiceId = ''; renderServicePicker();
+    reqDescEl.value = ''; 
+    selectedServiceId = ''; 
+    renderServicePicker();
     showToast('Заявка отправлена! Служба подсвечена красным.');
   });
 
