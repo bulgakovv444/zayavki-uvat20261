@@ -10,94 +10,66 @@
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     background: #f4f6f9;
     color: #1f2933;
-    padding: 20px;
+    padding: 15px;
+    font-size: 14px;
   }
-  h1 { font-size: 24px; margin-bottom: 20px; color: #1e3a8a; }
-  h2 { font-size: 20px; margin: 24px 0 16px; }
+  h1 { font-size: 20px; margin-bottom: 12px; color: #1e3a8a; }
+  h2 { font-size: 16px; margin: 16px 0 10px; }
   .container { max-width: 1100px; margin: 0 auto; }
 
   /* --- Шаги формы --- */
-  .step {
-    margin-bottom: 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px dashed #cbd5e1;
-  }
-  .step:last-of-type {
-    border-bottom: none;
-    margin-bottom: 16px;
-    padding-bottom: 0;
-  }
-  .step-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
+  .step { margin-bottom: 16px; }
+  .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .step-number {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: #2563eb;
-    color: #fff;
-    border-radius: 50%;
-    font-size: 18px;
-    font-weight: 700;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; background: #2563eb; color: #fff;
+    border-radius: 50%; font-size: 14px; font-weight: 700; flex-shrink: 0;
   }
-  .step-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1f2933;
-  }
-  .step-hint {
-    font-size: 13px;
-    color: #6b7280;
-    margin-top: 4px;
-    margin-left: 44px;
-    margin-bottom: 12px;
-  }
+  .step-title { font-size: 15px; font-weight: 600; }
+  .step-hint { font-size: 12px; color: #6b7280; margin-left: 32px; margin-bottom: 8px; }
 
-  /* --- Карточки служб и кнопки --- */
+  /* --- Карточки служб --- */
   .services {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
   }
   .service-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06);
-    cursor: pointer;
-    transition: transform .15s, box-shadow .15s;
-    border: 2px solid transparent;
-    position: relative;
+    background: #fff; border-radius: 10px; padding: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06); cursor: pointer;
+    transition: transform .15s, box-shadow .15s, border-color .15s;
+    border: 2px solid transparent; position: relative;
   }
-  .service-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.1); }
+  .service-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+  
+  /* Красная рамка для новых */
   .service-card.has-new { border-color: #ef4444; }
-  .service-card h3 { font-size: 16px; margin-bottom: 8px; }
+  /* Желтая рамка для ожидающих мастера */
+  .service-card.has-wait { border-color: #f59e0b; }
+  
+  .service-card h3 { font-size: 15px; margin-bottom: 6px; }
   .badge {
     display: inline-block; background: #ef4444; color: #fff;
-    font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 99px;
   }
   .badge.ok { background: #10b981; }
   .badge.wait { background: #f59e0b; }
+  
   .dot {
-    position: absolute; top: 12px; right: 12px; width: 12px; height: 12px;
-    border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,.2);
+    position: absolute; top: 10px; right: 10px; width: 10px; height: 10px;
+    border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.2);
     animation: pulse 1.5s infinite;
   }
   @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 4px rgba(239,68,68,.2); }
-    50% { box-shadow: 0 0 0 8px rgba(239,68,68,.05); }
+    0%,100% { box-shadow: 0 0 0 3px rgba(239,68,68,.2); }
+    50% { box-shadow: 0 0 0 6px rgba(239,68,68,.05); }
   }
 
+  /* --- Кнопки --- */
   .btn {
     display: inline-block; background: #2563eb; color: #fff; border: none;
-    padding: 12px 24px; border-radius: 8px; cursor: pointer;
-    font-size: 16px; font-weight: 600; transition: background .15s;
+    padding: 8px 16px; border-radius: 6px; cursor: pointer;
+    font-size: 14px; font-weight: 600; transition: background .15s;
   }
   .btn:hover { background: #1d4ed8; }
   .btn.green { background: #10b981; }
@@ -108,73 +80,75 @@
   .btn.red:hover { background: #dc2626; }
   .btn.orange { background: #f59e0b; }
   .btn.orange:hover { background: #d97706; }
-  .btn.small { padding: 8px 12px; font-size: 14px; }
+  .btn.small { padding: 6px 10px; font-size: 12px; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-  .service-picker { display: flex; flex-wrap: wrap; gap: 10px; }
+  /* --- Выбор службы --- */
+  .service-picker { display: flex; flex-wrap: wrap; gap: 8px; }
   .service-pick-btn {
     background: #eef2ff; color: #1e3a8a; border: 2px solid #c7d2fe;
-    padding: 12px 20px; border-radius: 8px; font-size: 15px; font-weight: 600;
-    cursor: pointer; transition: all .15s; min-width: 120px; text-align: center;
+    padding: 8px 14px; border-radius: 6px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all .15s; text-align: center;
   }
   .service-pick-btn:hover { background: #e0e7ff; }
   .service-pick-btn.active {
     background: #2563eb; color: #fff; border-color: #2563eb;
-    box-shadow: 0 2px 6px rgba(37,99,235,.35);
+    box-shadow: 0 2px 4px rgba(37,99,235,.3);
   }
 
   /* --- Поля ввода --- */
-  .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
   input, select, textarea {
-    font: inherit; padding: 12px 14px; border: 2px solid #d1d5db; border-radius: 8px;
-    background: #fff; width: 100%; font-size: 15px;
+    font: inherit; padding: 10px 12px; border: 2px solid #d1d5db; border-radius: 6px;
+    background: #fff; width: 100%; font-size: 14px;
   }
   input:focus, select:focus, textarea:focus {
     outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1);
   }
-  textarea { resize: vertical; min-height: 80px; }
+  textarea { resize: vertical; min-height: 60px; }
 
   .card {
-    background: #fff; border-radius: 12px; padding: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.05); margin-bottom: 24px;
+    background: #fff; border-radius: 10px; padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 16px;
   }
 
-  /* --- Заявки --- */
+  /* --- Заявки (внутри службы) --- */
   .request {
-    border-left: 4px solid #ef4444; background: #fff; padding: 16px;
-    border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    border-left: 4px solid #ef4444; background: #fff; padding: 12px;
+    border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05);
   }
   .request.status-service_done { border-left-color: #f59e0b; }
   .request.status-closed { border-left-color: #10b981; opacity: .75; }
-  .request .meta { font-size: 13px; color: #6b7280; margin-top: 8px; }
-  .request .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .request .meta { font-size: 12px; color: #6b7280; margin-top: 6px; }
+  .request .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  
   .return-info {
-    margin-top: 10px; font-size: 14px; background: #fef3c7;
-    border-left: 3px solid #f59e0b; padding: 10px 14px; border-radius: 4px; color: #78350f;
+    margin-top: 8px; font-size: 13px; background: #fef3c7;
+    border-left: 3px solid #f59e0b; padding: 8px 12px; border-radius: 4px; color: #78350f;
   }
 
   .hidden { display: none; }
-  .back { margin-bottom: 16px; }
-  .empty { color: #6b7280; font-size: 15px; padding: 16px 0; }
+  .back { margin-bottom: 12px; }
+  .empty { color: #6b7280; font-size: 14px; padding: 12px 0; }
 
   /* --- История --- */
-  .history-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-  .stat { background: #fff; border-radius: 10px; padding: 12px 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); min-width: 120px; }
-  .stat .num { font-size: 24px; font-weight: 700; }
-  .stat .lbl { font-size: 13px; color: #6b7280; margin-top: 2px; }
+  .history-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .stat { background: #fff; border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); min-width: 100px; }
+  .stat .num { font-size: 20px; font-weight: 700; }
+  .stat .lbl { font-size: 12px; color: #6b7280; margin-top: 2px; }
   .stat.red .num { color: #ef4444; }
   .stat.wait .num { color: #f59e0b; }
   .stat.ok .num { color: #10b981; }
 
-  .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-  .filters select { width: auto; min-width: 160px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .filters select { width: auto; min-width: 140px; }
 
   .history-table {
-    width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px;
-    overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); font-size: 14px;
+    width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px;
+    overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); font-size: 13px;
   }
-  .history-table th { text-align: left; background: #f9fafb; padding: 12px 14px; font-weight: 600; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
-  .history-table td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+  .history-table th { text-align: left; background: #f9fafb; padding: 10px; font-weight: 600; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+  .history-table td { padding: 10px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
   .history-table tr:last-child td { border-bottom: none; }
   .history-table .status-new { color: #ef4444; font-weight: 600; }
   .history-table .status-service_done { color: #f59e0b; font-weight: 600; }
@@ -182,8 +156,8 @@
 
   /* --- Тост и модалка --- */
   .toast {
-    position: fixed; top: 20px; right: 20px; background: #10b981; color: #fff;
-    padding: 14px 20px; border-radius: 8px; font-size: 15px; font-weight: 500;
+    position: fixed; top: 15px; right: 15px; background: #10b981; color: #fff;
+    padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500;
     box-shadow: 0 4px 12px rgba(0,0,0,.15); opacity: 0; transform: translateY(-10px);
     transition: opacity .2s, transform .2s; pointer-events: none; z-index: 1001;
   }
@@ -196,13 +170,12 @@
   }
   .modal-overlay.hidden { display: none; }
   .modal {
-    background: #fff; border-radius: 12px; padding: 24px; max-width: 400px; width: 100%;
+    background: #fff; border-radius: 10px; padding: 20px; max-width: 360px; width: 100%;
     box-shadow: 0 20px 50px rgba(0,0,0,.3);
   }
-  .modal h3 { font-size: 18px; margin-bottom: 8px; }
-  .modal p { font-size: 14px; color: #6b7280; margin-bottom: 16px; }
-  .modal input { margin-bottom: 14px; }
-  .modal textarea { margin-bottom: 14px; }
+  .modal h3 { font-size: 16px; margin-bottom: 6px; }
+  .modal p { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
+  .modal input, .modal textarea { margin-bottom: 12px; }
   .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 </style>
 </head>
@@ -221,7 +194,7 @@
             <div class="step-number">1</div>
             <div class="step-title">Выберите службу</div>
           </div>
-          <div class="step-hint">Нажмите на нужную кнопку (она станет синей)</div>
+          <div class="step-hint">Нажмите на нужную кнопку</div>
           <div class="service-picker" id="servicePicker"></div>
         </div>
 
@@ -231,7 +204,7 @@
             <div class="step-number">2</div>
             <div class="step-title">Выберите бригаду</div>
           </div>
-          <div class="step-hint">Выберите вашу бригаду из выпадающего списка</div>
+          <div class="step-hint">Укажите вашу бригаду из списка</div>
           <div class="form-row">
             <select id="reqBrigade">
               <option value="">— выберите бригаду —</option>
@@ -245,16 +218,16 @@
             <div class="step-number">3</div>
             <div class="step-title">Оформите заявку</div>
           </div>
-          <div class="step-hint">Подробно опишите проблему</div>
+          <div class="step-hint">Кратко опишите проблему</div>
           <div class="form-row">
-            <textarea id="reqDesc" placeholder="Пример: В цехе №2 не работает освещение, перегорел автомат..."></textarea>
+            <textarea id="reqDesc" placeholder="Пример: В цехе №2 не работает освещение..."></textarea>
           </div>
         </div>
 
         <!-- Кнопки -->
-        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top: 24px;">
-          <button class="btn" type="submit" id="submitBtn" style="flex:1; min-width: 200px;">Отправить заявку</button>
-          <button class="btn gray" type="button" id="openHistoryBtn">📋 История заявок</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 16px;">
+          <button class="btn" type="submit" id="submitBtn" style="flex:1;">Отправить заявку</button>
+          <button class="btn gray" type="button" id="openHistoryBtn">📋 История</button>
         </div>
       </form>
     </div>
@@ -288,7 +261,7 @@
       <select id="filterBrigade">
         <option value="">Все бригады</option>
       </select>
-      <button class="btn green small" id="exportCsvBtn">⬇ Выгрузить в CSV</button>
+      <button class="btn green small" id="exportCsvBtn">⬇ В CSV</button>
     </div>
 
     <div id="historyContent"></div>
@@ -450,13 +423,18 @@
       var s = SERVICES[j];
       var nNew = newCount(s.id);
       var nWait = waitCount(s.id);
-      var hasNew = nNew > 0;
-      html += '<div class="service-card ' + (hasNew ? 'has-new' : '') + '" data-id="' + s.id + '">';
-      if (hasNew) html += '<span class="dot"></span>';
+      
+      var cardClass = 'service-card';
+      if (nNew > 0) cardClass += ' has-new';
+      else if (nWait > 0) cardClass += ' has-wait';
+      
+      html += '<div class="' + cardClass + '" data-id="' + s.id + '">';
+      if (nNew > 0) html += '<span class="dot"></span>';
       html += '<h3>' + s.name + '</h3>';
-      if (hasNew) html += '<span class="badge">' + nNew + ' новых</span>';
+      
+      if (nNew > 0) html += '<span class="badge">' + nNew + ' новых</span>';
       else if (nWait > 0) html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
-      else html += '<span class="badge ok">Нет новых</span>';
+      else html += '<span class="badge ok">Нет заявок</span>';
       html += '</div>';
     }
     servicesGrid.innerHTML = html;
@@ -492,10 +470,10 @@
       var author = r.brigade ? r.brigade : 'Без бригады';
       
       html += '<div class="request status-' + status + '">';
-      html += '<div style="font-size:15px; margin-bottom: 6px;"><strong>' + escapeHtml(author) + '</strong>: ' + escapeHtml(r.desc) + '</div>';
+      html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>' + escapeHtml(author) + '</strong>: ' + escapeHtml(r.desc) + '</div>';
       
       if (r.returnComment) {
-        html += '<div class="return-info"><strong>↩ Возврат в работу:</strong> ' + escapeHtml(r.returnComment) + '</div>';
+        html += '<div class="return-info"><strong>↩ Возврат:</strong> ' + escapeHtml(r.returnComment) + '</div>';
       }
 
       html += '<div class="meta">' + new Date(r.createdAt).toLocaleString('ru-RU') + ' · <b>' + statusLabel(status) + '</b>' +
@@ -507,7 +485,7 @@
         html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
       } else if (status === 'service_done') {
         html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
-        html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть в работу</button>';
+        html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
       } else if (status === 'closed') {
         html += '<span class="badge ok">Закрыта</span>';
       }
@@ -626,7 +604,7 @@
       confirmBtn.className = 'btn green small';
     } else if (action === 'return') {
       passwordTitle.textContent = 'Возврат в работу';
-      passwordHint.textContent = 'Введите пароль мастера и укажите причину возврата.';
+      passwordHint.textContent = 'Введите пароль мастера и причину возврата.';
       confirmBtn.className = 'btn red small';
       returnComment.classList.remove('hidden');
     }
