@@ -20,6 +20,7 @@
   /* Вкладки */
   .tabs {
     display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+    flex-wrap: wrap;
   }
   .tab-btn {
     background: none; border: none; font-size: 16px; font-weight: 600; color: #6b7280;
@@ -27,6 +28,14 @@
   }
   .tab-btn:hover { background: #e5e7eb; color: #1f2933; }
   .tab-btn.active { background: #2563eb; color: #fff; }
+
+  /* Плашка о закрытии приема */
+  .closed-alert {
+    background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
+    padding: 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px; font-size: 15px;
+  }
+  .closed-alert.hidden { display: none; }
 
   /* Блоки регистрации */
   .login-box {
@@ -181,6 +190,10 @@
   }
   .event-log div { margin-bottom: 2px; }
 
+  /* Панель администратора */
+  .admin-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+  .admin-controls input { width: auto; }
+
   /* Тост и модалка */
   .toast {
     position: fixed; top: 15px; right: 15px; background: #10b981; color: #fff;
@@ -209,16 +222,21 @@
 <body>
 <div class="container">
 
+  <!-- Плашка о закрытии приема -->
+  <div id="globalClosedAlert" class="closed-alert hidden">
+    <span>⛔</span> Прием заявок временно приостановлен Главным инженером.
+  </div>
+
   <!-- Вкладки -->
   <div class="tabs">
     <button class="tab-btn active" id="tabMaster">Вход для мастера</button>
     <button class="tab-btn" id="tabService">Вход для службы</button>
     <button class="tab-btn" id="tabHistory">📋 История заявок</button>
+    <button class="tab-btn" id="tabAdmin">🔐 Панель управления</button>
   </div>
 
   <!-- ЭКРАН 1: МАСТЕР (ВХОД И РАБОТА) -->
   <div id="masterView">
-    <!-- Блок входа -->
     <div id="masterLoginBlock" class="login-box">
       <h2>Вход для мастера</h2>
       <p>Введите ваши данные, чтобы подавать заявки и видеть их статус.</p>
@@ -230,7 +248,6 @@
       <button class="btn block" id="loginMasterBtn">Войти в систему</button>
     </div>
 
-    <!-- Рабочий стол мастера -->
     <div id="masterWorkBlock" class="hidden">
       <div class="header-bar">
         <div>
@@ -327,6 +344,48 @@
     <div id="historyContent"></div>
   </div>
 
+  <!-- ЭКРАН 5: ПАНЕЛЬ ГЛАВНОГО ИНЖЕНЕРА -->
+  <div id="adminView" class="hidden">
+    <div id="adminLoginBlock" class="login-box">
+      <h2>Панель Главного инженера</h2>
+      <p>Введите секретный код доступа.</p>
+      <input type="password" id="adminCodeInput" placeholder="Секретный код" autocomplete="off">
+      <button class="btn block red" id="adminLoginBtn">Войти</button>
+    </div>
+
+    <div id="adminWorkBlock" class="hidden">
+      <div class="header-bar" style="background: #fef2f2; border: 1px solid #fecaca;">
+        <div>
+          <h2 style="color: #991b1b;">Панель Главного инженера</h2>
+          <div class="user-info">Полный доступ к системе</div>
+        </div>
+        <button class="btn gray small" id="logoutAdminBtn">Выйти</button>
+      </div>
+
+      <div class="card">
+        <h2>Управление приемом заявок</h2>
+        <div class="admin-controls">
+          <div>
+            <label style="font-size:12px; color:#6b7280; display:block; margin-bottom:4px;">Начало приема (час)</label>
+            <input type="number" id="adminStartHour" min="0" max="23" style="width:80px;">
+          </div>
+          <div>
+            <label style="font-size:12px; color:#6b7280; display:block; margin-bottom:4px;">Конец приема (час)</label>
+            <input type="number" id="adminEndHour" min="0" max="23" style="width:80px;">
+          </div>
+          <button class="btn small" id="saveScheduleBtn">Сохранить расписание</button>
+          <button class="btn red small" id="toggleGlobalBtn">Остановить прием</button>
+        </div>
+        <div style="font-size:13px; color:#4b5563; margin-top:10px;">
+          Статус: <strong id="adminStatusText">Загрузка...</strong>
+        </div>
+      </div>
+
+      <h2>Все заявки (полный доступ)</h2>
+      <div id="adminRequestsList"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Модальные окна -->
@@ -366,7 +425,6 @@
   </div>
 </div>
 
-<!-- Новое модальное окно для передачи заявки -->
 <div class="modal-overlay hidden" id="transferModal">
   <div class="modal">
     <h3>Передать в другую службу</h3>
@@ -384,7 +442,7 @@
 <!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getDatabase, ref, push, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+  import { getDatabase, ref, push, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAvZIkCpFbH199-U2B6GUok3xzllCOtoJI",
@@ -403,6 +461,7 @@
   // ====== НАСТРОЙКИ ======
   var CHIEF_CODE = '7642';
   var SERVICE_PASSWORD = '1234';
+  var ADMIN_CODE = 'admin'; // Пароль главного инженера
 
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
@@ -422,6 +481,9 @@
   ];
 
   var allRequests = [];
+  var settings = { startHour: 0, endHour: 24, isManuallyClosed: false };
+  var isAdminLoggedIn = false;
+
   var selectedServiceId = '';
   var pendingServiceDoneId = null;
   var pendingReturnId = null;
@@ -432,17 +494,19 @@
   var loggedService = { name: '', phone: '', role: '' };
   
   var currentDetailServiceId = '';
-  var currentDetailViewMode = 'master'; // 'master' или 'service'
+  var currentDetailViewMode = 'master';
 
   // ====== ЭЛЕМЕНТЫ ======
   var tabMaster = document.getElementById('tabMaster');
   var tabService = document.getElementById('tabService');
   var tabHistory = document.getElementById('tabHistory');
+  var tabAdmin = document.getElementById('tabAdmin');
   
   var masterView = document.getElementById('masterView');
   var serviceView = document.getElementById('serviceView');
   var historyView = document.getElementById('historyView');
   var requestsDetailView = document.getElementById('requestsDetailView');
+  var adminView = document.getElementById('adminView');
   
   var masterLoginBlock = document.getElementById('masterLoginBlock');
   var masterWorkBlock = document.getElementById('masterWorkBlock');
@@ -454,13 +518,19 @@
   var loggedServiceName = document.getElementById('loggedServiceName');
   var loggedServicePhone = document.getElementById('loggedServicePhone');
 
+  var adminLoginBlock = document.getElementById('adminLoginBlock');
+  var adminWorkBlock = document.getElementById('adminWorkBlock');
+  var adminRequestsList = document.getElementById('adminRequestsList');
+  var adminStatusText = document.getElementById('adminStatusText');
+  var globalClosedAlert = document.getElementById('globalClosedAlert');
+  var submitBtn = document.getElementById('submitBtn');
+
   var masterServicesGrid = document.getElementById('masterServicesGrid');
   var serviceServicesGrid = document.getElementById('serviceServicesGrid');
   var detailRequestsList = document.getElementById('detailRequestsList');
   var detailTitle = document.getElementById('detailTitle');
   var servicePicker = document.getElementById('servicePicker');
   var reqDescEl = document.getElementById('reqDesc');
-  var submitBtn = document.getElementById('submitBtn');
 
   var toastEl = document.getElementById('toast');
   
@@ -530,10 +600,36 @@
     return n;
   }
 
+  // ====== ПРОВЕРКА ВРЕМЕНИ ======
+  function isAcceptingNow() {
+    if (settings.isManuallyClosed) return false;
+    var h = new Date().getHours();
+    if (settings.startHour === 0 && settings.endHour === 24) return true; // Круглосуточно
+    return h >= settings.startHour && h < settings.endHour;
+  }
+
+  function updateUIState() {
+    // Плашка
+    if (!isAcceptingNow()) {
+      globalClosedAlert.classList.remove('hidden');
+    } else {
+      globalClosedAlert.classList.add('hidden');
+    }
+
+    // Кнопка подачи (только для авторизованных мастеров)
+    if (loggedMaster.name && !isAcceptingNow()) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Прием заявок закрыт';
+    } else {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Отправить заявку';
+    }
+  }
+
   // ====== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ======
   tabMaster.addEventListener('click', function() {
-    tabMaster.classList.add('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active');
-    masterView.classList.remove('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden');
+    tabMaster.classList.add('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active'); tabAdmin.classList.remove('active');
+    masterView.classList.remove('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.add('hidden');
     
     if (loggedMaster.name) {
       masterLoginBlock.classList.add('hidden');
@@ -546,8 +642,8 @@
   });
 
   tabService.addEventListener('click', function() {
-    tabService.classList.add('active'); tabMaster.classList.remove('active'); tabHistory.classList.remove('active');
-    masterView.classList.add('hidden'); serviceView.classList.remove('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden');
+    tabService.classList.add('active'); tabMaster.classList.remove('active'); tabHistory.classList.remove('active'); tabAdmin.classList.remove('active');
+    masterView.classList.add('hidden'); serviceView.classList.remove('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.add('hidden');
     
     if (loggedService.name) {
       serviceLoginBlock.classList.add('hidden');
@@ -560,9 +656,23 @@
   });
 
   tabHistory.addEventListener('click', function() {
-    tabHistory.classList.add('active'); tabMaster.classList.remove('active'); tabService.classList.remove('active');
-    masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.remove('hidden'); requestsDetailView.classList.add('hidden');
+    tabHistory.classList.add('active'); tabMaster.classList.remove('active'); tabService.classList.remove('active'); tabAdmin.classList.remove('active');
+    masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.remove('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.add('hidden');
     renderHistory();
+  });
+
+  tabAdmin.addEventListener('click', function() {
+    tabAdmin.classList.add('active'); tabMaster.classList.remove('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active');
+    masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.remove('hidden');
+    
+    if (isAdminLoggedIn) {
+      adminLoginBlock.classList.add('hidden');
+      adminWorkBlock.classList.remove('hidden');
+      renderAdminPanel();
+    } else {
+      adminLoginBlock.classList.remove('hidden');
+      adminWorkBlock.classList.add('hidden');
+    }
   });
 
   // ====== ВХОД МАСТЕРА ======
@@ -583,6 +693,7 @@
     loggedMasterName.textContent = name + ', ' + phone;
     
     renderServicesGrid(masterServicesGrid, 'master');
+    updateUIState();
   });
 
   document.getElementById('logoutMasterBtn').addEventListener('click', function() {
@@ -627,10 +738,127 @@
   for (var i = 0; i < SERVICES.length; i++) roleOpts += '<option value="' + SERVICES[i].name + '">' + SERVICES[i].name + '</option>';
   loginRoleSelect.innerHTML = roleOpts;
 
-  // Список для передачи заявки
   var transferOpts = '';
   for (var i = 0; i < SERVICES.length; i++) transferOpts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
   transferServiceSelect.innerHTML = transferOpts;
+
+  // ====== ВХОД АДМИНА ======
+  document.getElementById('adminLoginBtn').addEventListener('click', function() {
+    var code = document.getElementById('adminCodeInput').value;
+    if (code !== ADMIN_CODE) {
+      showToast('Неверный код доступа', true);
+      return;
+    }
+    isAdminLoggedIn = true;
+    adminLoginBlock.classList.add('hidden');
+    adminWorkBlock.classList.remove('hidden');
+    renderAdminPanel();
+  });
+
+  document.getElementById('logoutAdminBtn').addEventListener('click', function() {
+    isAdminLoggedIn = false;
+    adminLoginBlock.classList.remove('hidden');
+    adminWorkBlock.classList.add('hidden');
+    document.getElementById('adminCodeInput').value = '';
+  });
+
+  // ====== АДМИН: НАСТРОЙКИ ======
+  document.getElementById('saveScheduleBtn').addEventListener('click', async function() {
+    var start = parseInt(document.getElementById('adminStartHour').value);
+    var end = parseInt(document.getElementById('adminEndHour').value);
+
+    if (isNaN(start) || start < 0 || start > 23 || isNaN(end) || end < 0 || end > 24) {
+      showToast('Некорректное время', true);
+      return;
+    }
+
+    await set(ref(db, 'settings/schedule'), { startHour: start, endHour: end });
+    showToast('Расписание сохранено');
+  });
+
+  document.getElementById('toggleGlobalBtn').addEventListener('click', async function() {
+    var newState = !settings.isManuallyClosed;
+    await set(ref(db, 'settings/isManuallyClosed'), newState);
+    showToast(newState ? 'Прием заявок остановлен' : 'Прием заявок возобновлен');
+  });
+
+  // ====== АДМИН: ОТРИСОВКА ======
+  function renderAdminPanel() {
+    document.getElementById('adminStartHour').value = settings.startHour;
+    document.getElementById('adminEndHour').value = settings.endHour;
+
+    var toggleBtn = document.getElementById('toggleGlobalBtn');
+    if (settings.isManuallyClosed) {
+      toggleBtn.textContent = 'Возобновить прием';
+      toggleBtn.className = 'btn green small';
+      adminStatusText.textContent = 'ОСТАНОВЛЕН (вручную)';
+      adminStatusText.style.color = '#dc2626';
+    } else {
+      toggleBtn.textContent = 'Остановить прием';
+      toggleBtn.className = 'btn red small';
+      adminStatusText.textContent = 'Работает (с ' + settings.startHour + ':00 до ' + settings.endHour + ':00)';
+      adminStatusText.style.color = '#059669';
+    }
+
+    var list = allRequests.slice();
+    list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    if (!list.length) { adminRequestsList.innerHTML = '<p class="empty">Заявок нет.</p>'; return; }
+
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i];
+      var status = r.status || 'new';
+      
+      html += '<div class="request status-' + status + '">';
+      html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>Служба: ' + escapeHtml(serviceName(r.serviceId)) + '</strong> | <strong>Бригада: ' + escapeHtml(r.brigade || '—') + '</strong> (' + escapeHtml(r.name) + ', тел: ' + escapeHtml(r.phone) + ')<br>' + escapeHtml(r.desc) + '</div>';
+      
+      html += '<div class="event-log">';
+      html += '<div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
+      if (r.events && r.events.length) {
+        for (var e = 0; e < r.events.length; e++) {
+          var ev = r.events[e];
+          html += '<div>' + escapeHtml(ev.text) + ' (' + formatDate(ev.time) + ')</div>';
+        }
+      }
+      html += '</div>';
+
+      html += '<div class="actions">';
+      if (status !== 'closed') {
+         html += '<button class="btn green small" data-action="admin_closed" data-id="' + r.id + '">Закрыть (Подтвердить)</button>';
+      } else {
+         html += '<span class="badge ok">Закрыта</span>';
+      }
+      html += '<button class="btn red small" data-action="admin_delete" data-id="' + r.id + '">Удалить</button>';
+      html += '</div></div>';
+    }
+    adminRequestsList.innerHTML = html;
+
+    var btns = adminRequestsList.querySelectorAll('[data-action]');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].addEventListener('click', function () { handleAdminAction(this.getAttribute('data-action'), this.getAttribute('data-id')); });
+    }
+  }
+
+  async function handleAdminAction(action, id) {
+    if (action === 'admin_delete') {
+      if (confirm('Вы уверены, что хотите удалить эту заявку? Это действие необратимо.')) {
+        await remove(ref(db, 'requests/' + id));
+        showToast('Заявка удалена');
+      }
+    } else if (action === 'admin_closed') {
+      var req = allRequests.find(function(item) { return item.id === id; });
+      if (!req) return;
+      var currentEvents = req.events || [];
+      var newEvent = { text: '🔒 Закрыта Главным инженером', time: Date.now() };
+      await update(ref(db, 'requests/' + id), {
+        status: 'closed',
+        closedAt: Date.now(),
+        events: currentEvents.concat([newEvent])
+      });
+      showToast('Заявка закрыта');
+    }
+  }
 
   // ====== УНИВЕРСАЛЬНАЯ ОТРИСОВКА СЕТКИ СЛУЖБ ======
   function renderServicesGrid(container, mode) {
@@ -672,6 +900,7 @@
     masterView.classList.add('hidden');
     serviceView.classList.add('hidden');
     historyView.classList.add('hidden');
+    adminView.classList.add('hidden');
     requestsDetailView.classList.remove('hidden');
     
     renderDetailRequests(serviceId, mode);
@@ -702,8 +931,6 @@
       html += '</div>';
 
       html += '<div class="actions">';
-      
-      // Кнопки для Мастера (подтверждение и возврат)
       if (mode === 'master') {
         if (status === 'service_done') {
           html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
@@ -713,9 +940,7 @@
         } else if (status === 'closed') {
           html += '<span class="badge ok">Закрыта</span>';
         }
-      } 
-      // Кнопки для Службы (выполнение любых заявок, передача)
-      else if (mode === 'service') {
+      } else if (mode === 'service') {
         if (status === 'new') {
           html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
           html += '<button class="btn purple small" data-action="transfer" data-id="' + r.id + '">Передать</button>';
@@ -725,7 +950,6 @@
           html += '<span class="badge ok">Закрыта</span>';
         }
       }
-      
       html += '</div></div>';
     }
     detailRequestsList.innerHTML = html;
@@ -765,10 +989,7 @@
     } else if (action === 'closed') {
       var updates = {};
       var currentEvents = req.events || [];
-      var newEvent = { 
-        text: '🔒 Мастер подтвердил (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + ')', 
-        time: Date.now() 
-      };
+      var newEvent = { text: '🔒 Мастер подтвердил (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + ')', time: Date.now() };
       updates.status = 'closed';
       updates.closedAt = Date.now();
       updates.events = currentEvents.concat([newEvent]);
@@ -776,7 +997,7 @@
       showToast('Мастер подтвердил. Заявка закрыта.');
     } else if (action === 'transfer') {
       pendingTransferId = id;
-      transferServiceSelect.value = req.serviceId; // По умолчанию текущая
+      transferServiceSelect.value = req.serviceId;
       transferModal.classList.remove('hidden');
     }
   }
@@ -794,10 +1015,7 @@
     if (!req) { servicePasswordModal.classList.add('hidden'); return; }
 
     var currentEvents = req.events || [];
-    var newEvent = { 
-      text: '✅ Служба выполнила (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', 
-      time: Date.now() 
-    };
+    var newEvent = { text: '✅ Служба выполнила (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', time: Date.now() };
     
     var updates = {
       status: 'service_done',
@@ -825,10 +1043,7 @@
     if (!req) return;
 
     var currentEvents = req.events || [];
-    var newEvent = { 
-      text: '↩ Возврат в работу (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + '). Причина: ' + comment, 
-      time: Date.now() 
-    };
+    var newEvent = { text: '↩ Возврат в работу (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + '). Причина: ' + comment, time: Date.now() };
 
     var updates = {
       status: 'new',
@@ -847,7 +1062,6 @@
     pendingReturnId = null;
   });
 
-  // Подтверждение переноса заявки
   confirmTransferBtn.addEventListener('click', async function() {
     if (!pendingTransferId) return;
     var newServiceId = transferServiceSelect.value;
@@ -861,10 +1075,7 @@
     }
 
     var currentEvents = req.events || [];
-    var newEvent = { 
-      text: '🔄 Заявка передана в службу "' + serviceName(newServiceId) + '" (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', 
-      time: Date.now() 
-    };
+    var newEvent = { text: '🔄 Заявка передана в службу "' + serviceName(newServiceId) + '" (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', time: Date.now() };
 
     var updates = {
       serviceId: newServiceId,
@@ -905,6 +1116,7 @@
   document.getElementById('requestForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
+    if (!isAcceptingNow()) { showToast('Прием заявок закрыт', true); return; }
     if (!loggedMaster.name) { showToast('Сначала войдите в систему', true); return; }
 
     var serviceId = selectedServiceId;
@@ -913,13 +1125,7 @@
     if (!serviceId) { showToast('Шаг 1: Выберите службу', true); return; }
     if (!desc)      { showToast('Шаг 2: Введите описание', true); return; }
 
-    pendingNewRequest = { 
-      serviceId: serviceId, 
-      brigade: loggedMaster.brigade, 
-      name: loggedMaster.name, 
-      phone: loggedMaster.phone, 
-      desc: desc 
-    };
+    pendingNewRequest = { serviceId: serviceId, brigade: loggedMaster.brigade, name: loggedMaster.name, phone: loggedMaster.phone, desc: desc };
 
     if (loggedMaster.brigade === 'Главный энергетик') {
       chiefCodeInput.value = '';
@@ -961,6 +1167,7 @@
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Отправить заявку';
+      updateUIState();
     }
   }
 
@@ -1139,6 +1346,9 @@
     if (loggedService.name && !serviceWorkBlock.classList.contains('hidden')) {
       renderServicesGrid(serviceServicesGrid, 'service');
     }
+    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) {
+      renderAdminPanel();
+    }
     if (currentDetailServiceId && !requestsDetailView.classList.contains('hidden')) {
       renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
     }
@@ -1146,6 +1356,23 @@
       renderHistory();
     }
     renderServicePicker();
+  });
+
+  onValue(ref(db, 'settings'), (snapshot) => {
+    var data = snapshot.val();
+    if (data) {
+      if (data.schedule) {
+        settings.startHour = data.schedule.startHour;
+        settings.endHour = data.schedule.endHour;
+      }
+      if (data.isManuallyClosed !== undefined) {
+        settings.isManuallyClosed = data.isManuallyClosed;
+      }
+    }
+    updateUIState();
+    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) {
+      renderAdminPanel();
+    }
   });
 
   // Первичный рендер
