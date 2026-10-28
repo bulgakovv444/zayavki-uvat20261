@@ -202,6 +202,10 @@
             <input id="reqName" type="text" placeholder="Ваше имя (мастер)" style="flex: 1 1 45%;">
             <input id="reqPhone" type="tel" placeholder="Номер телефона" style="flex: 1 1 45%;">
           </div>
+          <!-- Поле для кода главного энергетика -->
+          <div class="form-row" style="margin-top: 8px;">
+            <input id="reqSecretCode" type="password" placeholder="Код доступа (только для Главного энергетика)" style="flex: 1 1 100%; display: none;">
+          </div>
         </div>
 
         <div class="step">
@@ -297,6 +301,7 @@
   // ====== НАСТРОЙКИ ======
   var SERVICE_PASSWORD = '1234';
   var MASTER_PASSWORD  = '11';
+  var CHIEF_CODE       = '7642'; // Секретный код главного энергетика
 
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
@@ -325,6 +330,7 @@
   var reqBrigadeSelect = document.getElementById('reqBrigade');
   var reqNameInput = document.getElementById('reqName');
   var reqPhoneInput = document.getElementById('reqPhone');
+  var reqSecretCodeInput = document.getElementById('reqSecretCode');
   var serviceView = document.getElementById('serviceView');
   var homeView = document.getElementById('homeView');
   var historyView = document.getElementById('historyView');
@@ -380,7 +386,7 @@
     return n;
   }
 
-  // ====== АВТОЗАПОЛНЕНИЕ ДАННЫХ ======
+  // ====== АВТОЗАПОЛНЕНИЕ ======
   function loadSavedData() {
     var savedBrigade = localStorage.getItem('sv_brigade') || '';
     var savedName = localStorage.getItem('sv_name') || '';
@@ -389,6 +395,13 @@
     if (savedBrigade) reqBrigadeSelect.value = savedBrigade;
     if (savedName) reqNameInput.value = savedName;
     if (savedPhone) reqPhoneInput.value = savedPhone;
+    
+    // Если это Главный энергетик, показываем поле для кода
+    if (savedBrigade === 'Главный энергетик') {
+      reqSecretCodeInput.style.display = 'block';
+    } else {
+      reqSecretCodeInput.style.display = 'none';
+    }
   }
 
   function saveData(brigade, name, phone) {
@@ -409,7 +422,6 @@
       await set(chiefRef, phone);
       return true;
     }
-    
     // Если номер уже есть, сравниваем
     return snapshot.val() === phone;
   }
@@ -466,6 +478,16 @@
       cards[k].addEventListener('click', function () { openService(this.getAttribute('data-id')); });
     }
   }
+
+  // Показываем поле для кода при выборе Главного энергетика
+  reqBrigadeSelect.addEventListener('change', function() {
+    if (this.value === 'Главный энергетик') {
+      reqSecretCodeInput.style.display = 'block';
+    } else {
+      reqSecretCodeInput.style.display = 'none';
+      reqSecretCodeInput.value = '';
+    }
+  });
 
   function openService(serviceId) {
     var service = null;
@@ -680,6 +702,7 @@
     var brigade = reqBrigadeSelect.value;
     var name = reqNameInput.value.trim();
     var phone = reqPhoneInput.value.trim();
+    var secretCode = reqSecretCodeInput.value.trim();
     var desc = reqDescEl.value.trim();
 
     if (!serviceId) { showToast('Шаг 1: Выберите службу', true); return; }
@@ -690,6 +713,13 @@
 
     // Проверка для Главного энергетика
     if (brigade === 'Главный энергетик') {
+      // 1. Проверяем секретный код
+      if (secretCode !== CHIEF_CODE) {
+        showToast('Неверный код доступа для Главного энергетика!', true);
+        return;
+      }
+      
+      // 2. Проверяем номер телефона
       submitBtn.disabled = true;
       submitBtn.textContent = 'Проверка...';
       try {
@@ -725,6 +755,7 @@
     });
 
     reqDescEl.value = ''; 
+    reqSecretCodeInput.value = '';
     selectedServiceId = ''; 
     renderServicePicker();
     showToast('Заявка отправлена! Служба подсвечена красным.');
