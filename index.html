@@ -202,10 +202,6 @@
             <input id="reqName" type="text" placeholder="Ваше имя (мастер)" style="flex: 1 1 45%;">
             <input id="reqPhone" type="tel" placeholder="Номер телефона" style="flex: 1 1 45%;">
           </div>
-          <!-- Поле для кода главного энергетика -->
-          <div class="form-row" style="margin-top: 8px;">
-            <input id="reqSecretCode" type="password" placeholder="Код доступа (только для Главного энергетика)" style="flex: 1 1 100%; display: none;">
-          </div>
         </div>
 
         <div class="step">
@@ -263,7 +259,7 @@
 
 </div>
 
-<!-- Модальное окно -->
+<!-- Модальное окно для паролей и причин возврата -->
 <div class="modal-overlay hidden" id="passwordModal">
   <div class="modal">
     <h3 id="passwordTitle">Подтверждение</h3>
@@ -273,6 +269,19 @@
     <div class="modal-actions">
       <button class="btn gray small" id="cancelPassword">Отмена</button>
       <button class="btn green small" id="confirmPassword">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<!-- НОВОЕ Модальное окно для кода Главного энергетика -->
+<div class="modal-overlay hidden" id="chiefCodeModal">
+  <div class="modal">
+    <h3>Доступ для Главного энергетика</h3>
+    <p>Введите секретный код, чтобы отправить заявку.</p>
+    <input type="password" id="chiefCodeInput" placeholder="Секретный код" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn gray small" id="cancelChiefCode">Отмена</button>
+      <button class="btn green small" id="confirmChiefCode">Подтвердить</button>
     </div>
   </div>
 </div>
@@ -330,7 +339,6 @@
   var reqBrigadeSelect = document.getElementById('reqBrigade');
   var reqNameInput = document.getElementById('reqName');
   var reqPhoneInput = document.getElementById('reqPhone');
-  var reqSecretCodeInput = document.getElementById('reqSecretCode');
   var serviceView = document.getElementById('serviceView');
   var homeView = document.getElementById('homeView');
   var historyView = document.getElementById('historyView');
@@ -345,6 +353,12 @@
   var returnComment = document.getElementById('returnComment');
   var reqDescEl = document.getElementById('reqDesc');
   
+  var chiefCodeModal = document.getElementById('chiefCodeModal');
+  var chiefCodeInput = document.getElementById('chiefCodeInput');
+  var confirmChiefCodeBtn = document.getElementById('confirmChiefCode');
+  var cancelChiefCodeBtn = document.getElementById('cancelChiefCode');
+  var submitBtn = document.getElementById('submitBtn');
+
   function showToast(msg, isError) {
     toastEl.textContent = msg;
     toastEl.classList.toggle('error', !!isError);
@@ -395,13 +409,6 @@
     if (savedBrigade) reqBrigadeSelect.value = savedBrigade;
     if (savedName) reqNameInput.value = savedName;
     if (savedPhone) reqPhoneInput.value = savedPhone;
-    
-    // Если это Главный энергетик, показываем поле для кода
-    if (savedBrigade === 'Главный энергетик') {
-      reqSecretCodeInput.style.display = 'block';
-    } else {
-      reqSecretCodeInput.style.display = 'none';
-    }
   }
 
   function saveData(brigade, name, phone) {
@@ -418,11 +425,9 @@
     const snapshot = await get(chiefRef);
     
     if (!snapshot.exists()) {
-      // Если в базе еще нет главного энергетика, записываем текущий номер
       await set(chiefRef, phone);
       return true;
     }
-    // Если номер уже есть, сравниваем
     return snapshot.val() === phone;
   }
 
@@ -478,16 +483,6 @@
       cards[k].addEventListener('click', function () { openService(this.getAttribute('data-id')); });
     }
   }
-
-  // Показываем поле для кода при выборе Главного энергетика
-  reqBrigadeSelect.addEventListener('change', function() {
-    if (this.value === 'Главный энергетик') {
-      reqSecretCodeInput.style.display = 'block';
-    } else {
-      reqSecretCodeInput.style.display = 'none';
-      reqSecretCodeInput.value = '';
-    }
-  });
 
   function openService(serviceId) {
     var service = null;
@@ -633,7 +628,7 @@
     showToast('История выгружена в CSV.');
   }
 
-  // ====== МОДАЛЬНОЕ ОКНО ======
+  // ====== МОДАЛЬНОЕ ОКНО (пароли) ======
   function openPasswordModal(action, id) {
     pendingAction = { type: action, id: id };
     passwordInput.value = '';
@@ -694,15 +689,16 @@
   passwordInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') confirmPassword(); if (e.key === 'Escape') closePasswordModal(); });
   passwordModal.addEventListener('click', function (e) { if (e.target === passwordModal) closePasswordModal(); });
 
-  // ====== ОТПРАВКА ФОРМЫ ======
-  document.getElementById('requestForm').addEventListener('submit', async function (e) {
+  // ====== ЛОГИКА ОТПРАВКИ С ПРОВЕРКОЙ КОДА ======
+  var pendingNewRequest = null;
+
+  document.getElementById('requestForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
     var serviceId = selectedServiceId;
     var brigade = reqBrigadeSelect.value;
     var name = reqNameInput.value.trim();
     var phone = reqPhoneInput.value.trim();
-    var secretCode = reqSecretCodeInput.value.trim();
     var desc = reqDescEl.value.trim();
 
     if (!serviceId) { showToast('Шаг 1: Выберите службу', true); return; }
@@ -711,56 +707,108 @@
     if (!phone)     { showToast('Шаг 2: Введите телефон', true); return; }
     if (!desc)      { showToast('Шаг 3: Введите описание', true); return; }
 
-    // Проверка для Главного энергетика
+    // Сохраняем данные для отправки
+    pendingNewRequest = { serviceId, brigade, name, phone, desc };
+
+    // Если выбран Главный энергетик, просим код
     if (brigade === 'Главный энергетик') {
-      // 1. Проверяем секретный код
-      if (secretCode !== CHIEF_CODE) {
-        showToast('Неверный код доступа для Главного энергетика!', true);
-        return;
-      }
+      chiefCodeInput.value = '';
+      chiefCodeModal.classList.remove('hidden');
+      chiefCodeInput.focus();
+    } else {
+      // Для остальных отправляем сразу
+      submitPendingRequest();
+    }
+  });
+
+  // Функция фактической отправки в Firebase
+  async function submitPendingRequest() {
+    if (!pendingNewRequest) return;
+    var data = pendingNewRequest;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Отправка...';
+
+    try {
+      var newRef = push(ref(db, 'requests'));
+      await set(newRef, {
+        serviceId: data.serviceId, 
+        brigade: data.brigade, 
+        name: data.name,
+        phone: data.phone,
+        desc: data.desc, 
+        createdAt: Date.now(), 
+        status: 'new'
+      });
+
+      // Сохраняем данные в браузер
+      saveData(data.brigade, data.name, data.phone);
+
+      // Очищаем форму
+      reqDescEl.value = ''; 
+      selectedServiceId = ''; 
+      renderServicePicker();
       
-      // 2. Проверяем номер телефона
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Проверка...';
-      try {
-        var isValid = await isChiefEnergyPhoneValid(phone);
-        if (!isValid) {
-          showToast('Ошибка: Под бригадой "Главный энергетик" может подавать заявки только зарегистрированный номер!', true);
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Отправить заявку';
-          return;
-        }
-      } catch (error) {
-        showToast('Ошибка сети. Попробуйте еще раз.', true);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Отправить заявку';
-        return;
-      }
+      showToast('Заявка отправлена! Служба подсвечена красным.');
+      pendingNewRequest = null;
+    } catch (error) {
+      showToast('Ошибка сети. Попробуйте еще раз.', true);
+    } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Отправить заявку';
     }
+  }
 
-    // Сохраняем данные в браузер
-    saveData(brigade, name, phone);
+  // Обработка ввода кода в модальном окне
+  confirmChiefCodeBtn.addEventListener('click', async function() {
+    var code = chiefCodeInput.value.trim();
+    
+    if (code !== CHIEF_CODE) {
+      showToast('Неверный код доступа!', true);
+      chiefCodeInput.value = '';
+      chiefCodeInput.focus();
+      return;
+    }
 
-    var newRef = push(ref(db, 'requests'));
-    await set(newRef, {
-      serviceId: serviceId, 
-      brigade: brigade, 
-      name: name,
-      phone: phone,
-      desc: desc, 
-      createdAt: Date.now(), 
-      status: 'new'
-    });
+    // Код верный, проверяем номер телефона
+    confirmChiefCodeBtn.disabled = true;
+    confirmChiefCodeBtn.textContent = 'Проверка...';
 
-    reqDescEl.value = ''; 
-    reqSecretCodeInput.value = '';
-    selectedServiceId = ''; 
-    renderServicePicker();
-    showToast('Заявка отправлена! Служба подсвечена красным.');
+    try {
+      var isValid = await isChiefEnergyPhoneValid(pendingNewRequest.phone);
+      if (!isValid) {
+        showToast('Ошибка: этот номер телефона уже привязан к другому человеку!', true);
+        chiefCodeModal.classList.add('hidden');
+        confirmChiefCodeBtn.disabled = false;
+        confirmChiefCodeBtn.textContent = 'Подтвердить';
+        return;
+      }
+      
+      // Всё верно, закрываем окно и отправляем
+      chiefCodeModal.classList.add('hidden');
+      confirmChiefCodeBtn.disabled = false;
+      confirmChiefCodeBtn.textContent = 'Подтвердить';
+      await submitPendingRequest();
+      
+    } catch (error) {
+      showToast('Ошибка сети. Попробуйте еще раз.', true);
+      confirmChiefCodeBtn.disabled = false;
+      confirmChiefCodeBtn.textContent = 'Подтвердить';
+    }
   });
 
+  cancelChiefCodeBtn.addEventListener('click', function() {
+    chiefCodeModal.classList.add('hidden');
+    chiefCodeInput.value = '';
+    pendingNewRequest = null;
+  });
+
+  chiefCodeInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') confirmChiefCodeBtn.click();
+    if (e.key === 'Escape') cancelChiefCodeBtn.click();
+  });
+
+  // ====== НАВИГАЦИЯ ======
   document.getElementById('backBtn').addEventListener('click', function () {
     serviceView.classList.add('hidden'); homeView.classList.remove('hidden'); serviceTitle.removeAttribute('data-service-id'); renderHome();
   });
