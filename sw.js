@@ -1,0 +1,20 @@
+// Этот код срабатывает, когда телефон скачивает Service Worker
+self.addEventListener('install', (e) => {
+  // Мы говорим браузеру: "Не жди, активируй этот скрипт сразу"
+  self.skipWaiting();
+});
+
+// Этот код перехватывает запросы сайта (например, когда вы открываете страницу)
+self.addEventListener('fetch', (event) => {
+  // Мы применяем кэширование только к файлам, которые находятся на вашем сайте (GitHub Pages)
+  // Запросы к Firebase (базе данных) мы пропускаем, чтобы заявки всегда были свежими
+  if (event.request.url.startsWith(self.location.origin)) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        // Если файл уже есть в памяти телефона — отдаем его (быстро)
+        // Если нет — скачиваем из интернета
+        return cachedResponse || fetch(event.request);
+      })
+    );
+  }
+});
