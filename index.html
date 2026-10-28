@@ -155,7 +155,7 @@
   .header-bar .user-info { font-size: 14px; color: #6b7280; }
   .header-bar .user-info strong { color: #1e3a8a; }
   
-  /* Подвкладки мастера */
+  /* Подвкладки */
   .sub-tabs { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
   .sub-tab-btn { background: none; border: none; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; padding: 6px 12px; border-radius: 4px; }
   .sub-tab-btn.active { background: #e0e7ff; color: #1e3a8a; }
@@ -250,7 +250,7 @@
     <span>⛔</span> Прием заявок временно приостановлен Главным инженером.
   </div>
   
-  <!-- Плашка ожидания -->
+  <!-- Плашка ожидания (общая) -->
   <div id="globalPendingAlert" class="pending-alert hidden">
     <span>⏳</span> Ваш аккаунт находится на проверке у Главного инженера. Ожидайте подтверждения.
   </div>
@@ -350,6 +350,10 @@
         <button class="btn gray small" id="logoutServiceBtn">Выйти</button>
       </div>
       
+      <div id="servicePendingAlert" class="pending-alert hidden" style="margin-top: 10px;">
+        <span>⏳</span> Ваш аккаунт службы находится на проверке. Вы не можете выполнять заявки, пока Главный инженер не подтвердит вас.
+      </div>
+
       <h2>Все службы (нажмите для просмотра)</h2>
       <div class="services" id="serviceServicesGrid"></div>
     </div>
@@ -530,7 +534,7 @@
   // ====== НАСТРОЙКИ ======
   var CHIEF_CODE = '7642';
   var SERVICE_PASSWORD = '1234';
-  var ADMIN_CODE = 'admin2483'; // ОБНОВЛЕННЫЙ ПАРОЛЬ
+  var ADMIN_CODE = 'admin2483';
 
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
@@ -597,6 +601,7 @@
 
   var serviceLoginBlock = document.getElementById('serviceLoginBlock');
   var serviceWorkBlock = document.getElementById('serviceWorkBlock');
+  var servicePendingAlert = document.getElementById('servicePendingAlert');
   var loggedServiceName = document.getElementById('loggedServiceName');
   var loggedServicePhone = document.getElementById('loggedServicePhone');
 
@@ -730,6 +735,18 @@
         }
       }
     }
+
+    // Проверка статуса службы (для ее рабочего стола)
+    if (loggedService.name) {
+      if (loggedService.status === 'pending') {
+        servicePendingAlert.classList.remove('hidden');
+      } else if (loggedService.status === 'rejected') {
+        servicePendingAlert.classList.remove('hidden');
+        servicePendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен Главным инженером.';
+      } else {
+        servicePendingAlert.classList.add('hidden');
+      }
+    }
   }
 
   // ====== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ======
@@ -801,7 +818,7 @@
   adminTabRequests.addEventListener('click', function() {
     adminTabRequests.classList.add('active'); adminTabUsers.classList.remove('active');
     adminUsersBlock.classList.add('hidden'); adminRequestsBlock.classList.remove('hidden');
-    renderAdminRequests(); // Перерисовываем заявки
+    renderAdminRequests();
   });
 
   // ====== АВТОЗАПОЛНЕНИЕ И АВТОВХОД ======
@@ -839,6 +856,7 @@
       loggedServiceName.textContent = sRole;
       loggedServicePhone.textContent = sName + ', ' + sPhone;
       renderServicesGrid(serviceServicesGrid, 'service');
+      updateUIState();
       switchToTab('service');
     } else {
       switchToTab('master');
@@ -855,13 +873,10 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!brigade) { showToast('Выберите бригаду', true); return; }
 
-    // Проверяем, есть ли уже этот телефон в базе
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
     
     if (existingUser) {
-      // Если телефон уже есть, проверяем его статус
       if (existingUser.status === 'approved') {
-        // Одобрен - просто обновляем бригаду и пускаем
         var userRef = ref(db, 'users/' + existingUser.id);
         await update(userRef, { name: name, brigade: brigade, role: 'master' });
         loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'approved' };
@@ -874,7 +889,6 @@
         return;
       }
     } else {
-      // Новый пользователь - отправляем на модерацию
       var newRef = push(ref(db, 'users'));
       await set(newRef, { name: name, phone: phone, brigade: brigade, role: 'master', status: 'pending', createdAt: Date.now() });
       loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'pending' };
@@ -953,6 +967,7 @@
     loggedServicePhone.textContent = name + ', ' + phone;
     
     renderServicesGrid(serviceServicesGrid, 'service');
+    updateUIState();
   });
 
   document.getElementById('logoutServiceBtn').addEventListener('click', function() {
@@ -960,6 +975,7 @@
     loggedService = { name: '', phone: '', role: '', status: 'pending' };
     serviceLoginBlock.classList.remove('hidden');
     serviceWorkBlock.classList.add('hidden');
+    servicePendingAlert.classList.add('hidden');
   });
 
   var loginRoleSelect = document.getElementById('loginServiceRole');
@@ -982,7 +998,6 @@
     adminLoginBlock.classList.add('hidden');
     adminWorkBlock.classList.remove('hidden');
     
-    // По умолчанию показываем вкладку Пользователи
     adminTabUsers.classList.add('active'); adminTabRequests.classList.remove('active');
     adminUsersBlock.classList.remove('hidden'); adminRequestsBlock.classList.add('hidden');
     
@@ -1078,7 +1093,6 @@
 
   // ====== АДМИН: ОТРИСОВКА ЗАЯВОК ======
   function renderAdminRequests() {
-    // Настройки времени
     if (settings.intervals.length > 0) {
       document.getElementById('adminStart1').value = settings.intervals[0].start;
       document.getElementById('adminEnd1').value = settings.intervals[0].end;
@@ -1097,7 +1111,7 @@
     } else {
       toggleBtn.textContent = 'Остановить прием';
       toggleBtn.className = 'btn red small';
-      var intervalStr = settings.intervals.map(function(inv) { return inv.start + ':00–' + inv.end + ':' + (inv.end >= 10 ? inv.end : '0' + inv.end); }).join(' и ');
+      var intervalStr = settings.intervals.map(function(inv) { return inv.start + ':00–' + inv.end + ':00'; }).join(' и ');
       adminStatusText.textContent = 'Работает (' + intervalStr + ')';
       adminStatusText.style.color = '#059669';
     }
@@ -1142,7 +1156,6 @@
     }
   }
 
-  // Универсальная функция обновления панели (вызывается при изменениях)
   function renderAdminPanel() {
     if (!isAdminLoggedIn || adminWorkBlock.classList.contains('hidden')) return;
     
@@ -1344,6 +1357,14 @@
     var req = allRequests.find(function(item) { return item.id === id; });
     if (!req) return;
 
+    // Проверка статуса службы перед действием "service_done" или "transfer"
+    if (action === 'service_done' || action === 'transfer') {
+      if (loggedService.status !== 'approved') {
+        showToast('Ваш аккаунт службы не подтвержден. Вы не можете выполнять заявки.', true);
+        return;
+      }
+    }
+
     if (action === 'service_done') {
       pendingServiceDoneId = id;
       servicePasswordInput.value = '';
@@ -1380,6 +1401,12 @@
   confirmServicePasswordBtn.addEventListener('click', async function() {
     var pwd = servicePasswordInput.value.trim();
     var comment = serviceCommentInput.value.trim();
+
+    if (loggedService.status !== 'approved') {
+      showToast('Ваш аккаунт службы не подтвержден.', true);
+      servicePasswordModal.classList.add('hidden');
+      return;
+    }
 
     if (pwd !== SERVICE_PASSWORD) {
       showToast('Неверный пароль службы', true); 
@@ -1445,6 +1472,12 @@
   });
 
   confirmTransferBtn.addEventListener('click', async function() {
+    if (loggedService.status !== 'approved') {
+      showToast('Ваш аккаунт службы не подтвержден.', true);
+      transferModal.classList.add('hidden');
+      return;
+    }
+
     if (!pendingTransferId) return;
     var newServiceId = transferServiceSelect.value;
     
@@ -1791,6 +1824,7 @@
       var currentS = allUsers.find(function(u) { return u.phone === loggedService.phone; });
       if (currentS) {
         loggedService.status = currentS.status;
+        updateUIState();
       }
     }
 
