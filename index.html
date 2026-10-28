@@ -230,14 +230,14 @@
 
   <!-- Вкладки -->
   <div class="tabs">
-    <button class="tab-btn active" id="tabMaster">Вход для мастера</button>
+    <button class="tab-btn" id="tabMaster">Вход для мастера</button>
     <button class="tab-btn" id="tabService">Вход для службы</button>
     <button class="tab-btn" id="tabHistory">📋 История заявок</button>
     <button class="tab-btn" id="tabAdmin">🔐 Панель управления</button>
   </div>
 
   <!-- ЭКРАН 1: МАСТЕР (ВХОД И РАБОТА) -->
-  <div id="masterView">
+  <div id="masterView" class="hidden">
     <div id="masterLoginBlock" class="login-box">
       <h2>Вход для мастера</h2>
       <p>Введите ваши данные, чтобы подавать заявки и видеть их статус.</p>
@@ -716,7 +716,7 @@
     var savedServiceActive = localStorage.getItem('logged_service_active');
 
     if (savedMasterActive === 'true' && mName && mPhone && mBrigade) {
-      // Восстанавливаем сессию мастера
+      // Восстанавливаем сессию мастера и СРАЗУ открываем рабочий стол
       loggedMaster = { name: mName, phone: mPhone, brigade: mBrigade };
       masterLoginBlock.classList.add('hidden');
       masterWorkBlock.classList.remove('hidden');
@@ -734,6 +734,9 @@
       loggedServicePhone.textContent = sName + ', ' + sPhone;
       renderServicesGrid(serviceServicesGrid, 'service');
       switchToTab('service');
+    } else {
+      // Если никто не вошел, показываем первую вкладку (Вход для мастера)
+      switchToTab('master');
     }
   }
 
@@ -1464,7 +1467,7 @@
     }
   });
 
-  // Первичный рендер
+  // Первичный рендер и АВТОВХОД
   renderServicePicker();
   loadSavedCredentials();
   updateUIState();
