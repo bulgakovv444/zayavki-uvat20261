@@ -476,7 +476,7 @@
   import { getDatabase, ref, push, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
   // =====================================================================
-  // УВАТСКИЙ ПРОЕКТ (ВАШ СТАРЫЙ КОНФИГ)
+  // УВАТСКИЙ ПРОЕКТ
   // =====================================================================
   const firebaseConfig = {
     apiKey: "AIzaSyAvZIkCpFbH199-U2B6GUok3xzllCOtoJI",
@@ -1162,7 +1162,7 @@
     if (action === 'service_done') {
       pendingServiceDoneId = id;
       servicePasswordInput.value = '';
-      serviceCommentInput.value = ''; // Очищаем комментарий
+      serviceCommentInput.value = '';
       servicePasswordModal.classList.remove('hidden');
       servicePasswordInput.focus();
     } else if (action === 'return') {
@@ -1173,10 +1173,17 @@
     } else if (action === 'closed') {
       var updates = {};
       var currentEvents = req.events || [];
-      var newEvent = { text: '🔒 Мастер подтвердил (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + ')', time: Date.now() };
+      
+      // ИСПРАВЛЕНИЕ: Добавляем данные того, кто подтвердил
+      var newEvent = { 
+        text: '🔒 Мастер подтвердил (Бригада: ' + (loggedMaster.brigade || req.brigade || '—') + ', Мастер: ' + (loggedMaster.name || '—') + ', Тел: ' + (loggedMaster.phone || '—') + ')', 
+        time: Date.now() 
+      };
+      
       updates.status = 'closed';
       updates.closedAt = Date.now();
       updates.events = currentEvents.concat([newEvent]);
+      
       await update(ref(db, 'requests/' + id), updates);
       showToast('Мастер подтвердил. Заявка закрыта.');
     } else if (action === 'transfer') {
@@ -1235,7 +1242,7 @@
     if (!req) return;
 
     var currentEvents = req.events || [];
-    var newEvent = { text: '↩ Возврат в работу (Бригада: ' + (req.brigade || '—') + ', Мастер: ' + (req.name || '—') + ', Тел: ' + (req.phone || '—') + '). Причина: ' + comment, time: Date.now() };
+    var newEvent = { text: '↩ Возврат в работу (Бригада: ' + (loggedMaster.brigade || req.brigade || '—') + ', Мастер: ' + (loggedMaster.name || '—') + ', Тел: ' + (loggedMaster.phone || '—') + '). Причина: ' + comment, time: Date.now() };
 
     var updates = {
       status: 'new',
