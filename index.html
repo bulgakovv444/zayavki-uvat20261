@@ -169,6 +169,31 @@
   .request.status-closed { border-left-color: #10b981; opacity: .75; }
   .request .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 
+  /* Кнопка чата с уведомлением */
+  .chat-btn {
+    position: relative;
+  }
+  .chat-btn.unread {
+    background: #ef4444 !important; /* Красный, если есть новые */
+    color: #fff;
+  }
+  .chat-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #fff;
+    color: #ef4444;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+
   .hidden { display: none !important; }
   .back { margin-bottom: 12px; }
   .empty { color: #6b7280; font-size: 14px; padding: 12px 0; }
@@ -533,7 +558,7 @@
   </div>
 </div>
 
-<!-- НОВОЕ Модальное окно для чата -->
+<!-- Модальное окно для чата -->
 <div class="modal-overlay hidden" id="chatModal">
   <div class="modal" style="max-width: 500px;">
     <h3 id="chatTitle">Чат по заявке</h3>
@@ -1211,7 +1236,10 @@
       } else {
          html += '<span class="badge ok">Закрыта</span>';
       }
-      html += '<button class="btn gray small" data-action="chat" data-id="' + r.id + '">💬 Чат</button>'; // Добавлена кнопка чата для админа
+      
+      // Чат для админа (без уведомлений)
+      html += '<button class="btn gray small chat-btn" data-action="chat" data-id="' + r.id + '">💬 Чат</button>';
+      
       html += '<button class="btn red small" data-action="admin_delete" data-id="' + r.id + '">Удалить заявку</button>';
       html += '</div></div>';
     }
@@ -1334,7 +1362,24 @@
       } else if (status === 'new') {
         html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения</span>';
       }
-      html += '<button class="btn gray small" data-action="chat" data-id="' + r.id + '">💬 Чат</button>'; // Добавлена кнопка чата
+      
+      // Кнопка чата с логикой непрочитанных
+      var lastRead = localStorage.getItem('last_read_chat_' + r.id) || 0;
+      var lastMsgTime = 0;
+      if (r.messages) {
+        for (var mKey in r.messages) {
+          if (r.messages[mKey].time > lastMsgTime) lastMsgTime = r.messages[mKey].time;
+        }
+      }
+      var isUnread = lastMsgTime > Number(lastRead) && (r.messages && Object.keys(r.messages).length > 0);
+      
+      html += '<button class="btn small chat-btn ' + (isUnread ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">';
+      html += '💬 Чат';
+      if (isUnread) {
+        html += '<span class="chat-badge">1</span>';
+      }
+      html += '</button>';
+      
       html += '</div></div>';
     }
     myRequestsList.innerHTML = html;
@@ -1409,7 +1454,24 @@
           html += '<span class="badge ok">Закрыта</span>';
         }
       }
-      html += '<button class="btn gray small" data-action="chat" data-id="' + r.id + '">💬 Чат</button>'; // Кнопка чата
+      
+      // Логика непрочитанных для службы
+      var lastReadS = localStorage.getItem('last_read_chat_' + r.id) || 0;
+      var lastMsgTimeS = 0;
+      if (r.messages) {
+        for (var mKeyS in r.messages) {
+          if (r.messages[mKeyS].time > lastMsgTimeS) lastMsgTimeS = r.messages[mKeyS].time;
+        }
+      }
+      var isUnreadS = lastMsgTimeS > Number(lastReadS) && (r.messages && Object.keys(r.messages).length > 0);
+
+      html += '<button class="btn small chat-btn ' + (isUnreadS ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">';
+      html += '💬 Чат';
+      if (isUnreadS) {
+        html += '<span class="chat-badge">1</span>';
+      }
+      html += '</button>';
+      
       html += '</div></div>';
     }
     detailRequestsList.innerHTML = html;
@@ -1641,6 +1703,14 @@
           '</div>';
       }
       chatMessages.scrollTop = chatMessages.scrollHeight;
+      
+      // Помечаем как прочитанные, когда открываем чат
+      localStorage.setItem('last_read_chat_' + requestId, Date.now());
+      
+      // Обновляем интерфейс (убираем красные кнопки)
+      renderMyRequests();
+      if (currentDetailServiceId) renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
+      if (isAdminLoggedIn && !adminRequestsBlock.classList.contains('hidden')) renderAdminRequests();
     });
   }
 
