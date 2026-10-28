@@ -193,6 +193,7 @@
   /* Панель администратора */
   .admin-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
   .admin-controls input { width: auto; }
+  .admin-controls label { font-size: 12px; color: #6b7280; display: block; margin-bottom: 4px; }
 
   /* Тост и модалка */
   .toast {
@@ -366,14 +367,23 @@
         <h2>Управление приемом заявок</h2>
         <div class="admin-controls">
           <div>
-            <label style="font-size:12px; color:#6b7280; display:block; margin-bottom:4px;">Начало приема (час)</label>
-            <input type="number" id="adminStartHour" min="0" max="23" style="width:80px;">
+            <label>Интервал 1 (с)</label>
+            <input type="number" id="adminStart1" min="0" max="23" style="width:70px;">
           </div>
           <div>
-            <label style="font-size:12px; color:#6b7280; display:block; margin-bottom:4px;">Конец приема (час)</label>
-            <input type="number" id="adminEndHour" min="0" max="23" style="width:80px;">
+            <label>Интервал 1 (до)</label>
+            <input type="number" id="adminEnd1" min="0" max="23" style="width:70px;">
           </div>
-          <button class="btn small" id="saveScheduleBtn">Сохранить расписание</button>
+          <div style="width:20px;"></div>
+          <div>
+            <label>Интервал 2 (с)</label>
+            <input type="number" id="adminStart2" min="0" max="23" style="width:70px;">
+          </div>
+          <div>
+            <label>Интервал 2 (до)</label>
+            <input type="number" id="adminEnd2" min="0" max="23" style="width:70px;">
+          </div>
+          <button class="btn small" id="saveScheduleBtn">Сохранить</button>
           <button class="btn red small" id="toggleGlobalBtn">Остановить прием</button>
         </div>
         <div style="font-size:13px; color:#4b5563; margin-top:10px;">
@@ -461,7 +471,7 @@
   // ====== НАСТРОЙКИ ======
   var CHIEF_CODE = '7642';
   var SERVICE_PASSWORD = '1234';
-  var ADMIN_CODE = 'admin'; // Пароль главного инженера
+  var ADMIN_CODE = 'admin';
 
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
@@ -481,7 +491,13 @@
   ];
 
   var allRequests = [];
-  var settings = { startHour: 0, endHour: 24, isManuallyClosed: false };
+  var settings = { 
+    isManuallyClosed: false,
+    intervals: [
+      { start: 8, end: 12 },
+      { start: 14, end: 18 }
+    ]
+  };
   var isAdminLoggedIn = false;
 
   var selectedServiceId = '';
@@ -604,19 +620,21 @@
   function isAcceptingNow() {
     if (settings.isManuallyClosed) return false;
     var h = new Date().getHours();
-    if (settings.startHour === 0 && settings.endHour === 24) return true; // Круглосуточно
-    return h >= settings.startHour && h < settings.endHour;
+    // Проверяем оба интервала
+    for (var i = 0; i < settings.intervals.length; i++) {
+      var inv = settings.intervals[i];
+      if (h >= inv.start && h < inv.end) return true;
+    }
+    return false;
   }
 
   function updateUIState() {
-    // Плашка
     if (!isAcceptingNow()) {
       globalClosedAlert.classList.remove('hidden');
     } else {
       globalClosedAlert.classList.add('hidden');
     }
 
-    // Кнопка подачи (только для авторизованных мастеров)
     if (loggedMaster.name && !isAcceptingNow()) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Прием заявок закрыт';
@@ -675,6 +693,25 @@
     }
   });
 
+  // ====== АВТОЗАПОЛНЕНИЕ ПРИ ВХОДЕ ======
+  function loadSavedCredentials() {
+    // Для мастера
+    var mName = localStorage.getItem('save_m_name');
+    var mPhone = localStorage.getItem('save_m_phone');
+    var mBrigade = localStorage.getItem('save_m_brigade');
+    if (mName) document.getElementById('loginMasterName').value = mName;
+    if (mPhone) document.getElementById('loginMasterPhone').value = mPhone;
+    if (mBrigade) document.getElementById('loginMasterBrigade').value = mBrigade;
+
+    // Для службы
+    var sName = localStorage.getItem('save_s_name');
+    var sPhone = localStorage.getItem('save_s_phone');
+    var sRole = localStorage.getItem('save_s_role');
+    if (sName) document.getElementById('loginServiceName').value = sName;
+    if (sPhone) document.getElementById('loginServicePhone').value = sPhone;
+    if (sRole) document.getElementById('loginServiceRole').value = sRole;
+  }
+
   // ====== ВХОД МАСТЕРА ======
   document.getElementById('loginMasterBtn').addEventListener('click', function() {
     var name = document.getElementById('loginMasterName').value.trim();
@@ -684,6 +721,11 @@
     if (!name) { showToast('Введите ваше имя', true); return; }
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!brigade) { showToast('Выберите бригаду', true); return; }
+
+    // Сохраняем данные
+    localStorage.setItem('save_m_name', name);
+    localStorage.setItem('save_m_phone', phone);
+    localStorage.setItem('save_m_brigade', brigade);
 
     loggedMaster = { name: name, phone: phone, brigade: brigade };
     
@@ -716,6 +758,11 @@
     if (!name) { showToast('Введите ваше имя', true); return; }
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!role) { showToast('Выберите службу', true); return; }
+
+    // Сохраняем данные
+    localStorage.setItem('save_s_name', name);
+    localStorage.setItem('save_s_phone', phone);
+    localStorage.setItem('save_s_role', role);
 
     loggedService = { name: name, phone: phone, role: role };
     
@@ -764,15 +811,21 @@
 
   // ====== АДМИН: НАСТРОЙКИ ======
   document.getElementById('saveScheduleBtn').addEventListener('click', async function() {
-    var start = parseInt(document.getElementById('adminStartHour').value);
-    var end = parseInt(document.getElementById('adminEndHour').value);
+    var s1 = parseInt(document.getElementById('adminStart1').value) || 0;
+    var e1 = parseInt(document.getElementById('adminEnd1').value) || 0;
+    var s2 = parseInt(document.getElementById('adminStart2').value) || 0;
+    var e2 = parseInt(document.getElementById('adminEnd2').value) || 0;
 
-    if (isNaN(start) || start < 0 || start > 23 || isNaN(end) || end < 0 || end > 24) {
-      showToast('Некорректное время', true);
+    var newIntervals = [];
+    if (s1 !== e1) newIntervals.push({ start: s1, end: e1 });
+    if (s2 !== e2) newIntervals.push({ start: s2, end: e2 });
+
+    if (newIntervals.length === 0) {
+      showToast('Укажите хотя бы один интервал', true);
       return;
     }
 
-    await set(ref(db, 'settings/schedule'), { startHour: start, endHour: end });
+    await set(ref(db, 'settings/intervals'), newIntervals);
     showToast('Расписание сохранено');
   });
 
@@ -784,8 +837,14 @@
 
   // ====== АДМИН: ОТРИСОВКА ======
   function renderAdminPanel() {
-    document.getElementById('adminStartHour').value = settings.startHour;
-    document.getElementById('adminEndHour').value = settings.endHour;
+    if (settings.intervals.length > 0) {
+      document.getElementById('adminStart1').value = settings.intervals[0].start;
+      document.getElementById('adminEnd1').value = settings.intervals[0].end;
+    }
+    if (settings.intervals.length > 1) {
+      document.getElementById('adminStart2').value = settings.intervals[1].start;
+      document.getElementById('adminEnd2').value = settings.intervals[1].end;
+    }
 
     var toggleBtn = document.getElementById('toggleGlobalBtn');
     if (settings.isManuallyClosed) {
@@ -796,7 +855,8 @@
     } else {
       toggleBtn.textContent = 'Остановить прием';
       toggleBtn.className = 'btn red small';
-      adminStatusText.textContent = 'Работает (с ' + settings.startHour + ':00 до ' + settings.endHour + ':00)';
+      var intervalStr = settings.intervals.map(function(inv) { return inv.start + ':00–' + inv.end + ':00'; }).join(' и ');
+      adminStatusText.textContent = 'Работает (' + intervalStr + ')';
       adminStatusText.style.color = '#059669';
     }
 
@@ -1361,12 +1421,11 @@
   onValue(ref(db, 'settings'), (snapshot) => {
     var data = snapshot.val();
     if (data) {
-      if (data.schedule) {
-        settings.startHour = data.schedule.startHour;
-        settings.endHour = data.schedule.endHour;
-      }
       if (data.isManuallyClosed !== undefined) {
         settings.isManuallyClosed = data.isManuallyClosed;
+      }
+      if (data.intervals && Array.isArray(data.intervals)) {
+        settings.intervals = data.intervals;
       }
     }
     updateUIState();
@@ -1377,6 +1436,8 @@
 
   // Первичный рендер
   renderServicePicker();
+  loadSavedCredentials();
+  updateUIState();
 
 </script>
 </body>
