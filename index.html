@@ -17,6 +17,27 @@
   h2 { font-size: 16px; margin: 16px 0 10px; }
   .container { max-width: 1100px; margin: 0 auto; }
 
+  /* Вкладки */
+  .tabs {
+    display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+  }
+  .tab-btn {
+    background: none; border: none; font-size: 16px; font-weight: 600; color: #6b7280;
+    cursor: pointer; padding: 8px 12px; border-radius: 6px; transition: all .15s;
+  }
+  .tab-btn:hover { background: #e5e7eb; color: #1f2933; }
+  .tab-btn.active { background: #2563eb; color: #fff; }
+
+  /* Блок регистрации службы */
+  .service-login-box {
+    background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    max-width: 400px; margin: 0 auto; text-align: center;
+  }
+  .service-login-box h2 { margin-top: 0; color: #1e3a8a; }
+  .service-login-box p { color: #6b7280; margin-bottom: 20px; font-size: 14px; }
+  .service-login-box input { margin-bottom: 12px; text-align: center; }
+
+  /* Шаги формы */
   .step { margin-bottom: 16px; }
   .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .step-number {
@@ -26,19 +47,6 @@
   }
   .step-title { font-size: 15px; font-weight: 600; }
   .step-hint { font-size: 12px; color: #6b7280; margin-left: 32px; margin-bottom: 8px; }
-
-  /* Переключатель роли */
-  .role-switch {
-    display: flex; gap: 10px; margin-bottom: 10px; margin-left: 32px;
-  }
-  .role-btn {
-    padding: 6px 12px; border: 2px solid #cbd5e1; border-radius: 6px;
-    background: #f8fafc; cursor: pointer; font-weight: 600; font-size: 13px;
-    transition: all .15s;
-  }
-  .role-btn.active {
-    background: #2563eb; color: #fff; border-color: #2563eb;
-  }
 
   .services {
     display: grid;
@@ -76,8 +84,8 @@
 
   .btn {
     display: inline-block; background: #2563eb; color: #fff; border: none;
-    padding: 8px 16px; border-radius: 6px; cursor: pointer;
-    font-size: 14px; font-weight: 600; transition: background .15s;
+    padding: 10px 20px; border-radius: 6px; cursor: pointer;
+    font-size: 14px; font-weight: 600; transition: background .15s; text-align: center;
   }
   .btn:hover { background: #1d4ed8; }
   .btn.green { background: #10b981; }
@@ -90,6 +98,7 @@
   .btn.orange:hover { background: #d97706; }
   .btn.small { padding: 6px 10px; font-size: 12px; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.block { display: block; width: 100%; }
 
   .service-picker { display: flex; flex-wrap: wrap; gap: 8px; }
   .service-pick-btn {
@@ -126,13 +135,8 @@
   .request.status-closed { border-left-color: #10b981; opacity: .75; }
   .request .meta { font-size: 12px; color: #6b7280; margin-top: 6px; }
   .request .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
-  
-  .return-info {
-    margin-top: 8px; font-size: 13px; background: #fef3c7;
-    border-left: 3px solid #f59e0b; padding: 8px 12px; border-radius: 4px; color: #78350f;
-  }
 
-  .hidden { display: none; }
+  .hidden { display: none !important; }
   .back { margin-bottom: 12px; }
   .empty { color: #6b7280; font-size: 14px; padding: 12px 0; }
 
@@ -179,7 +183,7 @@
     position: fixed; inset: 0; background: rgba(0,0,0,.5);
     display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000;
   }
-  .modal-overlay.hidden { display: none; }
+  .modal-overlay.hidden { display: none !important; }
   .modal {
     background: #fff; border-radius: 10px; padding: 20px; max-width: 360px; width: 100%;
     box-shadow: 0 20px 50px rgba(0,0,0,.3);
@@ -193,26 +197,21 @@
 <body>
 <div class="container">
 
-  <div id="homeView">
-    <h1>Заявки Уватский проект</h1>
+  <!-- Вкладки -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tabMaster">Подать заявку (Мастер)</button>
+    <button class="tab-btn" id="tabService">Вход для службы</button>
+    <button class="tab-btn" id="tabHistory">📋 История заявок</button>
+  </div>
 
+  <!-- ЭКРАН 1: МАСТЕР (ПОДАЧА ЗАЯВОК) -->
+  <div id="masterView">
     <div class="card">
       <form id="requestForm">
         
         <div class="step">
           <div class="step-header">
             <div class="step-number">1</div>
-            <div class="step-title">Кто вы?</div>
-          </div>
-          <div class="role-switch">
-            <button type="button" class="role-btn active" id="roleMasterBtn">Я — Мастер (Бригада)</button>
-            <button type="button" class="role-btn" id="roleServiceBtn">Я — Служба</button>
-          </div>
-        </div>
-
-        <div class="step" id="servicePickStep">
-          <div class="step-header">
-            <div class="step-number">2</div>
             <div class="step-title">Выберите службу</div>
           </div>
           <div class="step-hint">Нажмите на нужную кнопку</div>
@@ -221,34 +220,24 @@
 
         <div class="step">
           <div class="step-header">
-            <div class="step-number">3</div>
-            <div class="step-title">Данные</div>
+            <div class="step-number">2</div>
+            <div class="step-title">Данные мастера</div>
           </div>
-          <div class="step-hint" id="dataHint">Бригада, имя и телефон для связи</div>
-          
-          <!-- Блок для мастера -->
-          <div class="form-row" id="brigadeRow">
+          <div class="step-hint">Бригада, имя и телефон для связи</div>
+          <div class="form-row">
             <select id="reqBrigade" style="flex: 1 1 100%;">
               <option value="">— выберите бригаду —</option>
             </select>
           </div>
-
-          <!-- Блок для службы -->
-          <div class="form-row hidden" id="serviceSelectRow" style="margin-top: 8px;">
-            <select id="reqServiceSelect" style="flex: 1 1 100%;">
-              <option value="">— выберите службу (кто вы) —</option>
-            </select>
-          </div>
-
           <div class="form-row" style="margin-top: 8px;">
-            <input id="reqName" type="text" placeholder="Ваше имя" style="flex: 1 1 45%;">
+            <input id="reqName" type="text" placeholder="Ваше имя (мастер)" style="flex: 1 1 45%;">
             <input id="reqPhone" type="tel" placeholder="Номер телефона" style="flex: 1 1 45%;">
           </div>
         </div>
 
         <div class="step">
           <div class="step-header">
-            <div class="step-number">4</div>
+            <div class="step-number">3</div>
             <div class="step-title">Оформите заявку</div>
           </div>
           <div class="step-hint">Кратко опишите проблему</div>
@@ -257,9 +246,8 @@
           </div>
         </div>
 
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 16px;">
-          <button class="btn" type="submit" id="submitBtn" style="flex:1;">Отправить заявку</button>
-          <button class="btn gray" type="button" id="openHistoryBtn">📋 История</button>
+        <div style="margin-top: 16px;">
+          <button class="btn block" type="submit" id="submitBtn">Отправить заявку</button>
         </div>
       </form>
     </div>
@@ -268,14 +256,33 @@
     <div class="services" id="servicesGrid"></div>
   </div>
 
+  <!-- ЭКРАН 2: СЛУЖБА (ВХОД И ВЫПОЛНЕНИЕ) -->
   <div id="serviceView" class="hidden">
-    <div class="back"><button class="btn gray" id="backBtn">← Назад</button></div>
-    <h1 id="serviceTitle"></h1>
-    <div id="requestsList"></div>
+    <!-- Блок входа (регистрации) -->
+    <div id="serviceLoginBlock" class="service-login-box">
+      <h2>Вход для службы</h2>
+      <p>Введите ваши данные, чтобы видеть заявки и подтверждать их выполнение.</p>
+      <input type="text" id="loginServiceName" placeholder="Ваше имя (сотрудник)" autocomplete="off">
+      <input type="tel" id="loginServicePhone" placeholder="Ваш номер телефона" autocomplete="off">
+      <select id="loginServiceRole" style="margin-bottom: 16px;">
+        <option value="">— выберите вашу службу —</option>
+      </select>
+      <button class="btn block green" id="loginServiceBtn">Войти в систему</button>
+    </div>
+
+    <!-- Рабочий стол службы -->
+    <div id="serviceWorkBlock" class="hidden">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <h2 style="margin: 0;">Рабочий стол: <span id="loggedServiceName" style="color: #2563eb;"></span></h2>
+        <button class="btn gray small" id="logoutServiceBtn">Выйти</button>
+      </div>
+      
+      <div id="serviceRequestsList"></div>
+    </div>
   </div>
 
+  <!-- ЭКРАН 3: ИСТОРИЯ -->
   <div id="historyView" class="hidden">
-    <div class="back"><button class="btn gray" id="backFromHistory">← Назад</button></div>
     <h1>📋 История заявок</h1>
 
     <div class="history-stats" id="historyStats"></div>
@@ -301,24 +308,11 @@
 
 </div>
 
-<!-- Модальное окно для ввода причины возврата (Мастер) -->
-<div class="modal-overlay hidden" id="returnModal">
-  <div class="modal">
-    <h3>Возврат в работу</h3>
-    <p>Укажите причину, по которой заявка возвращается службе.</p>
-    <textarea id="returnCommentInput" placeholder="Например: Течь не устранена..." autocomplete="off"></textarea>
-    <div class="modal-actions">
-      <button class="btn gray small" id="cancelReturn">Отмена</button>
-      <button class="btn red small" id="confirmReturn">Вернуть</button>
-    </div>
-  </div>
-</div>
-
-<!-- Модальное окно для пароля службы (1234) -->
+<!-- Модальное окно для пароля службы -->
 <div class="modal-overlay hidden" id="servicePasswordModal">
   <div class="modal">
     <h3>Подтверждение службы</h3>
-    <p>Введите пароль службы, чтобы отметить выполнение.</p>
+    <p>Введите пароль службы (1234), чтобы отметить выполнение.</p>
     <input type="password" id="servicePasswordInput" placeholder="Пароль" autocomplete="off">
     <div class="modal-actions">
       <button class="btn gray small" id="cancelServicePassword">Отмена</button>
@@ -336,6 +330,19 @@
     <div class="modal-actions">
       <button class="btn gray small" id="cancelChiefCode">Отмена</button>
       <button class="btn green small" id="confirmChiefCode">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для причины возврата -->
+<div class="modal-overlay hidden" id="returnModal">
+  <div class="modal">
+    <h3>Возврат в работу</h3>
+    <p>Укажите причину, по которой заявка возвращается службе.</p>
+    <textarea id="returnCommentInput" placeholder="Например: Течь не устранена..." autocomplete="off"></textarea>
+    <div class="modal-actions">
+      <button class="btn gray small" id="cancelReturn">Отмена</button>
+      <button class="btn red small" id="confirmReturn">Вернуть</button>
     </div>
   </div>
 </div>
@@ -384,28 +391,38 @@
 
   var allRequests = [];
   var selectedServiceId = '';
-  var pendingReturnId = null;
   var pendingServiceDoneId = null;
-  var currentRole = 'master'; // 'master' или 'service'
+  var pendingReturnId = null;
+  var pendingNewRequest = null;
+  
+  // Данные авторизованной службы
+  var loggedService = { name: '', phone: '', role: '' };
 
   // ====== ЭЛЕМЕНТЫ ======
+  var tabMaster = document.getElementById('tabMaster');
+  var tabService = document.getElementById('tabService');
+  var tabHistory = document.getElementById('tabHistory');
+  
+  var masterView = document.getElementById('masterView');
+  var serviceView = document.getElementById('serviceView');
+  var historyView = document.getElementById('historyView');
+  
+  var serviceLoginBlock = document.getElementById('serviceLoginBlock');
+  var serviceWorkBlock = document.getElementById('serviceWorkBlock');
+  var loggedServiceName = document.getElementById('loggedServiceName');
+
   var servicesGrid = document.getElementById('servicesGrid');
   var servicePicker = document.getElementById('servicePicker');
   var reqBrigadeSelect = document.getElementById('reqBrigade');
-  var reqServiceSelect = document.getElementById('reqServiceSelect');
   var reqNameInput = document.getElementById('reqName');
   var reqPhoneInput = document.getElementById('reqPhone');
-  var serviceView = document.getElementById('serviceView');
-  var homeView = document.getElementById('homeView');
-  var historyView = document.getElementById('historyView');
-  var serviceTitle = document.getElementById('serviceTitle');
-  var requestsList = document.getElementById('requestsList');
-  var toastEl = document.getElementById('toast');
+  var reqDescEl = document.getElementById('reqDesc');
+  var submitBtn = document.getElementById('submitBtn');
   
-  var returnModal = document.getElementById('returnModal');
-  var returnCommentInput = document.getElementById('returnCommentInput');
-  var confirmReturnBtn = document.getElementById('confirmReturn');
-  var cancelReturnBtn = document.getElementById('cancelReturn');
+  var serviceRequestsList = document.getElementById('serviceRequestsList');
+  var requestsList = document.getElementById('requestsList'); // Для истории
+
+  var toastEl = document.getElementById('toast');
   
   var servicePasswordModal = document.getElementById('servicePasswordModal');
   var servicePasswordInput = document.getElementById('servicePasswordInput');
@@ -416,35 +433,11 @@
   var chiefCodeInput = document.getElementById('chiefCodeInput');
   var confirmChiefCodeBtn = document.getElementById('confirmChiefCode');
   var cancelChiefCodeBtn = document.getElementById('cancelChiefCode');
-  
-  var reqDescEl = document.getElementById('reqDesc');
-  var submitBtn = document.getElementById('submitBtn');
-  var pendingNewRequest = null;
 
-  // ====== ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ ======
-  var roleMasterBtn = document.getElementById('roleMasterBtn');
-  var roleServiceBtn = document.getElementById('roleServiceBtn');
-  var brigadeRow = document.getElementById('brigadeRow');
-  var serviceSelectRow = document.getElementById('serviceSelectRow');
-  var dataHint = document.getElementById('dataHint');
-
-  roleMasterBtn.addEventListener('click', function() {
-    currentRole = 'master';
-    roleMasterBtn.classList.add('active');
-    roleServiceBtn.classList.remove('active');
-    brigadeRow.classList.remove('hidden');
-    serviceSelectRow.classList.add('hidden');
-    dataHint.textContent = 'Бригада, имя и телефон для связи';
-  });
-
-  roleServiceBtn.addEventListener('click', function() {
-    currentRole = 'service';
-    roleServiceBtn.classList.add('active');
-    roleMasterBtn.classList.remove('active');
-    brigadeRow.classList.add('hidden');
-    serviceSelectRow.classList.remove('hidden');
-    dataHint.textContent = 'Служба, имя и телефон сотрудника';
-  });
+  var returnModal = document.getElementById('returnModal');
+  var returnCommentInput = document.getElementById('returnCommentInput');
+  var confirmReturnBtn = document.getElementById('confirmReturn');
+  var cancelReturnBtn = document.getElementById('cancelReturn');
 
   function showToast(msg, isError) {
     toastEl.textContent = msg;
@@ -471,142 +464,84 @@
     return status;
   }
 
-  function newCount(serviceId) {
-    var n = 0;
-    for (var i = 0; i < allRequests.length; i++) {
-      if (allRequests[i].serviceId === serviceId && allRequests[i].status === 'new') n++;
-    }
-    return n;
-  }
+  // ====== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ======
+  tabMaster.addEventListener('click', function() {
+    tabMaster.classList.add('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active');
+    masterView.classList.remove('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden');
+  });
 
-  function waitCount(serviceId) {
-    var n = 0;
-    for (var i = 0; i < allRequests.length; i++) {
-      if (allRequests[i].serviceId === serviceId && allRequests[i].status === 'service_done') n++;
-    }
-    return n;
-  }
-
-  // ====== АВТОЗАПОЛНЕНИЕ ======
-  function loadSavedData() {
-    var savedBrigade = localStorage.getItem('sv_brigade') || '';
-    var savedName = localStorage.getItem('sv_name') || '';
-    var savedPhone = localStorage.getItem('sv_phone') || '';
+  tabService.addEventListener('click', function() {
+    tabService.classList.add('active'); tabMaster.classList.remove('active'); tabHistory.classList.remove('active');
+    masterView.classList.add('hidden'); serviceView.classList.remove('hidden'); historyView.classList.add('hidden');
     
-    if (savedBrigade) reqBrigadeSelect.value = savedBrigade;
-    if (savedName) reqNameInput.value = savedName;
-    if (savedPhone) reqPhoneInput.value = savedPhone;
-  }
-
-  function saveData(brigade, name, phone) {
-    if (brigade) {
-      localStorage.setItem('sv_brigade', brigade);
-      localStorage.setItem('sv_name', name);
-      localStorage.setItem('sv_phone', phone);
+    // Если служба уже вошла, показываем рабочий стол, иначе экран входа
+    if (loggedService.name) {
+      serviceLoginBlock.classList.add('hidden');
+      serviceWorkBlock.classList.remove('hidden');
+      renderServiceWorkdesk();
+    } else {
+      serviceLoginBlock.classList.remove('hidden');
+      serviceWorkBlock.classList.add('hidden');
     }
-  }
+  });
 
-  // ====== ПРОВЕРКА ГЛАВНОГО ЭНЕРГЕТИКА ======
-  async function isChiefEnergyPhoneValid(phone) {
-    const chiefRef = ref(db, 'settings/chief_energy_phone');
-    const snapshot = await get(chiefRef);
+  tabHistory.addEventListener('click', function() {
+    tabHistory.classList.add('active'); tabMaster.classList.remove('active'); tabService.classList.remove('active');
+    masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.remove('hidden');
+    renderHistory();
+  });
+
+  // ====== ВХОД ДЛЯ СЛУЖБЫ ======
+  document.getElementById('loginServiceBtn').addEventListener('click', function() {
+    var name = document.getElementById('loginServiceName').value.trim();
+    var phone = document.getElementById('loginServicePhone').value.trim();
+    var role = document.getElementById('loginServiceRole').value;
+
+    if (!name) { showToast('Введите ваше имя', true); return; }
+    if (!phone) { showToast('Введите ваш телефон', true); return; }
+    if (!role) { showToast('Выберите вашу службу', true); return; }
+
+    loggedService = { name: name, phone: phone, role: role };
     
-    if (!snapshot.exists()) {
-      await set(chiefRef, phone);
-      return true;
-    }
-    return snapshot.val() === phone;
-  }
+    serviceLoginBlock.classList.add('hidden');
+    serviceWorkBlock.classList.remove('hidden');
+    loggedServiceName.textContent = role + ' (' + name + ')';
+    
+    renderServiceWorkdesk();
+  });
 
-  // ====== ОТРИСОВКА ======
-  function renderServicePicker() {
-    var html = '';
+  document.getElementById('logoutServiceBtn').addEventListener('click', function() {
+    loggedService = { name: '', phone: '', role: '' };
+    serviceLoginBlock.classList.remove('hidden');
+    serviceWorkBlock.classList.add('hidden');
+  });
+
+  // Заполняем список служб для входа
+  var loginRoleSelect = document.getElementById('loginServiceRole');
+  var roleOpts = '<option value="">— выберите вашу службу —</option>';
+  for (var i = 0; i < SERVICES.length; i++) roleOpts += '<option value="' + SERVICES[i].name + '">' + SERVICES[i].name + '</option>';
+  loginRoleSelect.innerHTML = roleOpts;
+
+  // ====== ОТРИСОВКА РАБОЧЕГО СТОЛА СЛУЖБЫ ======
+  function renderServiceWorkdesk() {
+    // Показываем только заявки, которые относятся к службе авторизованного сотрудника
+    var myServiceId = '';
     for (var i = 0; i < SERVICES.length; i++) {
-      var s = SERVICES[i];
-      var active = (s.id === selectedServiceId) ? ' active' : '';
-      html += '<button type="button" class="service-pick-btn' + active + '" data-id="' + s.id + '">' + s.name + '</button>';
+      if (SERVICES[i].name === loggedService.role) myServiceId = SERVICES[i].id;
     }
-    servicePicker.innerHTML = html;
-    var btns = servicePicker.querySelectorAll('.service-pick-btn');
-    for (var j = 0; j < btns.length; j++) {
-      btns[j].addEventListener('click', function () {
-        var id = this.getAttribute('data-id');
-        selectedServiceId = (selectedServiceId === id) ? '' : id;
-        renderServicePicker();
-      });
-    }
-  }
 
-  function renderHome() {
-    var bopts = '<option value="">— выберите бригаду —</option>';
-    for (var b = 0; b < BRIGADES.length; b++) bopts += '<option value="' + BRIGADES[b] + '">' + BRIGADES[b] + '</option>';
-    reqBrigadeSelect.innerHTML = bopts;
-
-    var sopts = '<option value="">— выберите службу (кто вы) —</option>';
-    for (var s = 0; s < SERVICES.length; s++) sopts += '<option value="' + SERVICES[s].name + '">' + SERVICES[s].name + '</option>';
-    reqServiceSelect.innerHTML = sopts;
-
-    loadSavedData();
-    renderServicePicker();
-
-    var html = '';
-    for (var j = 0; j < SERVICES.length; j++) {
-      var s = SERVICES[j];
-      var nNew = newCount(s.id);
-      var nWait = waitCount(s.id);
-      
-      var cardClass = 'service-card';
-      if (nNew > 0) cardClass += ' has-new';
-      if (nWait > 0) cardClass += ' has-wait';
-      
-      html += '<div class="' + cardClass + '" data-id="' + s.id + '">';
-      if (nNew > 0) html += '<span class="dot"></span>';
-      html += '<h3>' + s.name + '</h3>';
-      html += '<div class="badges-wrap">';
-      if (nNew > 0) html += '<span class="badge">' + nNew + ' новых</span>';
-      if (nWait > 0) html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
-      if (nNew === 0 && nWait === 0) html += '<span class="badge ok">Нет заявок</span>';
-      html += '</div></div>';
-    }
-    servicesGrid.innerHTML = html;
-
-    var cards = servicesGrid.querySelectorAll('.service-card');
-    for (var k = 0; k < cards.length; k++) {
-      cards[k].addEventListener('click', function () { openService(this.getAttribute('data-id')); });
-    }
-  }
-
-  function openService(serviceId) {
-    var service = null;
-    for (var i = 0; i < SERVICES.length; i++) if (SERVICES[i].id === serviceId) service = SERVICES[i];
-    if (!service) return;
-    serviceTitle.textContent = service.name;
-    serviceTitle.setAttribute('data-service-id', serviceId);
-    homeView.classList.add('hidden');
-    historyView.classList.add('hidden');
-    serviceView.classList.remove('hidden');
-    renderServiceRequests(serviceId);
-  }
-
-  function formatDate(ts) {
-    if (!ts) return '';
-    return new Date(ts).toLocaleString('ru-RU');
-  }
-
-  function renderServiceRequests(serviceId) {
-    var list = allRequests.filter(function (r) { return r.serviceId === serviceId; });
+    var list = allRequests.filter(function(r) { return r.serviceId === myServiceId; });
     list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
 
-    if (!list.length) { requestsList.innerHTML = '<p class="empty">Заявок нет.</p>'; return; }
+    if (!list.length) { serviceRequestsList.innerHTML = '<p class="empty">Заявок для вашей службы пока нет.</p>'; return; }
 
     var html = '';
     for (var i = 0; i < list.length; i++) {
       var r = list[i];
       var status = r.status || 'new';
-      var author = r.brigade ? r.brigade : (r.serviceAuthor || 'Без автора');
       
       html += '<div class="request status-' + status + '">';
-      html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>' + escapeHtml(author) + '</strong> (' + escapeHtml(r.name) + ', тел: ' + escapeHtml(r.phone) + ')<br>' + escapeHtml(r.desc) + '</div>';
+      html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>Бригада: ' + escapeHtml(r.brigade || '—') + '</strong> (' + escapeHtml(r.name) + ', тел: ' + escapeHtml(r.phone) + ')<br>' + escapeHtml(r.desc) + '</div>';
       
       html += '<div class="event-log">';
       html += '<div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
@@ -629,9 +564,9 @@
       }
       html += '</div></div>';
     }
-    requestsList.innerHTML = html;
+    serviceRequestsList.innerHTML = html;
 
-    var btns = requestsList.querySelectorAll('[data-action]');
+    var btns = serviceRequestsList.querySelectorAll('[data-action]');
     for (var j = 0; j < btns.length; j++) {
       btns[j].addEventListener('click', function () { handleAction(this.getAttribute('data-action'), this.getAttribute('data-id')); });
     }
@@ -643,7 +578,6 @@
     if (!req) return;
 
     if (action === 'service_done') {
-      // Запрашиваем пароль службы
       pendingServiceDoneId = id;
       servicePasswordInput.value = '';
       servicePasswordModal.classList.remove('hidden');
@@ -660,7 +594,6 @@
     }
 
     if (action === 'closed') {
-      // Мастер подтверждает без пароля, данные из заявки
       var updates = {};
       var currentEvents = req.events || [];
       var newEvent = { 
@@ -689,12 +622,8 @@
     if (!req) { servicePasswordModal.classList.add('hidden'); return; }
 
     var currentEvents = req.events || [];
-    // Берем имя того, кто в форме (если служба заполнила данные), иначе "Служба"
-    var workerName = reqNameInput.value.trim() || 'Сотрудник службы';
-    var workerPhone = reqPhoneInput.value.trim() || '';
-
     var newEvent = { 
-      text: '✅ Служба выполнила (Сотрудник: ' + workerName + ', Тел: ' + workerPhone + ')', 
+      text: '✅ Служба выполнила (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', 
       time: Date.now() 
     };
     
@@ -746,6 +675,196 @@
     returnModal.classList.add('hidden');
     pendingReturnId = null;
   });
+
+  // ====== ОТРИСОВКА ГЛАВНОГО ЭКРАНА (МАСТЕР) ======
+  function formatDate(ts) {
+    if (!ts) return '';
+    return new Date(ts).toLocaleString('ru-RU');
+  }
+
+  function renderServicePicker() {
+    var html = '';
+    for (var i = 0; i < SERVICES.length; i++) {
+      var s = SERVICES[i];
+      var active = (s.id === selectedServiceId) ? ' active' : '';
+      html += '<button type="button" class="service-pick-btn' + active + '" data-id="' + s.id + '">' + s.name + '</button>';
+    }
+    servicePicker.innerHTML = html;
+    var btns = servicePicker.querySelectorAll('.service-pick-btn');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].addEventListener('click', function () {
+        var id = this.getAttribute('data-id');
+        selectedServiceId = (selectedServiceId === id) ? '' : id;
+        renderServicePicker();
+      });
+    }
+  }
+
+  function renderHome() {
+    var bopts = '<option value="">— выберите бригаду —</option>';
+    for (var b = 0; b < BRIGADES.length; b++) bopts += '<option value="' + BRIGADES[b] + '">' + BRIGADES[b] + '</option>';
+    reqBrigadeSelect.innerHTML = bopts;
+
+    // Автозаполнение для мастера
+    var savedBrigade = localStorage.getItem('sv_brigade') || '';
+    var savedName = localStorage.getItem('sv_name') || '';
+    var savedPhone = localStorage.getItem('sv_phone') || '';
+    if (savedBrigade) reqBrigadeSelect.value = savedBrigade;
+    if (savedName) reqNameInput.value = savedName;
+    if (savedPhone) reqPhoneInput.value = savedPhone;
+
+    renderServicePicker();
+
+    var html = '';
+    for (var j = 0; j < SERVICES.length; j++) {
+      var s = SERVICES[j];
+      var nNew = newCount(s.id);
+      var nWait = waitCount(s.id);
+      
+      var cardClass = 'service-card';
+      if (nNew > 0) cardClass += ' has-new';
+      if (nWait > 0) cardClass += ' has-wait';
+      
+      html += '<div class="' + cardClass + '" data-id="' + s.id + '">';
+      if (nNew > 0) html += '<span class="dot"></span>';
+      html += '<h3>' + s.name + '</h3>';
+      html += '<div class="badges-wrap">';
+      if (nNew > 0) html += '<span class="badge">' + nNew + ' новых</span>';
+      if (nWait > 0) html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
+      if (nNew === 0 && nWait === 0) html += '<span class="badge ok">Нет заявок</span>';
+      html += '</div></div>';
+    }
+    servicesGrid.innerHTML = html;
+  }
+
+  function newCount(serviceId) {
+    var n = 0;
+    for (var i = 0; i < allRequests.length; i++) {
+      if (allRequests[i].serviceId === serviceId && allRequests[i].status === 'new') n++;
+    }
+    return n;
+  }
+
+  function waitCount(serviceId) {
+    var n = 0;
+    for (var i = 0; i < allRequests.length; i++) {
+      if (allRequests[i].serviceId === serviceId && allRequests[i].status === 'service_done') n++;
+    }
+    return n;
+  }
+
+  // ====== ОТПРАВКА ЗАЯВКИ (МАСТЕР) ======
+  document.getElementById('requestForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    var serviceId = selectedServiceId;
+    var brigade = reqBrigadeSelect.value;
+    var name = reqNameInput.value.trim();
+    var phone = reqPhoneInput.value.trim();
+    var desc = reqDescEl.value.trim();
+
+    if (!serviceId) { showToast('Шаг 1: Выберите службу', true); return; }
+    if (!brigade)   { showToast('Шаг 2: Выберите бригаду', true); return; }
+    if (!name)      { showToast('Шаг 2: Введите ваше имя', true); return; }
+    if (!phone)     { showToast('Шаг 2: Введите телефон', true); return; }
+    if (!desc)      { showToast('Шаг 3: Введите описание', true); return; }
+
+    pendingNewRequest = { serviceId, brigade, name, phone, desc };
+
+    if (brigade === 'Главный энергетик') {
+      chiefCodeInput.value = '';
+      chiefCodeModal.classList.remove('hidden');
+      chiefCodeInput.focus();
+    } else {
+      submitPendingRequest();
+    }
+  });
+
+  async function submitPendingRequest() {
+    if (!pendingNewRequest) return;
+    var data = pendingNewRequest;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Отправка...';
+
+    try {
+      var newRef = push(ref(db, 'requests'));
+      await set(newRef, {
+        serviceId: data.serviceId, 
+        brigade: data.brigade, 
+        name: data.name,
+        phone: data.phone,
+        desc: data.desc, 
+        createdAt: Date.now(), 
+        status: 'new',
+        events: [{ text: '📝 Заявка создана (Бригада: ' + data.brigade + ', ' + data.name + ', Тел: ' + data.phone + ')', time: Date.now() }]
+      });
+
+      localStorage.setItem('sv_brigade', data.brigade);
+      localStorage.setItem('sv_name', data.name);
+      localStorage.setItem('sv_phone', data.phone);
+
+      reqDescEl.value = ''; 
+      selectedServiceId = ''; 
+      renderServicePicker();
+      
+      showToast('Заявка отправлена! Служба увидит её в своем кабинете.');
+      pendingNewRequest = null;
+    } catch (error) {
+      showToast('Ошибка сети. Попробуйте еще раз.', true);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Отправить заявку';
+    }
+  }
+
+  confirmChiefCodeBtn.addEventListener('click', async function() {
+    var code = chiefCodeInput.value.trim();
+    if (code !== CHIEF_CODE) {
+      showToast('Неверный код доступа!', true);
+      chiefCodeInput.value = '';
+      chiefCodeInput.focus();
+      return;
+    }
+
+    confirmChiefCodeBtn.disabled = true;
+    confirmChiefCodeBtn.textContent = 'Проверка...';
+
+    try {
+      var isValid = await isChiefEnergyPhoneValid(pendingNewRequest.phone);
+      if (!isValid) {
+        showToast('Ошибка: этот номер телефона уже привязан к другому человеку!', true);
+        chiefCodeModal.classList.add('hidden');
+        confirmChiefCodeBtn.disabled = false;
+        confirmChiefCodeBtn.textContent = 'Подтвердить';
+        return;
+      }
+      chiefCodeModal.classList.add('hidden');
+      confirmChiefCodeBtn.disabled = false;
+      confirmChiefCodeBtn.textContent = 'Подтвердить';
+      await submitPendingRequest();
+    } catch (error) {
+      showToast('Ошибка сети. Попробуйте еще раз.', true);
+      confirmChiefCodeBtn.disabled = false;
+      confirmChiefCodeBtn.textContent = 'Подтвердить';
+    }
+  });
+
+  cancelChiefCodeBtn.addEventListener('click', function() {
+    chiefCodeModal.classList.add('hidden');
+    chiefCodeInput.value = '';
+    pendingNewRequest = null;
+  });
+
+  async function isChiefEnergyPhoneValid(phone) {
+    const chiefRef = ref(db, 'settings/chief_energy_phone');
+    const snapshot = await get(chiefRef);
+    if (!snapshot.exists()) {
+      await set(chiefRef, phone);
+      return true;
+    }
+    return snapshot.val() === phone;
+  }
 
   // ====== ИСТОРИЯ И ЭКСПОРТ ======
   function renderHistory() {
@@ -799,7 +918,7 @@
       rows += '<tr>';
       rows += '<td>' + formatDate(r.createdAt) + '</td>';
       rows += '<td>' + escapeHtml(serviceName(r.serviceId)) + '</td>';
-      rows += '<td>' + escapeHtml(r.brigade || r.serviceAuthor || '—') + '</td>';
+      rows += '<td>' + escapeHtml(r.brigade || '—') + '</td>';
       rows += '<td>' + escapeHtml(r.name || '') + '<br><small>' + escapeHtml(r.phone || '') + '</small></td>';
       rows += '<td>' + escapeHtml(r.desc) + '</td>';
       rows += '<td class="status-' + status + '">' + statusLabel(status) + '</td>';
@@ -807,10 +926,6 @@
       rows += '</tr>';
     }
     document.getElementById('historyContent').innerHTML = '<table class="history-table"><thead><tr><th>Подана</th><th>Служба</th><th>Бригада</th><th>Мастер</th><th>Описание</th><th>Статус</th><th>Хронология</th></tr></thead><tbody>' + rows + '</tbody></table>';
-  }
-
-  function openHistory() {
-    homeView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.remove('hidden'); renderHistory();
   }
 
   function exportCsv() {
@@ -839,7 +954,7 @@
       var row = [
         formatDate(r.createdAt), 
         serviceName(r.serviceId), 
-        r.brigade || r.serviceAuthor || '',
+        r.brigade || '',
         r.name || '', 
         r.phone || '',
         (r.desc || '').replace(/[\r\n;]+/g, ' '), 
@@ -857,131 +972,6 @@
     showToast('История выгружена в Excel (CSV).');
   }
 
-  // ====== ОТПРАВКА ЗАЯВКИ ======
-  document.getElementById('requestForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    var serviceId = selectedServiceId;
-    var name = reqNameInput.value.trim();
-    var phone = reqPhoneInput.value.trim();
-    var desc = reqDescEl.value.trim();
-    var brigade = '';
-    var serviceAuthor = '';
-
-    if (currentRole === 'master') {
-      brigade = reqBrigadeSelect.value;
-      if (!brigade) { showToast('Шаг 3: Выберите бригаду', true); return; }
-    } else {
-      serviceAuthor = reqServiceSelect.value;
-      if (!serviceAuthor) { showToast('Шаг 3: Выберите службу (кто вы)', true); return; }
-    }
-
-    if (!serviceId) { showToast('Шаг 2: Выберите службу', true); return; }
-    if (!name)      { showToast('Шаг 3: Введите ваше имя', true); return; }
-    if (!phone)     { showToast('Шаг 3: Введите телефон', true); return; }
-    if (!desc)      { showToast('Шаг 4: Введите описание', true); return; }
-
-    pendingNewRequest = { serviceId, brigade, serviceAuthor, name, phone, desc };
-
-    // Если Главный энергетик, запрашиваем код
-    if (brigade === 'Главный энергетик') {
-      chiefCodeInput.value = '';
-      chiefCodeModal.classList.remove('hidden');
-      chiefCodeInput.focus();
-    } else {
-      submitPendingRequest();
-    }
-  });
-
-  async function submitPendingRequest() {
-    if (!pendingNewRequest) return;
-    var data = pendingNewRequest;
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Отправка...';
-
-    try {
-      var newRef = push(ref(db, 'requests'));
-      
-      var authorString = data.brigade ? 'Бригада: ' + data.brigade : 'Служба: ' + data.serviceAuthor;
-      
-      await set(newRef, {
-        serviceId: data.serviceId, 
-        brigade: data.brigade || null, 
-        serviceAuthor: data.serviceAuthor || null,
-        name: data.name,
-        phone: data.phone,
-        desc: data.desc, 
-        createdAt: Date.now(), 
-        status: 'new',
-        events: [{ text: '📝 Заявка создана (' + authorString + ', ' + data.name + ', Тел: ' + data.phone + ')', time: Date.now() }]
-      });
-
-      if (data.brigade) saveData(data.brigade, data.name, data.phone);
-
-      reqDescEl.value = ''; 
-      selectedServiceId = ''; 
-      renderServicePicker();
-      
-      showToast('Заявка отправлена!');
-      pendingNewRequest = null;
-    } catch (error) {
-      showToast('Ошибка сети. Попробуйте еще раз.', true);
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Отправить заявку';
-    }
-  }
-
-  confirmChiefCodeBtn.addEventListener('click', async function() {
-    var code = chiefCodeInput.value.trim();
-    if (code !== CHIEF_CODE) {
-      showToast('Неверный код доступа!', true);
-      chiefCodeInput.value = '';
-      chiefCodeInput.focus();
-      return;
-    }
-
-    confirmChiefCodeBtn.disabled = true;
-    confirmChiefCodeBtn.textContent = 'Проверка...';
-
-    try {
-      var isValid = await isChiefEnergyPhoneValid(pendingNewRequest.phone);
-      if (!isValid) {
-        showToast('Ошибка: этот номер телефона уже привязан к другому человеку!', true);
-        chiefCodeModal.classList.add('hidden');
-        confirmChiefCodeBtn.disabled = false;
-        confirmChiefCodeBtn.textContent = 'Подтвердить';
-        return;
-      }
-      
-      chiefCodeModal.classList.add('hidden');
-      confirmChiefCodeBtn.disabled = false;
-      confirmChiefCodeBtn.textContent = 'Подтвердить';
-      await submitPendingRequest();
-    } catch (error) {
-      showToast('Ошибка сети. Попробуйте еще раз.', true);
-      confirmChiefCodeBtn.disabled = false;
-      confirmChiefCodeBtn.textContent = 'Подтвердить';
-    }
-  });
-
-  cancelChiefCodeBtn.addEventListener('click', function() {
-    chiefCodeModal.classList.add('hidden');
-    chiefCodeInput.value = '';
-    pendingNewRequest = null;
-  });
-
-  // ====== НАВИГАЦИЯ ======
-  document.getElementById('backBtn').addEventListener('click', function () {
-    serviceView.classList.add('hidden'); homeView.classList.remove('hidden'); serviceTitle.removeAttribute('data-service-id'); renderHome();
-  });
-
-  document.getElementById('openHistoryBtn').addEventListener('click', openHistory);
-  document.getElementById('backFromHistory').addEventListener('click', function () {
-    historyView.classList.add('hidden'); homeView.classList.remove('hidden'); renderHome();
-  });
-
   document.getElementById('filterStatus').addEventListener('change', renderHistory);
   document.getElementById('filterService').addEventListener('change', renderHistory);
   document.getElementById('filterBrigade').addEventListener('change', renderHistory);
@@ -997,14 +987,19 @@
       }
     }
     renderHome();
-    if (!serviceView.classList.contains('hidden')) {
-      var sid = serviceTitle.getAttribute('data-service-id');
-      if (sid) renderServiceRequests(sid);
+    
+    // Если служба авторизована, обновляем её рабочий стол
+    if (loggedService.name && !serviceWorkBlock.classList.contains('hidden')) {
+      renderServiceWorkdesk();
     }
     if (!historyView.classList.contains('hidden')) {
       renderHistory();
     }
   });
+
+  // Первичный рендер
+  renderHome();
+
 </script>
 </body>
 </html>
