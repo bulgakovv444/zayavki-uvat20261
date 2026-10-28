@@ -42,15 +42,19 @@
   }
   .service-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
   
-  /* Красная рамка для новых */
+  /* Рамки */
   .service-card.has-new { border-color: #ef4444; }
-  /* Желтая рамка для ожидающих мастера */
   .service-card.has-wait { border-color: #f59e0b; }
+  /* Если есть и то и другое, приоритет красной рамке (новым) */
+  .service-card.has-new.has-wait { border-color: #ef4444; }
   
-  .service-card h3 { font-size: 15px; margin-bottom: 6px; }
+  .service-card h3 { font-size: 15px; margin-bottom: 8px; }
+  
+  /* Бейджи */
+  .badges-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
   .badge {
     display: inline-block; background: #ef4444; color: #fff;
-    font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 99px;
+    font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px;
   }
   .badge.ok { background: #10b981; }
   .badge.wait { background: #f59e0b; }
@@ -424,18 +428,35 @@
       var nNew = newCount(s.id);
       var nWait = waitCount(s.id);
       
+      // Определяем классы для рамки карточки
       var cardClass = 'service-card';
       if (nNew > 0) cardClass += ' has-new';
-      else if (nWait > 0) cardClass += ' has-wait';
+      if (nWait > 0) cardClass += ' has-wait';
       
       html += '<div class="' + cardClass + '" data-id="' + s.id + '">';
-      if (nNew > 0) html += '<span class="dot"></span>';
-      html += '<h3>' + s.name + '</h3>';
       
-      if (nNew > 0) html += '<span class="badge">' + nNew + ' новых</span>';
-      else if (nWait > 0) html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
-      else html += '<span class="badge ok">Нет заявок</span>';
-      html += '</div>';
+      // Красная точка, если есть новые
+      if (nNew > 0) html += '<span class="dot"></span>';
+      
+      html += '<h3>' + s.name + '</h3>';
+      html += '<div class="badges-wrap">';
+      
+      // Плашка для новых
+      if (nNew > 0) {
+        html += '<span class="badge">' + nNew + ' новых</span>';
+      }
+      
+      // Плашка для ждущих мастера
+      if (nWait > 0) {
+        html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
+      }
+      
+      // Если вообще ничего нет
+      if (nNew === 0 && nWait === 0) {
+        html += '<span class="badge ok">Нет заявок</span>';
+      }
+      
+      html += '</div></div>';
     }
     servicesGrid.innerHTML = html;
 
