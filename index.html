@@ -110,19 +110,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 16px;
   }
 
-  .closed-banner {
-    border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px;
-    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
-  }
-  .closed-banner.is-closed { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
-  .closed-banner.is-open { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; }
-  .closed-banner .icon { font-size: 20px; }
-  .closed-banner .banner-text { flex: 1; min-width: 200px; }
-  .closed-banner .countdown {
-    font-variant-numeric: tabular-nums; font-weight: 700; font-size: 18px;
-    background: rgba(0,0,0,.06); padding: 4px 10px; border-radius: 6px; letter-spacing: .5px;
-  }
-
   .request {
     border-left: 4px solid #ef4444; background: #fff; padding: 12px 14px;
     border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05);
@@ -187,12 +174,6 @@
 
   <div id="homeView">
     <h1>Заявки Уватский проект</h1>
-
-    <div id="closedBanner" class="closed-banner is-closed">
-      <span class="icon">⏰</span>
-      <span class="banner-text" id="bannerText">Загрузка…</span>
-      <span class="countdown" id="countdown">--:--:--</span>
-    </div>
 
     <div class="card">
       <h2>Подать заявку</h2>
@@ -289,10 +270,7 @@
   // ====== НАСТРОЙКИ ======
   var SERVICE_PASSWORD = '1234';
   var MASTER_PASSWORD  = '11';
-  var ACCEPT_WINDOWS = [
-    { start: 3,  end: 6  },
-    { start: 15, end: 18 }
-  ];
+
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
     { id: 'kip',      name: 'КиП' },
@@ -327,10 +305,6 @@
   var passwordTitle = document.getElementById('passwordTitle');
   var passwordHint = document.getElementById('passwordHint');
   var confirmBtn = document.getElementById('confirmPassword');
-  var submitBtn = document.getElementById('submitBtn');
-  var closedBanner = document.getElementById('closedBanner');
-  var bannerText = document.getElementById('bannerText');
-  var countdownEl = document.getElementById('countdown');
   var reqDescEl = document.getElementById('reqDesc');
 
   function showToast(msg, isError) {
@@ -372,75 +346,6 @@
       if (allRequests[i].serviceId === serviceId && allRequests[i].status === 'service_done') n++;
     }
     return n;
-  }
-
-  // ====== ВРЕМЯ ======
-  function isAcceptingNow() {
-    var h = new Date().getHours();
-    for (var i = 0; i < ACCEPT_WINDOWS.length; i++) {
-      if (h >= ACCEPT_WINDOWS[i].start && h < ACCEPT_WINDOWS[i].end) return true;
-    }
-    return false;
-  }
-
-  function fmtHour(h) { return (h < 10 ? '0' : '') + h + ':00'; }
-  function acceptWindowText() {
-    var parts = [];
-    for (var i = 0; i < ACCEPT_WINDOWS.length; i++) {
-      parts.push('с ' + fmtHour(ACCEPT_WINDOWS[i].start) + ' до ' + fmtHour(ACCEPT_WINDOWS[i].end));
-    }
-    return 'Заявки принимаются ' + parts.join(' и ') + '.';
-  }
-  function nextWindowStart(from) {
-    from = from || new Date();
-    var best = null;
-    for (var i = 0; i < ACCEPT_WINDOWS.length; i++) {
-      var w = ACCEPT_WINDOWS[i];
-      var cand = new Date(from.getFullYear(), from.getMonth(), from.getDate(), w.start, 0, 0, 0);
-      if (cand <= from) cand = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 1, w.start, 0, 0, 0);
-      if (!best || cand < best) best = cand;
-    }
-    return best;
-  }
-  function currentWindowEnd(from) {
-    from = from || new Date();
-    var h = from.getHours();
-    for (var i = 0; i < ACCEPT_WINDOWS.length; i++) {
-      var w = ACCEPT_WINDOWS[i];
-      if (h >= w.start && h < w.end) return new Date(from.getFullYear(), from.getMonth(), from.getDate(), w.end, 0, 0, 0);
-    }
-    return null;
-  }
-  function pad2(n) { return (n < 10 ? '0' : '') + n; }
-  function formatDuration(ms) {
-    if (ms < 0) ms = 0;
-    var s = Math.floor(ms / 1000);
-    return pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor((s % 3600) / 60)) + ':' + pad2(s % 60);
-  }
-
-  function updateBannerAndCountdown() {
-    var now = new Date();
-    if (isAcceptingNow()) {
-      closedBanner.className = 'closed-banner is-open';
-      bannerText.textContent = 'Приём заявок открыт. До закрытия осталось:';
-      var end = currentWindowEnd(now);
-      countdownEl.textContent = end ? formatDuration(end - now) : '--:--:--';
-    } else {
-      closedBanner.className = 'closed-banner is-closed';
-      bannerText.textContent = 'Приём заявок закрыт. ' + acceptWindowText() + ' До открытия осталось:';
-      var start = nextWindowStart(now);
-      countdownEl.textContent = start ? formatDuration(start - now) : '--:--:--';
-    }
-  }
-
-  function applyAcceptWindow() {
-    var open = isAcceptingNow();
-    reqBrigadeSelect.disabled = !open;
-    reqDescEl.disabled = !open;
-    submitBtn.disabled = !open;
-    var btns = servicePicker.querySelectorAll('.service-pick-btn');
-    for (var i = 0; i < btns.length; i++) btns[i].disabled = !open;
-    updateBannerAndCountdown();
   }
 
   // ====== ОТРИСОВКА ======
@@ -488,7 +393,6 @@
     for (var k = 0; k < cards.length; k++) {
       cards[k].addEventListener('click', function () { openService(this.getAttribute('data-id')); });
     }
-    applyAcceptWindow();
   }
 
   function openService(serviceId) {
@@ -659,7 +563,6 @@
       showToast('Мастер подтвердил. Заявка закрыта.');
     }
     
-    // Обновляем в Firebase
     await update(ref(db, 'requests/' + id), updates);
   }
 
@@ -671,7 +574,6 @@
   // ====== ОТПРАВКА ФОРМЫ ======
   document.getElementById('requestForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-    if (!isAcceptingNow()) { showToast('Приём заявок закрыт. ' + acceptWindowText(), true); applyAcceptWindow(); return; }
 
     var serviceId = selectedServiceId, brigade = reqBrigadeSelect.value, desc = reqDescEl.value.trim();
     if (!serviceId) { showToast('Выберите службу', true); return; }
@@ -719,13 +621,6 @@
       renderHistory();
     }
   });
-
-  var lastOpenState = isAcceptingNow();
-  setInterval(function () {
-    var open = isAcceptingNow();
-    if (open !== lastOpenState) { lastOpenState = open; applyAcceptWindow(); }
-    else { updateBannerAndCountdown(); }
-  }, 1000);
 
 </script>
 </body>
