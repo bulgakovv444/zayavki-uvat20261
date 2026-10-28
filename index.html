@@ -620,7 +620,6 @@
   function isAcceptingNow() {
     if (settings.isManuallyClosed) return false;
     var h = new Date().getHours();
-    // Проверяем оба интервала
     for (var i = 0; i < settings.intervals.length; i++) {
       var inv = settings.intervals[i];
       if (h >= inv.start && h < inv.end) return true;
@@ -645,57 +644,58 @@
   }
 
   // ====== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ======
-  tabMaster.addEventListener('click', function() {
-    tabMaster.classList.add('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active'); tabAdmin.classList.remove('active');
-    masterView.classList.remove('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.add('hidden');
-    
-    if (loggedMaster.name) {
-      masterLoginBlock.classList.add('hidden');
-      masterWorkBlock.classList.remove('hidden');
-      renderServicesGrid(masterServicesGrid, 'master');
-    } else {
-      masterLoginBlock.classList.remove('hidden');
-      masterWorkBlock.classList.add('hidden');
+  function switchToTab(tabName) {
+    tabMaster.classList.remove('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active'); tabAdmin.classList.remove('active');
+    masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.add('hidden');
+
+    if (tabName === 'master') {
+      tabMaster.classList.add('active');
+      masterView.classList.remove('hidden');
+      if (loggedMaster.name) {
+        masterLoginBlock.classList.add('hidden');
+        masterWorkBlock.classList.remove('hidden');
+        renderServicesGrid(masterServicesGrid, 'master');
+      } else {
+        masterLoginBlock.classList.remove('hidden');
+        masterWorkBlock.classList.add('hidden');
+      }
+    } else if (tabName === 'service') {
+      tabService.classList.add('active');
+      serviceView.classList.remove('hidden');
+      if (loggedService.name) {
+        serviceLoginBlock.classList.add('hidden');
+        serviceWorkBlock.classList.remove('hidden');
+        renderServicesGrid(serviceServicesGrid, 'service');
+      } else {
+        serviceLoginBlock.classList.remove('hidden');
+        serviceWorkBlock.classList.add('hidden');
+      }
+    } else if (tabName === 'history') {
+      tabHistory.classList.add('active');
+      historyView.classList.remove('hidden');
+      renderHistory();
+    } else if (tabName === 'admin') {
+      tabAdmin.classList.add('active');
+      adminView.classList.remove('hidden');
+      if (isAdminLoggedIn) {
+        adminLoginBlock.classList.add('hidden');
+        adminWorkBlock.classList.remove('hidden');
+        renderAdminPanel();
+      } else {
+        adminLoginBlock.classList.remove('hidden');
+        adminWorkBlock.classList.add('hidden');
+      }
     }
-  });
+  }
 
-  tabService.addEventListener('click', function() {
-    tabService.classList.add('active'); tabMaster.classList.remove('active'); tabHistory.classList.remove('active'); tabAdmin.classList.remove('active');
-    masterView.classList.add('hidden'); serviceView.classList.remove('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.add('hidden');
-    
-    if (loggedService.name) {
-      serviceLoginBlock.classList.add('hidden');
-      serviceWorkBlock.classList.remove('hidden');
-      renderServicesGrid(serviceServicesGrid, 'service');
-    } else {
-      serviceLoginBlock.classList.remove('hidden');
-      serviceWorkBlock.classList.add('hidden');
-    }
-  });
+  tabMaster.addEventListener('click', function() { switchToTab('master'); });
+  tabService.addEventListener('click', function() { switchToTab('service'); });
+  tabHistory.addEventListener('click', function() { switchToTab('history'); });
+  tabAdmin.addEventListener('click', function() { switchToTab('admin'); });
 
-  tabHistory.addEventListener('click', function() {
-    tabHistory.classList.add('active'); tabMaster.classList.remove('active'); tabService.classList.remove('active'); tabAdmin.classList.remove('active');
-    masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.remove('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.add('hidden');
-    renderHistory();
-  });
-
-  tabAdmin.addEventListener('click', function() {
-    tabAdmin.classList.add('active'); tabMaster.classList.remove('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active');
-    masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.remove('hidden');
-    
-    if (isAdminLoggedIn) {
-      adminLoginBlock.classList.add('hidden');
-      adminWorkBlock.classList.remove('hidden');
-      renderAdminPanel();
-    } else {
-      adminLoginBlock.classList.remove('hidden');
-      adminWorkBlock.classList.add('hidden');
-    }
-  });
-
-  // ====== АВТОЗАПОЛНЕНИЕ ПРИ ВХОДЕ ======
+  // ====== АВТОЗАПОЛНЕНИЕ И АВТОВХОД ======
   function loadSavedCredentials() {
-    // Для мастера
+    // Загрузка для мастера
     var mName = localStorage.getItem('save_m_name');
     var mPhone = localStorage.getItem('save_m_phone');
     var mBrigade = localStorage.getItem('save_m_brigade');
@@ -703,13 +703,38 @@
     if (mPhone) document.getElementById('loginMasterPhone').value = mPhone;
     if (mBrigade) document.getElementById('loginMasterBrigade').value = mBrigade;
 
-    // Для службы
+    // Загрузка для службы
     var sName = localStorage.getItem('save_s_name');
     var sPhone = localStorage.getItem('save_s_phone');
     var sRole = localStorage.getItem('save_s_role');
     if (sName) document.getElementById('loginServiceName').value = sName;
     if (sPhone) document.getElementById('loginServicePhone').value = sPhone;
     if (sRole) document.getElementById('loginServiceRole').value = sRole;
+
+    // Проверяем, был ли кто-то авторизован
+    var savedMasterActive = localStorage.getItem('logged_master_active');
+    var savedServiceActive = localStorage.getItem('logged_service_active');
+
+    if (savedMasterActive === 'true' && mName && mPhone && mBrigade) {
+      // Восстанавливаем сессию мастера
+      loggedMaster = { name: mName, phone: mPhone, brigade: mBrigade };
+      masterLoginBlock.classList.add('hidden');
+      masterWorkBlock.classList.remove('hidden');
+      loggedMasterBrigade.textContent = mBrigade;
+      loggedMasterName.textContent = mName + ', ' + mPhone;
+      renderServicesGrid(masterServicesGrid, 'master');
+      updateUIState();
+      switchToTab('master');
+    } else if (savedServiceActive === 'true' && sName && sPhone && sRole) {
+      // Восстанавливаем сессию службы
+      loggedService = { name: sName, phone: sPhone, role: sRole };
+      serviceLoginBlock.classList.add('hidden');
+      serviceWorkBlock.classList.remove('hidden');
+      loggedServiceName.textContent = sRole;
+      loggedServicePhone.textContent = sName + ', ' + sPhone;
+      renderServicesGrid(serviceServicesGrid, 'service');
+      switchToTab('service');
+    }
   }
 
   // ====== ВХОД МАСТЕРА ======
@@ -722,10 +747,12 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!brigade) { showToast('Выберите бригаду', true); return; }
 
-    // Сохраняем данные
+    // Сохраняем данные и статус входа
     localStorage.setItem('save_m_name', name);
     localStorage.setItem('save_m_phone', phone);
     localStorage.setItem('save_m_brigade', brigade);
+    localStorage.setItem('logged_master_active', 'true');
+    localStorage.removeItem('logged_service_active'); // Сбрасываем вход службы
 
     loggedMaster = { name: name, phone: phone, brigade: brigade };
     
@@ -739,6 +766,7 @@
   });
 
   document.getElementById('logoutMasterBtn').addEventListener('click', function() {
+    localStorage.removeItem('logged_master_active');
     loggedMaster = { name: '', phone: '', brigade: '' };
     masterLoginBlock.classList.remove('hidden');
     masterWorkBlock.classList.add('hidden');
@@ -759,10 +787,11 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!role) { showToast('Выберите службу', true); return; }
 
-    // Сохраняем данные
     localStorage.setItem('save_s_name', name);
     localStorage.setItem('save_s_phone', phone);
     localStorage.setItem('save_s_role', role);
+    localStorage.setItem('logged_service_active', 'true');
+    localStorage.removeItem('logged_master_active'); // Сбрасываем вход мастера
 
     loggedService = { name: name, phone: phone, role: role };
     
@@ -775,6 +804,7 @@
   });
 
   document.getElementById('logoutServiceBtn').addEventListener('click', function() {
+    localStorage.removeItem('logged_service_active');
     loggedService = { name: '', phone: '', role: '' };
     serviceLoginBlock.classList.remove('hidden');
     serviceWorkBlock.classList.add('hidden');
