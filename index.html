@@ -147,6 +147,11 @@
   .header-bar h2 { margin: 0; font-size: 18px; }
   .header-bar .user-info { font-size: 14px; color: #6b7280; }
   .header-bar .user-info strong { color: #1e3a8a; }
+  
+  /* Подвкладки мастера */
+  .sub-tabs { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+  .sub-tab-btn { background: none; border: none; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; padding: 6px 12px; border-radius: 4px; }
+  .sub-tab-btn.active { background: #e0e7ff; color: #1e3a8a; }
 
   /* Заявки */
   .request {
@@ -258,34 +263,49 @@
         <button class="btn gray small" id="logoutMasterBtn">Выйти</button>
       </div>
 
-      <div class="card">
-        <form id="requestForm">
-          <div class="step">
-            <div class="step-header">
-              <div class="step-number">1</div>
-              <div class="step-title">Выберите службу</div>
-            </div>
-            <div class="service-picker" id="servicePicker"></div>
-          </div>
-
-          <div class="step">
-            <div class="step-header">
-              <div class="step-number">2</div>
-              <div class="step-title">Оформите заявку</div>
-            </div>
-            <div class="form-row">
-              <textarea id="reqDesc" placeholder="Опишите проблему..."></textarea>
-            </div>
-          </div>
-
-          <div style="margin-top: 16px;">
-            <button class="btn block" type="submit" id="submitBtn">Отправить заявку</button>
-          </div>
-        </form>
+      <!-- Подвкладки мастера -->
+      <div class="sub-tabs">
+        <button class="sub-tab-btn active" id="subTabNewRequest">Подать заявку</button>
+        <button class="sub-tab-btn" id="subTabMyRequests">Мои заявки</button>
       </div>
 
-      <h2>Все службы (нажмите для просмотра)</h2>
-      <div class="services" id="masterServicesGrid"></div>
+      <!-- Блок подачи заявки -->
+      <div id="newRequestBlock">
+        <div class="card">
+          <form id="requestForm">
+            <div class="step">
+              <div class="step-header">
+                <div class="step-number">1</div>
+                <div class="step-title">Выберите службу</div>
+              </div>
+              <div class="service-picker" id="servicePicker"></div>
+            </div>
+
+            <div class="step">
+              <div class="step-header">
+                <div class="step-number">2</div>
+                <div class="step-title">Оформите заявку</div>
+              </div>
+              <div class="form-row">
+                <textarea id="reqDesc" placeholder="Опишите проблему..."></textarea>
+              </div>
+            </div>
+
+            <div style="margin-top: 16px;">
+              <button class="btn block" type="submit" id="submitBtn">Отправить заявку</button>
+            </div>
+          </form>
+        </div>
+
+        <h2>Все службы (нажмите для просмотра)</h2>
+        <div class="services" id="masterServicesGrid"></div>
+      </div>
+
+      <!-- Блок "Мои заявки" -->
+      <div id="myRequestsBlock" class="hidden">
+        <h2>Мои заявки</h2>
+        <div id="myRequestsList"></div>
+      </div>
     </div>
   </div>
 
@@ -402,8 +422,9 @@
 <div class="modal-overlay hidden" id="servicePasswordModal">
   <div class="modal">
     <h3>Подтверждение службы</h3>
-    <p>Введите пароль службы (1234), чтобы отметить выполнение.</p>
+    <p>Введите пароль службы (1234) и, если нужно, комментарий.</p>
     <input type="password" id="servicePasswordInput" placeholder="Пароль" autocomplete="off">
+    <textarea id="serviceCommentInput" placeholder="Комментарий (необязательно)..." style="min-height: 50px; margin-top: 10px;"></textarea>
     <div class="modal-actions">
       <button class="btn gray small" id="cancelServicePassword">Отмена</button>
       <button class="btn orange small" id="confirmServicePassword">Подтвердить</button>
@@ -454,6 +475,9 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, push, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
+  // =====================================================================
+  // УВАТСКИЙ ПРОЕКТ (ВАШ СТАРЫЙ КОНФИГ)
+  // =====================================================================
   const firebaseConfig = {
     apiKey: "AIzaSyAvZIkCpFbH199-U2B6GUok3xzllCOtoJI",
     authDomain: "zayavki-uvat.firebaseapp.com",
@@ -468,7 +492,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // ====== НАСТРОЙКИ ======
+  // ====== НАСТРОЙКИ (УВАТСКИЙ) ======
   var CHIEF_CODE = '7642';
   var SERVICE_PASSWORD = '1234';
   var ADMIN_CODE = 'admin';
@@ -528,6 +552,13 @@
   var masterWorkBlock = document.getElementById('masterWorkBlock');
   var loggedMasterBrigade = document.getElementById('loggedMasterBrigade');
   var loggedMasterName = document.getElementById('loggedMasterName');
+  
+  // Подвкладки мастера
+  var subTabNewRequest = document.getElementById('subTabNewRequest');
+  var subTabMyRequests = document.getElementById('subTabMyRequests');
+  var newRequestBlock = document.getElementById('newRequestBlock');
+  var myRequestsBlock = document.getElementById('myRequestsBlock');
+  var myRequestsList = document.getElementById('myRequestsList');
 
   var serviceLoginBlock = document.getElementById('serviceLoginBlock');
   var serviceWorkBlock = document.getElementById('serviceWorkBlock');
@@ -552,6 +583,7 @@
   
   var servicePasswordModal = document.getElementById('servicePasswordModal');
   var servicePasswordInput = document.getElementById('servicePasswordInput');
+  var serviceCommentInput = document.getElementById('serviceCommentInput');
   var confirmServicePasswordBtn = document.getElementById('confirmServicePassword');
   var cancelServicePasswordBtn = document.getElementById('cancelServicePassword');
   
@@ -693,9 +725,19 @@
   tabHistory.addEventListener('click', function() { switchToTab('history'); });
   tabAdmin.addEventListener('click', function() { switchToTab('admin'); });
 
+  // ====== ПОДВКЛАДКИ МАСТЕРА ======
+  subTabNewRequest.addEventListener('click', function() {
+    subTabNewRequest.classList.add('active'); subTabMyRequests.classList.remove('active');
+    newRequestBlock.classList.remove('hidden'); myRequestsBlock.classList.add('hidden');
+  });
+  subTabMyRequests.addEventListener('click', function() {
+    subTabMyRequests.classList.add('active'); subTabNewRequest.classList.remove('active');
+    newRequestBlock.classList.add('hidden'); myRequestsBlock.classList.remove('hidden');
+    renderMyRequests();
+  });
+
   // ====== АВТОЗАПОЛНЕНИЕ И АВТОВХОД ======
   function loadSavedCredentials() {
-    // Загрузка для мастера
     var mName = localStorage.getItem('save_m_name');
     var mPhone = localStorage.getItem('save_m_phone');
     var mBrigade = localStorage.getItem('save_m_brigade');
@@ -703,7 +745,6 @@
     if (mPhone) document.getElementById('loginMasterPhone').value = mPhone;
     if (mBrigade) document.getElementById('loginMasterBrigade').value = mBrigade;
 
-    // Загрузка для службы
     var sName = localStorage.getItem('save_s_name');
     var sPhone = localStorage.getItem('save_s_phone');
     var sRole = localStorage.getItem('save_s_role');
@@ -711,12 +752,10 @@
     if (sPhone) document.getElementById('loginServicePhone').value = sPhone;
     if (sRole) document.getElementById('loginServiceRole').value = sRole;
 
-    // Проверяем, был ли кто-то авторизован
     var savedMasterActive = localStorage.getItem('logged_master_active');
     var savedServiceActive = localStorage.getItem('logged_service_active');
 
     if (savedMasterActive === 'true' && mName && mPhone && mBrigade) {
-      // Восстанавливаем сессию мастера и СРАЗУ открываем рабочий стол
       loggedMaster = { name: mName, phone: mPhone, brigade: mBrigade };
       masterLoginBlock.classList.add('hidden');
       masterWorkBlock.classList.remove('hidden');
@@ -726,7 +765,6 @@
       updateUIState();
       switchToTab('master');
     } else if (savedServiceActive === 'true' && sName && sPhone && sRole) {
-      // Восстанавливаем сессию службы
       loggedService = { name: sName, phone: sPhone, role: sRole };
       serviceLoginBlock.classList.add('hidden');
       serviceWorkBlock.classList.remove('hidden');
@@ -735,7 +773,6 @@
       renderServicesGrid(serviceServicesGrid, 'service');
       switchToTab('service');
     } else {
-      // Если никто не вошел, показываем первую вкладку (Вход для мастера)
       switchToTab('master');
     }
   }
@@ -750,12 +787,11 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!brigade) { showToast('Выберите бригаду', true); return; }
 
-    // Сохраняем данные и статус входа
     localStorage.setItem('save_m_name', name);
     localStorage.setItem('save_m_phone', phone);
     localStorage.setItem('save_m_brigade', brigade);
     localStorage.setItem('logged_master_active', 'true');
-    localStorage.removeItem('logged_service_active'); // Сбрасываем вход службы
+    localStorage.removeItem('logged_service_active');
 
     loggedMaster = { name: name, phone: phone, brigade: brigade };
     
@@ -794,7 +830,7 @@
     localStorage.setItem('save_s_phone', phone);
     localStorage.setItem('save_s_role', role);
     localStorage.setItem('logged_service_active', 'true');
-    localStorage.removeItem('logged_master_active'); // Сбрасываем вход мастера
+    localStorage.removeItem('logged_master_active');
 
     loggedService = { name: name, phone: phone, role: role };
     
@@ -984,6 +1020,60 @@
     }
   }
 
+  // ====== "МОИ ЗАЯВКИ" (МАСТЕР) ======
+  function renderMyRequests() {
+    if (!loggedMaster.name) {
+      myRequestsList.innerHTML = '<p class="empty">Вы не авторизованы.</p>';
+      return;
+    }
+
+    var myList = allRequests.filter(function(r) { 
+      return r.name === loggedMaster.name && r.phone === loggedMaster.phone; 
+    });
+    myList.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    if (!myList.length) { 
+      myRequestsList.innerHTML = '<p class="empty">Вы еще не подавали заявок.</p>'; 
+      return; 
+    }
+
+    var html = '';
+    for (var i = 0; i < myList.length; i++) {
+      var r = myList[i];
+      var status = r.status || 'new';
+      
+      html += '<div class="request status-' + status + '">';
+      html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>Служба: ' + escapeHtml(serviceName(r.serviceId)) + '</strong><br>' + escapeHtml(r.desc) + '</div>';
+      
+      html += '<div class="event-log">';
+      html += '<div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
+      if (r.events && r.events.length) {
+        for (var e = 0; e < r.events.length; e++) {
+          var ev = r.events[e];
+          html += '<div>' + escapeHtml(ev.text) + ' (' + formatDate(ev.time) + ')</div>';
+        }
+      }
+      html += '</div>';
+
+      html += '<div class="actions">';
+      if (status === 'service_done') {
+        html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
+        html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
+      } else if (status === 'closed') {
+        html += '<span class="badge ok">Закрыта</span>';
+      } else if (status === 'new') {
+        html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения</span>';
+      }
+      html += '</div></div>';
+    }
+    myRequestsList.innerHTML = html;
+
+    var btns = myRequestsList.querySelectorAll('[data-action]');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].addEventListener('click', function () { handleAction(this.getAttribute('data-action'), this.getAttribute('data-id')); });
+    }
+  }
+
   // ====== ПРОСМОТР ДЕТАЛЕЙ СЛУЖБЫ ======
   function openServiceDetail(serviceId, mode) {
     currentDetailServiceId = serviceId;
@@ -1072,6 +1162,7 @@
     if (action === 'service_done') {
       pendingServiceDoneId = id;
       servicePasswordInput.value = '';
+      serviceCommentInput.value = ''; // Очищаем комментарий
       servicePasswordModal.classList.remove('hidden');
       servicePasswordInput.focus();
     } else if (action === 'return') {
@@ -1095,8 +1186,11 @@
     }
   }
 
+  // ПОДТВЕРЖДЕНИЕ СЛУЖБЫ С КОММЕНТАРИЕМ
   confirmServicePasswordBtn.addEventListener('click', async function() {
     var pwd = servicePasswordInput.value.trim();
+    var comment = serviceCommentInput.value.trim();
+
     if (pwd !== SERVICE_PASSWORD) {
       showToast('Неверный пароль службы', true); 
       servicePasswordInput.value = ''; 
@@ -1108,7 +1202,12 @@
     if (!req) { servicePasswordModal.classList.add('hidden'); return; }
 
     var currentEvents = req.events || [];
-    var newEvent = { text: '✅ Служба выполнила (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', time: Date.now() };
+    var eventText = '✅ Служба выполнила (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')';
+    if (comment) {
+      eventText += '. Комментарий: ' + comment;
+    }
+    
+    var newEvent = { text: eventText, time: Date.now() };
     
     var updates = {
       status: 'service_done',
@@ -1435,6 +1534,9 @@
     
     if (loggedMaster.name && !masterWorkBlock.classList.contains('hidden')) {
       renderServicesGrid(masterServicesGrid, 'master');
+      if (!myRequestsBlock.classList.contains('hidden')) {
+        renderMyRequests();
+      }
     }
     if (loggedService.name && !serviceWorkBlock.classList.contains('hidden')) {
       renderServicesGrid(serviceServicesGrid, 'service');
