@@ -118,6 +118,13 @@
   .request.status-closed { border-left-color: #10b981; opacity: .75; }
   .request .meta { font-size: 12px; color: #6b7280; margin-top: 6px; }
   .request .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  
+  /* Плашка причины возврата */
+  .return-info {
+    margin-top: 8px; font-size: 13px; background: #fef3c7;
+    border-left: 3px solid #f59e0b; padding: 8px 12px;
+    border-radius: 4px; color: #78350f;
+  }
 
   .hidden { display: none; }
   .back { margin-bottom: 16px; }
@@ -166,6 +173,7 @@
   .modal h3 { font-size: 17px; margin-bottom: 6px; }
   .modal p { font-size: 13px; color: #6b7280; margin-bottom: 14px; }
   .modal input { margin-bottom: 14px; }
+  .modal textarea { margin-bottom: 14px; }
   .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 </style>
 </head>
@@ -234,11 +242,16 @@
 
 </div>
 
+<!-- Модальное окно -->
 <div class="modal-overlay hidden" id="passwordModal">
   <div class="modal">
     <h3 id="passwordTitle">Подтверждение</h3>
     <p id="passwordHint">Введите пароль.</p>
     <input type="password" id="passwordInput" placeholder="Пароль" autocomplete="off">
+    
+    <!-- Поле для комментария при возврате -->
+    <textarea id="returnComment" placeholder="Укажите причину возврата..." class="hidden"></textarea>
+    
     <div class="modal-actions">
       <button class="btn gray small" id="cancelPassword">Отмена</button>
       <button class="btn green small" id="confirmPassword">Подтвердить</button>
@@ -303,11 +316,14 @@
   var serviceTitle = document.getElementById('serviceTitle');
   var requestsList = document.getElementById('requestsList');
   var toastEl = document.getElementById('toast');
+  
   var passwordModal = document.getElementById('passwordModal');
   var passwordInput = document.getElementById('passwordInput');
   var passwordTitle = document.getElementById('passwordTitle');
   var passwordHint = document.getElementById('passwordHint');
   var confirmBtn = document.getElementById('confirmPassword');
+  var returnComment = document.getElementById('returnComment');
+  
   var reqDescEl = document.getElementById('reqDesc');
 
   function showToast(msg, isError) {
@@ -421,15 +437,28 @@
       var r = list[i];
       var status = r.status || 'new';
       var author = r.brigade ? r.brigade : 'Без бригады';
+      
       html += '<div class="request status-' + status + '">';
       html += '<div><strong>' + escapeHtml(author) + '</strong>: ' + escapeHtml(r.desc) + '</div>';
+      
+      // Если заявку возвращали, показываем причину
+      if (r.returnComment) {
+        html += '<div class="return-info"><strong>↩ Возврат в работу:</strong> ' + escapeHtml(r.returnComment) + '</div>';
+      }
+
       html += '<div class="meta">' + new Date(r.createdAt).toLocaleString('ru-RU') + ' · <b>' + statusLabel(status) + '</b>' +
               (r.serviceDoneAt ? ' · служба: ' + new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '') +
               (r.closedAt ? ' · закрыта: ' + new Date(r.closedAt).toLocaleString('ru-RU') : '') + '</div>';
+      
       html += '<div class="actions">';
-      if (status === 'new') html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
-      else if (status === 'service_done') html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
-      else if (status === 'closed') html += '<span class="badge ok">Закрыта</span>';
+      if (status === 'new') {
+        html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
+      } else if (status === 'service_done') {
+        html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
+        html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть в работу</button>';
+      } else if (status === 'closed') {
+        html += '<span class="badge ok">Закрыта</span>';
+      }
       html += '</div></div>';
     }
     requestsList.innerHTML = html;
@@ -484,7 +513,7 @@
       rows += '<td>' + new Date(r.createdAt).toLocaleString('ru-RU') + '</td>';
       rows += '<td>' + escapeHtml(serviceName(r.serviceId)) + '</td>';
       rows += '<td>' + escapeHtml(r.brigade || '—') + '</td>';
-      rows += '<td>' + escapeHtml(r.desc) + '</td>';
+      rows += '<td>' + escapeHtml(r.desc) + (r.returnComment ? ' <br><small style="color:#dc2626;">↩ ' + escapeHtml(r.returnComment) + '</small>' : '') + '</td>';
       rows += '<td class="status-' + status + '">' + statusLabel(status) + '</td>';
       rows += '<td>' + (r.serviceDoneAt ? new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '—') + '</td>';
       rows += '<td>' + (r.closedAt ? new Date(r.closedAt).toLocaleString('ru-RU') : '—') + '</td>';
@@ -506,13 +535,15 @@
       return true;
     });
     filtered.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-    var headers = ['Подана', 'Служба', 'Бригада', 'Описание', 'Статус', 'Служба выполнила', 'Закрыта'];
+    var headers = ['Подана', 'Служба', 'Бригада', 'Описание', 'Причина возврата', 'Статус', 'Служба выполнила', 'Закрыта'];
     var lines = [headers.join(';')];
     for (var i = 0; i < filtered.length; i++) {
       var r = filtered[i]; var status = r.status || 'new';
       var row = [
         new Date(r.createdAt).toLocaleString('ru-RU'), serviceName(r.serviceId), r.brigade || '',
-        (r.desc || '').replace(/[\r\n;]+/g, ' '), statusLabel(status),
+        (r.desc || '').replace(/[\r\n;]+/g, ' '), 
+        (r.returnComment || '').replace(/[\r\n;]+/g, ' '),
+        statusLabel(status),
         r.serviceDoneAt ? new Date(r.serviceDoneAt).toLocaleString('ru-RU') : '',
         r.closedAt ? new Date(r.closedAt).toLocaleString('ru-RU') : ''
       ];
@@ -530,6 +561,9 @@
   function openPasswordModal(action, id) {
     pendingAction = { type: action, id: id };
     passwordInput.value = '';
+    returnComment.value = '';
+    returnComment.classList.add('hidden');
+
     if (action === 'service_done') {
       passwordTitle.textContent = 'Подтверждение службы';
       passwordHint.textContent = 'Введите пароль службы, чтобы отметить выполнение.';
@@ -538,13 +572,18 @@
       passwordTitle.textContent = 'Подтверждение мастера';
       passwordHint.textContent = 'Введите пароль мастера, чтобы закрыть заявку.';
       confirmBtn.className = 'btn green small';
+    } else if (action === 'return') {
+      passwordTitle.textContent = 'Возврат в работу';
+      passwordHint.textContent = 'Введите пароль мастера и укажите причину возврата.';
+      confirmBtn.className = 'btn red small';
+      returnComment.classList.remove('hidden'); // Показываем поле для комментария
     }
     passwordModal.classList.remove('hidden');
     passwordInput.focus();
   }
 
   function closePasswordModal() {
-    passwordModal.classList.add('hidden'); passwordInput.value = ''; pendingAction = null;
+    passwordModal.classList.add('hidden'); passwordInput.value = ''; returnComment.value = ''; pendingAction = null;
   }
 
   async function confirmPassword() {
@@ -555,17 +594,22 @@
     if (passwordInput.value !== requiredPassword) {
       showToast('Неверный пароль', true); passwordInput.value = ''; passwordInput.focus(); return;
     }
-    closePasswordModal();
 
     var updates = {};
     if (type === 'service_done') {
-      updates = { status: 'service_done', serviceDoneAt: Date.now() };
+      updates = { status: 'service_done', serviceDoneAt: Date.now(), returnComment: null };
       showToast('Служба подтвердила выполнение. Ждём мастера.');
     } else if (type === 'closed') {
       updates = { status: 'closed', closedAt: Date.now() };
       showToast('Мастер подтвердил. Заявка закрыта.');
+    } else if (type === 'return') {
+      var comment = returnComment.value.trim();
+      if (!comment) { showToast('Укажите причину возврата', true); return; }
+      updates = { status: 'new', serviceDoneAt: null, returnComment: comment };
+      showToast('Заявка возвращена в работу службе.');
     }
     
+    closePasswordModal();
     await update(ref(db, 'requests/' + id), updates);
   }
 
