@@ -28,6 +28,15 @@
   .tab-btn:hover { background: #e5e7eb; color: #1f2933; }
   .tab-btn.active { background: #2563eb; color: #fff; }
 
+  .notify-btn {
+    margin-left: auto; align-self: center;
+    background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;
+    padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .notify-btn:hover { background: #fde68a; }
+  .notify-btn.on { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+
   .closed-alert {
     background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
     padding: 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;
@@ -278,6 +287,7 @@
     <button class="tab-btn" id="tabService">Вход для службы</button>
     <button class="tab-btn" id="tabHistory">📋 История заявок</button>
     <button class="tab-btn" id="tabAdmin">🔐 Панель управления</button>
+    <button class="notify-btn" id="notifyBtn">🔔 Включить уведомления</button>
   </div>
 
   <!-- ЭКРАН 1: МАСТЕР / ИТР -->
@@ -372,7 +382,6 @@
       </div>
 
       <div id="serviceContentBlock">
-        <!-- Плашка для Нач.смены: он же мастер -->
         <div id="serviceQuickRequestBlock" class="hidden" style="margin-bottom:16px;">
           <div class="card" style="border-left:4px solid #8b5cf6;">
             <h2 style="margin-top:0;">Подать заявку как мастер</h2>
@@ -580,7 +589,6 @@
     { id: 'shift',    name: 'Нач.Смены' }
   ];
   
-  // Должность "Нач.смены" добавлена в список мастеров/ИТР
   var BRIGADES = [
     'Главный энергетик', 
     'Технолог',
@@ -619,6 +627,130 @@
   
   var currentDetailServiceId = '';
   var currentDetailViewMode = 'master';
+
+  // ====== УВЕДОМЛЕНИЯ (Вариант 1) ======
+  var knownRequestIds = null;   // null = первая загрузка, не уведомляем
+  var audioCtx = null;
+
+  function initAudio() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(function(){});
+    }
+  }
+
+  function playDing() {
+    try {
+      initAudio();
+      if (!audioCtx) return;
+      // Двойной "динь-дон"
+      var times = [0, 0.18];
+      var freqs = [880, 1174];
+      for (var i = 0; i < times.length; i++) {
+        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = 'sine'; o.frequency.value = freqs[i];
+        var t = audioCtx.currentTime + times[i];
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.2, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t); o.stop(t + 0.4);
+      }
+    } catch(e) {}
+  }
+
+  function updateNotifyBtn() {
+    var btn = document.getElementById('notifyBtn');
+    if (!btn) return;
+    if (!('Notification' in window)) {
+      btn.textContent = '🔕 Уведомления не поддерживаются';
+      btn.disabled = true;
+      btn.classList.remove('on');
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      btn.textContent = '🔔 Уведомления включены';
+      btn.classList.add('on');
+    } else if (Notification.permission === 'denied') {
+      btn.textContent = '🔕 Уведомления заблокированы';
+      btn.classList.remove('on');
+    } else {
+      btn.textContent = '🔔 Включить уведомления';
+      btn.classList.remove('on');
+    }
+  }
+
+  function requestNotifyPermission() {
+    if (!('Notification' in window)) {
+      showToast('Браузер не поддерживает уведомления', true);
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      showToast('Уведомления уже включены');
+      initAudio();
+      playDing();
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      showToast('Уведомления заблокированы в настройках браузера. Разрешите их вручную.', true);
+      return;
+    }
+    Notification.requestPermission().then(function(perm) {
+      updateNotifyBtn();
+      if (perm === 'granted') {
+        showToast('Уведомления включены');
+        initAudio();
+        playDing();
+      } else {
+        showToast('Уведомления отключены', true);
+      }
+    });
+  }
+
+  // Определяет, кому адресована новая заявка
+  function isRequestForMe(req) {
+    // Мастеру — если это его заявка (его телефон в поле phone)
+    if (loggedMaster.phone && req.phone === loggedMaster.phone) return true;
+    // Службе — если служба совпадает с ролью
+    if (loggedService.role) {
+      for (var i = 0; i < SERVICES.length; i++) {
+        if (SERVICES[i].name === loggedService.role && SERVICES[i].id === req.serviceId) return true;
+      }
+    }
+    // Админу — все заявки
+    if (isAdminLoggedIn) return true;
+    return false;
+  }
+
+  function notifyNewRequest(req) {
+    // Звук — только если заявка "моя"
+    if (!isRequestForMe(req)) return;
+
+    playDing();
+
+    // Браузерное уведомление — если вкладка скрыта
+    if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+      try {
+        var title = '🛢️ Новая заявка: ' + serviceName(req.serviceId);
+        var body = (req.brigade ? 'Бригада: ' + req.brigade + '\n' : '') +
+                   (req.desc ? req.desc.substring(0, 120) : '');
+        var n = new Notification(title, {
+          body: body,
+          tag: 'req-' + req.id,
+          requireInteraction: false
+        });
+        n.onclick = function() {
+          window.focus();
+          n.close();
+        };
+      } catch(e) { console.log('Notification error', e); }
+    }
+
+    // Тост в интерфейсе — всегда
+    showToast('🛢️ Новая заявка: ' + serviceName(req.serviceId));
+  }
 
   // ====== ЭЛЕМЕНТЫ ======
   var tabMaster = document.getElementById('tabMaster');
@@ -702,6 +834,16 @@
 
   var serviceQuickRequestBlock = document.getElementById('serviceQuickRequestBlock');
 
+  // Инициализация кнопки уведомлений
+  var notifyBtn = document.getElementById('notifyBtn');
+  if (notifyBtn) notifyBtn.addEventListener('click', requestNotifyPermission);
+  updateNotifyBtn();
+  // Разблокируем аудио при первом клике где угодно
+  document.addEventListener('click', function once() {
+    initAudio();
+    document.removeEventListener('click', once);
+  }, { once: true });
+
   function showToast(msg, isError) {
     toastEl.textContent = msg;
     toastEl.classList.toggle('error', !!isError);
@@ -748,7 +890,6 @@
     return n;
   }
 
-  // Определяет, является ли текущий пользователь-служба "Нач.Смены"
   function isShiftChiefService() {
     return loggedService.name && loggedService.role === 'Нач.Смены';
   }
@@ -806,7 +947,6 @@
         serviceContentBlock.classList.remove('hidden');
       }
 
-      // Плашка "Подать заявку как мастер" — только для Нач.Смены (подтверждённого)
       if (serviceQuickRequestBlock) {
         if (isShiftChiefService() && loggedService.status === 'approved') {
           serviceQuickRequestBlock.classList.remove('hidden');
@@ -940,7 +1080,6 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!brigade) { showToast('Выберите бригаду', true); return; }
 
-    // Признак "двойной роли": если должность Нач.смены
     var isShiftChief = (brigade === 'Нач.смены');
 
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
@@ -1006,7 +1145,6 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!role) { showToast('Выберите службу', true); return; }
 
-    // Признак "двойной роли": если служба Нач.Смены
     var isShiftService = (role === 'Нач.Смены');
 
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
@@ -1067,11 +1205,9 @@
   for (var i = 0; i < SERVICES.length; i++) transferOpts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
   transferServiceSelect.innerHTML = transferOpts;
 
-  // Кнопка "Перейти к форме заявки мастера" (для Нач.смены из интерфейса службы)
   var quickOpenMasterTabBtn = document.getElementById('quickOpenMasterTab');
   if (quickOpenMasterTabBtn) {
     quickOpenMasterTabBtn.addEventListener('click', function() {
-      // Если мастер ещё не залогинен — подставим те же данные и войдём
       if (!loggedMaster.name && loggedService.name) {
         document.getElementById('loginMasterName').value = loggedService.name;
         document.getElementById('loginMasterPhone').value = loggedService.phone;
@@ -1743,7 +1879,7 @@
     }
   });
 
-  // ====== ВЫБОР СЛУЖБЫ ПРИ ПОДАЧЕ ======
+  // ====== ВЫБОР СЛУЖБЫ ======
   function renderServicePicker() {
     var html = '';
     for (var i = 0; i < SERVICES.length; i++) {
@@ -1990,12 +2126,30 @@
   // ====== СЛУШАТЕЛИ БАЗЫ ======
   onValue(ref(db, 'requests'), (snapshot) => {
     var data = snapshot.val();
+    var prevIds = knownRequestIds;
     allRequests = [];
     if (data) {
       for (var key in data) {
         allRequests.push({ id: key, ...data[key] });
       }
     }
+
+    // === ОТСЛЕЖИВАНИЕ НОВЫХ ЗАЯВОК ===
+    if (prevIds === null) {
+      // Первая загрузка — просто запоминаем, никого не уведомляем
+      knownRequestIds = {};
+      for (var i = 0; i < allRequests.length; i++) knownRequestIds[allRequests[i].id] = true;
+    } else {
+      for (var j = 0; j < allRequests.length; j++) {
+        var r = allRequests[j];
+        if (!knownRequestIds[r.id]) {
+          knownRequestIds[r.id] = true;
+          // Это новая заявка — уведомляем
+          notifyNewRequest(r);
+        }
+      }
+    }
+    // ================================
     
     if (loggedMaster.name && !masterWorkBlock.classList.contains('hidden')) {
       renderServicesGrid(masterServicesGrid, 'master');
@@ -2066,6 +2220,7 @@
   renderServicePicker();
   loadSavedCredentials();
   updateUIState();
+  updateNotifyBtn();
 
 </script>
 </body>
