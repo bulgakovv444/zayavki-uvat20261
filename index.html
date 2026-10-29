@@ -594,6 +594,7 @@
   var SERVICE_PASSWORD = '1234';
   var ADMIN_CODE = 'admin2483';
 
+  // Убрали СПТ, объединили с Нач.смены
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
     { id: 'kip',      name: 'КИПиА' },
@@ -601,8 +602,7 @@
     { id: 'vo',       name: 'ВО' },
     { id: 'bpo',      name: 'БПО' },
     { id: 'pipe',     name: 'Трубная база' },
-    { id: 'spt',      name: 'СПТ' },
-    { id: 'shift',    name: 'Нач.Смены' }
+    { id: 'shift',    name: 'Нач.смены (СПТ)' } // Объединенная служба
   ];
   
   var BRIGADES = [
@@ -907,7 +907,7 @@
   }
 
   function isShiftChiefService() {
-    return loggedService.name && loggedService.role === 'Нач.Смены';
+    return loggedService.name && loggedService.role === 'Нач.смены (СПТ)';
   }
 
   function isAcceptingNow() {
@@ -1227,7 +1227,7 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!role) { showToast('Выберите службу', true); return; }
 
-    var isShiftService = (role === 'Нач.Смены');
+    var isShiftService = (role === 'Нач.смены (СПТ)');
 
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
 
