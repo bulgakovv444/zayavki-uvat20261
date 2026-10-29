@@ -629,7 +629,7 @@
   var currentDetailViewMode = 'master';
 
   // ====== УВЕДОМЛЕНИЯ (Вариант 1) ======
-  var knownRequestIds = null;   // null = первая загрузка, не уведомляем
+  var knownRequestIds = null;
   var audioCtx = null;
 
   function initAudio() {
@@ -645,7 +645,6 @@
     try {
       initAudio();
       if (!audioCtx) return;
-      // Двойной "динь-дон"
       var times = [0, 0.18];
       var freqs = [880, 1174];
       for (var i = 0; i < times.length; i++) {
@@ -709,28 +708,37 @@
     });
   }
 
-  // Определяет, кому адресована новая заявка
+  // Определяет, кому адресована новая заявка (для уведомлений)
   function isRequestForMe(req) {
-    // Мастеру — если это его заявка (его телефон в поле phone)
+    // 1) Мастеру — если это его собственная заявка (по телефону)
     if (loggedMaster.phone && req.phone === loggedMaster.phone) return true;
-    // Службе — если служба совпадает с ролью
+
+    // 2) Главному энергетику — заявки в службы "Энергетик" и "КИПиА"
+    var isChiefEnergyLogged =
+      (loggedMaster.brigade === 'Главный энергетик') ||
+      (loggedService.role === 'Главный энергетик');
+    if (isChiefEnergyLogged && (req.serviceId === 'energy' || req.serviceId === 'kip')) {
+      return true;
+    }
+
+    // 3) Службе — если заявка адресована именно её службе
     if (loggedService.role) {
       for (var i = 0; i < SERVICES.length; i++) {
         if (SERVICES[i].name === loggedService.role && SERVICES[i].id === req.serviceId) return true;
       }
     }
-    // Админу — все заявки
+
+    // 4) Админу — все заявки
     if (isAdminLoggedIn) return true;
+
     return false;
   }
 
   function notifyNewRequest(req) {
-    // Звук — только если заявка "моя"
     if (!isRequestForMe(req)) return;
 
     playDing();
 
-    // Браузерное уведомление — если вкладка скрыта
     if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
       try {
         var title = '🛢️ Новая заявка: ' + serviceName(req.serviceId);
@@ -748,7 +756,6 @@
       } catch(e) { console.log('Notification error', e); }
     }
 
-    // Тост в интерфейсе — всегда
     showToast('🛢️ Новая заявка: ' + serviceName(req.serviceId));
   }
 
@@ -834,11 +841,9 @@
 
   var serviceQuickRequestBlock = document.getElementById('serviceQuickRequestBlock');
 
-  // Инициализация кнопки уведомлений
   var notifyBtn = document.getElementById('notifyBtn');
   if (notifyBtn) notifyBtn.addEventListener('click', requestNotifyPermission);
   updateNotifyBtn();
-  // Разблокируем аудио при первом клике где угодно
   document.addEventListener('click', function once() {
     initAudio();
     document.removeEventListener('click', once);
@@ -2134,9 +2139,7 @@
       }
     }
 
-    // === ОТСЛЕЖИВАНИЕ НОВЫХ ЗАЯВОК ===
     if (prevIds === null) {
-      // Первая загрузка — просто запоминаем, никого не уведомляем
       knownRequestIds = {};
       for (var i = 0; i < allRequests.length; i++) knownRequestIds[allRequests[i].id] = true;
     } else {
@@ -2144,12 +2147,10 @@
         var r = allRequests[j];
         if (!knownRequestIds[r.id]) {
           knownRequestIds[r.id] = true;
-          // Это новая заявка — уведомляем
           notifyNewRequest(r);
         }
       }
     }
-    // ================================
     
     if (loggedMaster.name && !masterWorkBlock.classList.contains('hidden')) {
       renderServicesGrid(masterServicesGrid, 'master');
