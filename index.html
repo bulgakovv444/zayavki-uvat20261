@@ -37,25 +37,19 @@
   .notify-btn:hover { background: #fde68a; }
   .notify-btn.on { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
 
-  /* Стили для плашки в шапке (полная заливка) */
   .header-timer {
     padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 15px;
     display: inline-flex; align-items: center; gap: 10px; transition: all .3s;
     color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
   .header-timer.open {
-    background: #10b981; /* Сплошной зеленый */
-    border: 1px solid #059669;
+    background: #10b981; border: 1px solid #059669;
   }
   .header-timer.closed {
-    background: #ef4444; /* Сплошной красный */
-    border: 1px solid #dc2626;
+    background: #ef4444; border: 1px solid #dc2626;
   }
   .header-timer span { 
-    font-size: 20px; /* Крупный шрифт времени */
-    font-family: monospace; 
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    font-size: 20px; font-family: monospace; font-weight: 700; letter-spacing: 0.5px;
   }
 
   .pending-alert {
@@ -594,7 +588,6 @@
   var SERVICE_PASSWORD = '1234';
   var ADMIN_CODE = 'admin2483';
 
-  // Убрали СПТ, объединили с Нач.смены
   var SERVICES = [
     { id: 'energy',   name: 'Энергетик' },
     { id: 'kip',      name: 'КИПиА' },
@@ -602,7 +595,7 @@
     { id: 'vo',       name: 'ВО' },
     { id: 'bpo',      name: 'БПО' },
     { id: 'pipe',     name: 'Трубная база' },
-    { id: 'shift',    name: 'Нач.смены (СПТ)' } // Объединенная служба
+    { id: 'shift',    name: 'Нач.смены (СПТ)' }
   ];
   
   var BRIGADES = [
@@ -1653,10 +1646,18 @@
       html += '</div>';
 
       html += '<div class="actions">';
+      
+      // ====== НОВАЯ ЛОГИКА: ТОЛЬКО МАСТЕР СВОЕЙ БРИГАДЫ МОЖЕТ ЗАКРЫТЬ ======
       if (mode === 'master') {
         if (status === 'service_done') {
-          html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
-          html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
+          // Проверяем: совпадает ли бригада текущего мастера с бригадой, подавшей заявку
+          if (loggedMaster.brigade === r.brigade) {
+            html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
+            html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
+          } else {
+            // Если бригада не совпадает — показываем серую плашку
+            html += '<span class="badge" style="background:#6b7280;">Ждет мастера из ' + escapeHtml(r.brigade) + '</span>';
+          }
         } else if (status === 'new') {
           html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения службой</span>';
         } else if (status === 'closed') {
@@ -1672,6 +1673,7 @@
           html += '<span class="badge ok">Закрыта</span>';
         }
       }
+      // ======================================================================
       
       var lastReadS = localStorage.getItem('last_read_chat_' + r.id) || 0;
       var lastMsgTimeS = 0;
@@ -1736,6 +1738,12 @@
       var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
       if (!userCheck || userCheck.status !== 'approved') {
         showToast('Ваш аккаунт удален или не подтвержден. Вы не можете закрыть заявку.', true);
+        return;
+      }
+
+      // БЭКЕНД-ПРОВЕРКА: закрывать может только мастер той же бригады!
+      if (loggedMaster.brigade !== req.brigade) {
+        showToast('Вы не можете закрыть заявку, так как она принадлежит другой бригаде.', true);
         return;
       }
 
@@ -1815,6 +1823,13 @@
 
     var req = allRequests.find(function(item) { return item.id === pendingReturnId; });
     if (!req) return;
+
+    // БЭКЕНД-ПРОВЕРКА: возвращать может только мастер той же бригады!
+    if (loggedMaster.brigade !== req.brigade) {
+      showToast('Вы не можете вернуть заявку, так как она принадлежит другой бригаде.', true);
+      returnModal.classList.add('hidden');
+      return;
+    }
 
     var currentEvents = req.events || [];
     var newEvent = { text: '↩ Возврат в работу (Бригада: ' + (loggedMaster.brigade || req.brigade || '—') + ', Мастер: ' + (loggedMaster.name || '—') + ', Тел: ' + (loggedMaster.phone || '—') + '). Причина: ' + comment, time: Date.now() };
