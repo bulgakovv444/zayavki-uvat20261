@@ -58,13 +58,6 @@
     letter-spacing: 0.5px;
   }
 
-  .closed-alert {
-    background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
-    padding: 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;
-    display: flex; align-items: center; gap: 8px; font-size: 15px;
-  }
-  .closed-alert.hidden { display: none; }
-  
   .pending-alert {
     background: #fef3c7; border: 1px solid #fcd34d; color: #92400e;
     padding: 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;
@@ -295,10 +288,6 @@
 <body>
 <div class="container">
 
-  <div id="globalClosedAlert" class="closed-alert hidden">
-    <span>⛔</span> Прием заявок временно приостановлен Главным инженером.
-  </div>
-  
   <div id="globalPendingAlert" class="pending-alert hidden">
     <span>⏳</span> Ваш аккаунт находится на проверке у Главного инженера. Ожидайте подтверждения.
   </div>
@@ -821,7 +810,6 @@
   
   var adminRequestsList = document.getElementById('adminRequestsList');
   var adminStatusText = document.getElementById('adminStatusText');
-  var globalClosedAlert = document.getElementById('globalClosedAlert');
   var globalPendingAlert = document.getElementById('globalPendingAlert');
   var submitBtn = document.getElementById('submitBtn');
   var moderationList = document.getElementById('moderationList');
@@ -946,7 +934,6 @@
     var el = document.getElementById('masterScheduleInfo');
     if (!el) return;
 
-    // Если прием остановлен вручную Главным инженером
     if (settings.isManuallyClosed) {
       el.className = 'header-timer closed';
       el.innerHTML = 'Прием заявок закрыт';
@@ -960,9 +947,9 @@
     var nowSec = h * 3600 + m * 60 + s;
     
     var currentInterval = null;
-    var nextInterval = null;
+    var nextIntervalToday = null;
+    var firstIntervalTomorrow = null;
 
-    // Ищем текущий открытый интервал и следующий (если сейчас закрыто)
     for (var i = 0; i < settings.intervals.length; i++) {
       var inv = settings.intervals[i];
       var startSec = inv.start * 3600;
@@ -972,40 +959,38 @@
         currentInterval = inv;
         break;
       }
-      if (nowSec < startSec && (!nextInterval || startSec < nextInterval.start * 3600)) {
-        nextInterval = inv;
+      if (nowSec < startSec && (!nextIntervalToday || startSec < nextIntervalToday.start * 3600)) {
+        nextIntervalToday = inv;
+      }
+      if (!firstIntervalTomorrow || startSec < firstIntervalTomorrow.start * 3600) {
+        firstIntervalTomorrow = inv;
       }
     }
 
     if (currentInterval) {
-      // Сейчас открыто. Считаем до закрытия.
       var endSec = currentInterval.end * 3600;
       var leftMs = (endSec - nowSec) * 1000;
       el.className = 'header-timer open';
       el.innerHTML = 'Прием заявок открыт <span>' + formatTime(leftMs) + '</span>';
-    } else if (nextInterval) {
-      // Сейчас закрыто, но скоро откроется. Считаем до открытия.
-      var startSec = nextInterval.start * 3600;
+    } else if (nextIntervalToday) {
+      var startSec = nextIntervalToday.start * 3600;
       var leftMs = (startSec - nowSec) * 1000;
       el.className = 'header-timer closed';
       el.innerHTML = 'Прием заявок закрыт <span>' + formatTime(leftMs) + '</span>';
+    } else if (firstIntervalTomorrow) {
+      var startSec = firstIntervalTomorrow.start * 3600;
+      var leftMs = ((24 * 3600) - nowSec + startSec) * 1000;
+      el.className = 'header-timer closed';
+      el.innerHTML = 'Прием заявок закрыт <span>' + formatTime(leftMs) + '</span>';
     } else {
-      // На сегодня интервалы закончились.
       el.className = 'header-timer closed';
       el.innerHTML = 'Прием заявок закрыт';
     }
   }
 
-  // Обновляем таймер каждую секунду
   setInterval(updateScheduleTimer, 1000);
 
   function updateUIState() {
-    if (!isAcceptingNow()) {
-      globalClosedAlert.classList.remove('hidden');
-    } else {
-      globalClosedAlert.classList.add('hidden');
-    }
-
     if (loggedMaster.name) {
       if (loggedMaster.status === 'pending') {
         globalPendingAlert.classList.remove('hidden');
