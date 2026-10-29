@@ -39,9 +39,9 @@
 
   /* Стили для плашки в шапке (полная заливка) */
   .header-timer {
-    padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 15px;
-    display: inline-flex; align-items: center; gap: 8px; transition: all .3s;
-    color: #fff;
+    padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 15px;
+    display: inline-flex; align-items: center; gap: 10px; transition: all .3s;
+    color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
   .header-timer.open {
     background: #10b981; /* Сплошной зеленый */
@@ -52,7 +52,7 @@
     border: 1px solid #dc2626;
   }
   .header-timer span { 
-    font-size: 18px; /* Крупный шрифт времени */
+    font-size: 20px; /* Крупный шрифт времени */
     font-family: monospace; 
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -332,7 +332,6 @@
         </div>
         
         <div style="display:flex; align-items:center; gap: 10px;">
-          <!-- Плашка таймера в одну строку с кнопкой Выйти -->
           <div id="masterScheduleInfo" class="header-timer open">
             Загрузка...
           </div>
@@ -947,9 +946,10 @@
     var el = document.getElementById('masterScheduleInfo');
     if (!el) return;
 
+    // Если прием остановлен вручную Главным инженером
     if (settings.isManuallyClosed) {
       el.className = 'header-timer closed';
-      el.innerHTML = 'Прием заявок остановлен';
+      el.innerHTML = 'Прием заявок закрыт';
       return;
     }
 
@@ -962,6 +962,7 @@
     var currentInterval = null;
     var nextInterval = null;
 
+    // Ищем текущий открытый интервал и следующий (если сейчас закрыто)
     for (var i = 0; i < settings.intervals.length; i++) {
       var inv = settings.intervals[i];
       var startSec = inv.start * 3600;
@@ -977,21 +978,25 @@
     }
 
     if (currentInterval) {
+      // Сейчас открыто. Считаем до закрытия.
       var endSec = currentInterval.end * 3600;
       var leftMs = (endSec - nowSec) * 1000;
       el.className = 'header-timer open';
       el.innerHTML = 'Прием заявок открыт <span>' + formatTime(leftMs) + '</span>';
     } else if (nextInterval) {
+      // Сейчас закрыто, но скоро откроется. Считаем до открытия.
       var startSec = nextInterval.start * 3600;
       var leftMs = (startSec - nowSec) * 1000;
       el.className = 'header-timer closed';
       el.innerHTML = 'Прием заявок закрыт <span>' + formatTime(leftMs) + '</span>';
     } else {
+      // На сегодня интервалы закончились.
       el.className = 'header-timer closed';
       el.innerHTML = 'Прием заявок закрыт';
     }
   }
 
+  // Обновляем таймер каждую секунду
   setInterval(updateScheduleTimer, 1000);
 
   function updateUIState() {
