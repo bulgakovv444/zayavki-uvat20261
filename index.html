@@ -17,7 +17,6 @@
   h2 { font-size: 16px; margin: 16px 0 10px; }
   .container { max-width: 1100px; margin: 0 auto; }
 
-  /* Вкладки */
   .tabs {
     display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
     flex-wrap: wrap;
@@ -29,7 +28,6 @@
   .tab-btn:hover { background: #e5e7eb; color: #1f2933; }
   .tab-btn.active { background: #2563eb; color: #fff; }
 
-  /* Плашки */
   .closed-alert {
     background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
     padding: 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;
@@ -44,7 +42,6 @@
   }
   .pending-alert.hidden { display: none; }
 
-  /* Блоки регистрации */
   .login-box {
     background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.08);
     max-width: 400px; margin: 0 auto; text-align: center;
@@ -53,7 +50,6 @@
   .login-box p { color: #6b7280; margin-bottom: 20px; font-size: 14px; }
   .login-box input, .login-box select { margin-bottom: 12px; text-align: center; }
 
-  /* Шаги формы */
   .step { margin-bottom: 16px; }
   .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .step-number {
@@ -62,7 +58,6 @@
     border-radius: 50%; font-size: 14px; font-weight: 700; flex-shrink: 0;
   }
   .step-title { font-size: 15px; font-weight: 600; }
-  .step-hint { font-size: 12px; color: #6b7280; margin-left: 32px; margin-bottom: 8px; }
 
   .services {
     display: grid;
@@ -87,6 +82,7 @@
   }
   .badge.ok { background: #10b981; }
   .badge.wait { background: #f59e0b; }
+  .badge.dual { background: #8b5cf6; }
   
   .dot {
     position: absolute; top: 10px; right: 10px; width: 10px; height: 10px;
@@ -145,7 +141,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 16px;
   }
 
-  /* Панель */
   .header-bar {
     display: flex; justify-content: space-between; align-items: center;
     background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px;
@@ -155,12 +150,10 @@
   .header-bar .user-info { font-size: 14px; color: #6b7280; }
   .header-bar .user-info strong { color: #1e3a8a; }
   
-  /* Подвкладки */
   .sub-tabs { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
   .sub-tab-btn { background: none; border: none; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; padding: 6px 12px; border-radius: 4px; }
   .sub-tab-btn.active { background: #e0e7ff; color: #1e3a8a; }
 
-  /* Заявки */
   .request {
     border-left: 4px solid #ef4444; background: #fff; padding: 12px;
     border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05);
@@ -169,38 +162,25 @@
   .request.status-closed { border-left-color: #10b981; opacity: .75; }
   .request .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 
-  /* Кнопка чата с уведомлением */
-  .chat-btn {
-    position: relative;
-  }
+  .chat-btn { position: relative; }
   .chat-btn.unread {
-    background: #ef4444 !important; /* Красный, если есть новые */
+    background: #ef4444 !important;
     color: #fff;
     border-color: #dc2626 !important;
   }
   .chat-badge {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: #fff;
-    color: #ef4444;
-    font-size: 11px;
-    font-weight: bold;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,.3);
-    border: 1px solid #ef4444;
+    position: absolute; top: -6px; right: -6px;
+    background: #fff; color: #ef4444;
+    font-size: 11px; font-weight: bold;
+    border-radius: 50%; width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3); border: 1px solid #ef4444;
   }
 
   .hidden { display: none !important; }
   .back { margin-bottom: 12px; }
   .empty { color: #6b7280; font-size: 14px; padding: 12px 0; }
 
-  /* История */
   .history-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
   .stat { background: #fff; border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); min-width: 100px; }
   .stat .num { font-size: 20px; font-weight: 700; }
@@ -229,12 +209,10 @@
   }
   .event-log div { margin-bottom: 2px; }
 
-  /* Панель администратора */
   .admin-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
   .admin-controls input { width: auto; }
   .admin-controls label { font-size: 12px; color: #6b7280; display: block; margin-bottom: 4px; }
   
-  /* Список на модерацию */
   .moderation-user {
     background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05); border-left: 4px solid #f59e0b;
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
@@ -244,10 +222,7 @@
   .moderation-user .info { flex: 1; min-width: 200px; }
   .moderation-user .btns { display: flex; gap: 6px; }
 
-  /* Чат */
-  .chat-window {
-    display: flex; flex-direction: column; height: 400px;
-  }
+  .chat-window { display: flex; flex-direction: column; height: 400px; }
   .chat-messages {
     flex: 1; overflow-y: auto; background: #f8fafc; border-radius: 8px; padding: 10px; margin-bottom: 10px;
     border: 1px solid #e5e7eb;
@@ -258,14 +233,11 @@
     background: #fff; padding: 8px 12px; border-radius: 8px; max-width: 80%;
     box-shadow: 0 1px 2px rgba(0,0,0,.05); border: 1px solid #e5e7eb;
   }
-  .chat-msg.right .bubble {
-    background: #dcfce7; border-color: #bbf7d0;
-  }
+  .chat-msg.right .bubble { background: #dcfce7; border-color: #bbf7d0; }
   .chat-msg .meta { font-size: 10px; color: #9ca3af; margin-bottom: 2px; }
   .chat-input-row { display: flex; gap: 8px; }
   .chat-input-row input { flex: 1; }
 
-  /* Тост и модалка */
   .toast {
     position: fixed; top: 15px; right: 15px; background: #10b981; color: #fff;
     padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500;
@@ -293,17 +265,14 @@
 <body>
 <div class="container">
 
-  <!-- Плашка о закрытии приема -->
   <div id="globalClosedAlert" class="closed-alert hidden">
     <span>⛔</span> Прием заявок временно приостановлен Главным инженером.
   </div>
   
-  <!-- Плашка ожидания (мастер) -->
   <div id="globalPendingAlert" class="pending-alert hidden">
     <span>⏳</span> Ваш аккаунт находится на проверке у Главного инженера. Ожидайте подтверждения.
   </div>
 
-  <!-- Вкладки -->
   <div class="tabs">
     <button class="tab-btn" id="tabMaster">Вход для мастера, ИТР</button>
     <button class="tab-btn" id="tabService">Вход для службы</button>
@@ -398,12 +367,22 @@
         <button class="btn gray small" id="logoutServiceBtn">Выйти</button>
       </div>
       
-      <!-- Плашка для неподтвержденной службы -->
       <div id="servicePendingAlert" class="pending-alert hidden" style="margin-top: 10px;">
         <span>⏳</span> Ваш аккаунт службы находится на проверке. Вы не можете просматривать и выполнять заявки, пока Главный инженер не подтвердит вас.
       </div>
 
       <div id="serviceContentBlock">
+        <!-- Плашка для Нач.смены: он же мастер -->
+        <div id="serviceQuickRequestBlock" class="hidden" style="margin-bottom:16px;">
+          <div class="card" style="border-left:4px solid #8b5cf6;">
+            <h2 style="margin-top:0;">Подать заявку как мастер</h2>
+            <p style="color:#6b7280;font-size:13px;margin-bottom:10px;">
+              Вы — Нач.смены: у вас есть права и мастера, и службы. Можете подавать заявки и закрывать их.
+            </p>
+            <button class="btn purple small" id="quickOpenMasterTab">Перейти к форме заявки мастера →</button>
+          </div>
+        </div>
+
         <h2>Все службы (нажмите для просмотра)</h2>
         <div class="services" id="serviceServicesGrid"></div>
       </div>
@@ -457,13 +436,11 @@
         <button class="btn gray small" id="logoutAdminBtn">Выйти</button>
       </div>
 
-      <!-- Подвкладки админа -->
       <div class="sub-tabs" style="margin-bottom: 20px;">
         <button class="sub-tab-btn active" id="adminTabUsers">👥 Пользователи</button>
         <button class="sub-tab-btn" id="adminTabRequests">📝 Заявки</button>
       </div>
 
-      <!-- Блок пользователей -->
       <div id="adminUsersBlock">
         <div class="card" style="border-left: 4px solid #f59e0b;">
           <h2>Реестр пользователей</h2>
@@ -472,28 +449,15 @@
         </div>
       </div>
 
-      <!-- Блок заявок -->
       <div id="adminRequestsBlock" class="hidden">
         <div class="card">
           <h2>Управление приемом заявок</h2>
           <div class="admin-controls">
-            <div>
-              <label>Интервал 1 (с)</label>
-              <input type="number" id="adminStart1" min="0" max="23" style="width:70px;">
-            </div>
-            <div>
-              <label>Интервал 1 (до)</label>
-              <input type="number" id="adminEnd1" min="0" max="23" style="width:70px;">
-            </div>
+            <div><label>Интервал 1 (с)</label><input type="number" id="adminStart1" min="0" max="23" style="width:70px;"></div>
+            <div><label>Интервал 1 (до)</label><input type="number" id="adminEnd1" min="0" max="23" style="width:70px;"></div>
             <div style="width:20px;"></div>
-            <div>
-              <label>Интервал 2 (с)</label>
-              <input type="number" id="adminStart2" min="0" max="23" style="width:70px;">
-            </div>
-            <div>
-              <label>Интервал 2 (до)</label>
-              <input type="number" id="adminEnd2" min="0" max="23" style="width:70px;">
-            </div>
+            <div><label>Интервал 2 (с)</label><input type="number" id="adminStart2" min="0" max="23" style="width:70px;"></div>
+            <div><label>Интервал 2 (до)</label><input type="number" id="adminEnd2" min="0" max="23" style="width:70px;"></div>
             <button class="btn small" id="saveScheduleBtn">Сохранить</button>
             <button class="btn red small" id="toggleGlobalBtn">Остановить прием</button>
           </div>
@@ -540,7 +504,7 @@
   <div class="modal">
     <h3>Возврат в работу</h3>
     <p>Укажите причину, по которой заявка возвращается службе.</p>
-    <textarea id="returnCommentInput" placeholder="Например: Течь не устранена..." autocomplete="off"></textarea>
+    <textarea id="returnCommentInput" placeholder="Например: Течь не устранена..."></textarea>
     <div class="modal-actions">
       <button class="btn gray small" id="cancelReturn">Отмена</button>
       <button class="btn red small" id="confirmReturn">Вернуть</button>
@@ -560,7 +524,6 @@
   </div>
 </div>
 
-<!-- Модальное окно для чата -->
 <div class="modal-overlay hidden" id="chatModal">
   <div class="modal" style="max-width: 500px;">
     <h3 id="chatTitle">Чат по заявке</h3>
@@ -614,9 +577,10 @@
     { id: 'bpo',      name: 'БПО' },
     { id: 'pipe',     name: 'Трубная база' },
     { id: 'spt',      name: 'СПТ' },
-    { id: 'shift',    name: 'Нач.Смены' } 
+    { id: 'shift',    name: 'Нач.Смены' }
   ];
   
+  // Должность "Нач.смены" добавлена в список мастеров/ИТР
   var BRIGADES = [
     'Главный энергетик', 
     'Технолог',
@@ -648,7 +612,7 @@
   var pendingReturnId = null;
   var pendingNewRequest = null;
   var pendingTransferId = null;
-  var currentChatRequestId = null; // Для чата
+  var currentChatRequestId = null;
   
   var loggedMaster = { name: '', phone: '', brigade: '', status: 'pending' };
   var loggedService = { name: '', phone: '', role: '', status: 'pending' };
@@ -729,13 +693,14 @@
   var confirmTransferBtn = document.getElementById('confirmTransfer');
   var cancelTransferBtn = document.getElementById('cancelTransfer');
 
-  // Элементы чата
   var chatModal = document.getElementById('chatModal');
   var chatTitle = document.getElementById('chatTitle');
   var chatMessages = document.getElementById('chatMessages');
   var chatInput = document.getElementById('chatInput');
   var sendChatBtn = document.getElementById('sendChatBtn');
   var closeChatBtn = document.getElementById('closeChatBtn');
+
+  var serviceQuickRequestBlock = document.getElementById('serviceQuickRequestBlock');
 
   function showToast(msg, isError) {
     toastEl.textContent = msg;
@@ -783,7 +748,11 @@
     return n;
   }
 
-  // ====== ПРОВЕРКА ВРЕМЕНИ ======
+  // Определяет, является ли текущий пользователь-служба "Нач.Смены"
+  function isShiftChiefService() {
+    return loggedService.name && loggedService.role === 'Нач.Смены';
+  }
+
   function isAcceptingNow() {
     if (settings.isManuallyClosed) return false;
     var h = new Date().getHours();
@@ -801,7 +770,6 @@
       globalClosedAlert.classList.add('hidden');
     }
 
-    // Проверка статуса мастера
     if (loggedMaster.name) {
       if (loggedMaster.status === 'pending') {
         globalPendingAlert.classList.remove('hidden');
@@ -824,11 +792,10 @@
       }
     }
 
-    // Проверка статуса службы (для ее рабочего стола)
     if (loggedService.name) {
       if (loggedService.status !== 'approved') {
         servicePendingAlert.classList.remove('hidden');
-        serviceContentBlock.classList.add('hidden'); // Скрываем заявки
+        serviceContentBlock.classList.add('hidden');
         if (loggedService.status === 'rejected') {
           servicePendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен или удален. Обратитесь к администратору.';
         } else {
@@ -836,12 +803,22 @@
         }
       } else {
         servicePendingAlert.classList.add('hidden');
-        serviceContentBlock.classList.remove('hidden'); // Показываем заявки
+        serviceContentBlock.classList.remove('hidden');
       }
+
+      // Плашка "Подать заявку как мастер" — только для Нач.Смены (подтверждённого)
+      if (serviceQuickRequestBlock) {
+        if (isShiftChiefService() && loggedService.status === 'approved') {
+          serviceQuickRequestBlock.classList.remove('hidden');
+        } else {
+          serviceQuickRequestBlock.classList.add('hidden');
+        }
+      }
+    } else if (serviceQuickRequestBlock) {
+      serviceQuickRequestBlock.classList.add('hidden');
     }
   }
 
-  // ====== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ======
   function switchToTab(tabName) {
     tabMaster.classList.remove('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active'); tabAdmin.classList.remove('active');
     masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.add('hidden');
@@ -892,7 +869,6 @@
   tabHistory.addEventListener('click', function() { switchToTab('history'); });
   tabAdmin.addEventListener('click', function() { switchToTab('admin'); });
 
-  // ====== ПОДВКЛАДКИ МАСТЕРА ======
   subTabNewRequest.addEventListener('click', function() {
     subTabNewRequest.classList.add('active'); subTabMyRequests.classList.remove('active');
     newRequestBlock.classList.remove('hidden'); myRequestsBlock.classList.add('hidden');
@@ -903,7 +879,6 @@
     renderMyRequests();
   });
 
-  // ====== ПОДВКЛАДКИ АДМИНА ======
   adminTabUsers.addEventListener('click', function() {
     adminTabUsers.classList.add('active'); adminTabRequests.classList.remove('active');
     adminUsersBlock.classList.remove('hidden'); adminRequestsBlock.classList.add('hidden');
@@ -914,7 +889,6 @@
     renderAdminRequests();
   });
 
-  // ====== АВТОЗАПОЛНЕНИЕ И АВТОВХОД ======
   function loadSavedCredentials() {
     var mName = localStorage.getItem('save_m_name');
     var mPhone = localStorage.getItem('save_m_phone');
@@ -966,12 +940,15 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!brigade) { showToast('Выберите бригаду', true); return; }
 
+    // Признак "двойной роли": если должность Нач.смены
+    var isShiftChief = (brigade === 'Нач.смены');
+
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
     
     if (existingUser) {
       if (existingUser.status === 'approved') {
         var userRef = ref(db, 'users/' + existingUser.id);
-        await update(userRef, { name: name, brigade: brigade, role: 'master' });
+        await update(userRef, { name: name, brigade: brigade, role: 'master', dualRole: isShiftChief });
         loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'approved' };
         showToast('Вы успешно вошли (данные обновлены).');
       } else if (existingUser.status === 'pending') {
@@ -983,7 +960,10 @@
       }
     } else {
       var newRef = push(ref(db, 'users'));
-      await set(newRef, { name: name, phone: phone, brigade: brigade, role: 'master', status: 'pending', createdAt: Date.now() });
+      await set(newRef, {
+        name: name, phone: phone, brigade: brigade, role: 'master',
+        status: 'pending', createdAt: Date.now(), dualRole: isShiftChief
+      });
       loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'pending' };
       showToast('Регистрация отправлена. Ожидайте подтверждения.');
     }
@@ -1026,12 +1006,15 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!role) { showToast('Выберите службу', true); return; }
 
+    // Признак "двойной роли": если служба Нач.Смены
+    var isShiftService = (role === 'Нач.Смены');
+
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
 
     if (existingUser) {
       if (existingUser.status === 'approved') {
         var userRef = ref(db, 'users/' + existingUser.id);
-        await update(userRef, { name: name, role: role, brigade: 'Служба' });
+        await update(userRef, { name: name, role: role, brigade: 'Служба', dualRole: isShiftService });
         loggedService = { name: name, phone: phone, role: role, status: 'approved' };
         showToast('Вы успешно вошли (данные обновлены).');
       } else if (existingUser.status === 'pending') {
@@ -1043,7 +1026,10 @@
       }
     } else {
       var newRef = push(ref(db, 'users'));
-      await set(newRef, { name: name, phone: phone, role: role, brigade: 'Служба', status: 'pending', createdAt: Date.now() });
+      await set(newRef, {
+        name: name, phone: phone, role: role, brigade: 'Служба',
+        status: 'pending', createdAt: Date.now(), dualRole: isShiftService
+      });
       loggedService = { name: name, phone: phone, role: role, status: 'pending' };
       showToast('Регистрация отправлена. Ожидайте подтверждения.');
     }
@@ -1069,6 +1055,7 @@
     serviceLoginBlock.classList.remove('hidden');
     serviceWorkBlock.classList.add('hidden');
     servicePendingAlert.classList.add('hidden');
+    if (serviceQuickRequestBlock) serviceQuickRequestBlock.classList.add('hidden');
   });
 
   var loginRoleSelect = document.getElementById('loginServiceRole');
@@ -1079,6 +1066,23 @@
   var transferOpts = '';
   for (var i = 0; i < SERVICES.length; i++) transferOpts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
   transferServiceSelect.innerHTML = transferOpts;
+
+  // Кнопка "Перейти к форме заявки мастера" (для Нач.смены из интерфейса службы)
+  var quickOpenMasterTabBtn = document.getElementById('quickOpenMasterTab');
+  if (quickOpenMasterTabBtn) {
+    quickOpenMasterTabBtn.addEventListener('click', function() {
+      // Если мастер ещё не залогинен — подставим те же данные и войдём
+      if (!loggedMaster.name && loggedService.name) {
+        document.getElementById('loginMasterName').value = loggedService.name;
+        document.getElementById('loginMasterPhone').value = loggedService.phone;
+        var brigadeSel = document.getElementById('loginMasterBrigade');
+        for (var i = 0; i < brigadeSel.options.length; i++) {
+          if (brigadeSel.options[i].value === 'Нач.смены') { brigadeSel.selectedIndex = i; break; }
+        }
+      }
+      switchToTab('master');
+    });
+  }
 
   // ====== ВХОД АДМИНА ======
   document.getElementById('adminLoginBtn').addEventListener('click', function() {
@@ -1104,7 +1108,6 @@
     document.getElementById('adminCodeInput').value = '';
   });
 
-  // ====== АДМИН: НАСТРОЙКИ ======
   document.getElementById('saveScheduleBtn').addEventListener('click', async function() {
     var s1 = parseInt(document.getElementById('adminStart1').value) || 0;
     var e1 = parseInt(document.getElementById('adminEnd1').value) || 0;
@@ -1130,7 +1133,7 @@
     showToast(newState ? 'Прием заявок остановлен' : 'Прием заявок возобновлен');
   });
 
-  // ====== АДМИН: ОТРИСОВКА ПОЛЬЗОВАТЕЛЕЙ ======
+  // ====== АДМИН: ПОЛЬЗОВАТЕЛИ ======
   function renderAdminUsers() {
     var usersHtml = '';
     var sortedUsers = allUsers.slice().sort(function(a,b) { return (b.createdAt || 0) - (a.createdAt || 0); });
@@ -1144,11 +1147,12 @@
       var u = sortedUsers[i];
       var statusClass = u.status === 'approved' ? 'approved' : (u.status === 'rejected' ? 'rejected' : '');
       var statusText = u.status === 'approved' ? 'Подтвержден' : (u.status === 'rejected' ? 'Отклонен' : 'На проверке');
+      var dualText = u.dualRole ? ' · <span style="color:#8b5cf6;font-weight:600;">двойная роль</span>' : '';
       
       usersHtml += '<div class="moderation-user ' + statusClass + '">';
       usersHtml += '<div class="info">';
       usersHtml += '<strong>' + escapeHtml(u.name) + '</strong> (' + escapeHtml(u.phone) + ')<br>';
-      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + '</span>';
+      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + dualText + '</span>';
       usersHtml += '</div>';
       usersHtml += '<div class="btns">';
       if (u.status !== 'approved') {
@@ -1184,7 +1188,7 @@
     }
   }
 
-  // ====== АДМИН: ОТРИСОВКА ЗАЯВОК ======
+  // ====== АДМИН: ЗАЯВКИ ======
   function renderAdminRequests() {
     if (settings.intervals.length > 0) {
       document.getElementById('adminStart1').value = settings.intervals[0].start;
@@ -1239,9 +1243,7 @@
          html += '<span class="badge ok">Закрыта</span>';
       }
       
-      // Чат для админа (без уведомлений)
       html += '<button class="btn gray small chat-btn" data-action="chat" data-id="' + r.id + '">💬 Чат</button>';
-      
       html += '<button class="btn red small" data-action="admin_delete" data-id="' + r.id + '">Удалить заявку</button>';
       html += '</div></div>';
     }
@@ -1260,13 +1262,8 @@
 
   function renderAdminPanel() {
     if (!isAdminLoggedIn || adminWorkBlock.classList.contains('hidden')) return;
-    
-    if (!adminUsersBlock.classList.contains('hidden')) {
-      renderAdminUsers();
-    }
-    if (!adminRequestsBlock.classList.contains('hidden')) {
-      renderAdminRequests();
-    }
+    if (!adminUsersBlock.classList.contains('hidden')) renderAdminUsers();
+    if (!adminRequestsBlock.classList.contains('hidden')) renderAdminRequests();
   }
 
   async function handleAdminAction(action, id) {
@@ -1289,7 +1286,7 @@
     }
   }
 
-  // ====== ОТРИСОВКА СЕТКИ СЛУЖБ ======
+  // ====== СЕТКА СЛУЖБ ======
   function renderServicesGrid(container, mode) {
     var html = '';
     for (var j = 0; j < SERVICES.length; j++) {
@@ -1365,11 +1362,9 @@
         html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения</span>';
       }
       
-      // Логика непрочитанных для мастера
       var lastRead = localStorage.getItem('last_read_chat_' + r.id) || 0;
       var lastMsgTime = 0;
       var lastMsgPhone = '';
-      
       if (r.messages) {
         for (var mKey in r.messages) {
           if (r.messages[mKey].time > lastMsgTime) {
@@ -1378,15 +1373,11 @@
           }
         }
       }
-      
-      // Если последнее сообщение НЕ от меня и время больше прочитанного -> есть новые
       var isUnread = (lastMsgTime > Number(lastRead)) && (lastMsgPhone !== loggedMaster.phone);
 
       html += '<button class="btn small chat-btn ' + (isUnread ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">';
       html += '💬 Чат';
-      if (isUnread) {
-        html += '<span class="chat-badge">!</span>';
-      }
+      if (isUnread) html += '<span class="chat-badge">!</span>';
       html += '</button>';
       
       html += '</div></div>';
@@ -1404,7 +1395,7 @@
     }
   }
 
-  // ====== ПРОСМОТР ДЕТАЛЕЙ СЛУЖБЫ ======
+  // ====== ДЕТАЛИ СЛУЖБЫ ======
   function openServiceDetail(serviceId, mode) {
     currentDetailServiceId = serviceId;
     currentDetailViewMode = mode;
@@ -1464,11 +1455,9 @@
         }
       }
       
-      // Логика непрочитанных для службы
       var lastReadS = localStorage.getItem('last_read_chat_' + r.id) || 0;
       var lastMsgTimeS = 0;
       var lastMsgPhoneS = '';
-      
       if (r.messages) {
         for (var mKeyS in r.messages) {
           if (r.messages[mKeyS].time > lastMsgTimeS) {
@@ -1477,15 +1466,11 @@
           }
         }
       }
-      
-      // Если последнее сообщение НЕ от меня (не мой телефон) и время больше прочитанного -> есть новые
       var isUnreadS = (lastMsgTimeS > Number(lastReadS)) && (lastMsgPhoneS !== loggedService.phone);
 
       html += '<button class="btn small chat-btn ' + (isUnreadS ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">';
       html += '💬 Чат';
-      if (isUnreadS) {
-        html += '<span class="chat-badge">!</span>';
-      }
+      if (isUnreadS) html += '<span class="chat-badge">!</span>';
       html += '</button>';
       
       html += '</div></div>';
@@ -1514,7 +1499,7 @@
     }
   });
 
-  // ====== ОБРАБОТКА ДЕЙСТВИЙ ======
+  // ====== ДЕЙСТВИЯ ======
   async function handleAction(action, id) {
     var req = allRequests.find(function(item) { return item.id === id; });
     if (!req) return;
@@ -1530,7 +1515,6 @@
       returnModal.classList.remove('hidden');
       returnCommentInput.focus();
     } else if (action === 'closed') {
-      // СТРОГАЯ ПРОВЕРКА: перед закрытием проверяем, не удален ли аккаунт мастера
       var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
       if (!userCheck || userCheck.status !== 'approved') {
         showToast('Ваш аккаунт удален или не подтвержден. Вы не можете закрыть заявку.', true);
@@ -1568,7 +1552,6 @@
       return;
     }
 
-    // СТРОГАЯ ПРОВЕРКА: перед выполнением проверяем, не удален ли аккаунт службы
     var userCheck = allUsers.find(function(u) { return u.phone === loggedService.phone; });
     if (!userCheck || userCheck.status !== 'approved') {
       showToast('Ваш аккаунт службы удален или не подтвержден. Вы не можете выполнить заявку.', true);
@@ -1581,7 +1564,6 @@
 
     var currentEvents = req.events || [];
     var eventText = '✅ Служба выполнила (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')';
-    
     var newEvent = { text: eventText, time: Date.now() };
     
     var updates = {
@@ -1606,7 +1588,6 @@
     if (!comment) { showToast('Укажите причину возврата', true); return; }
     if (!pendingReturnId) return;
 
-    // Проверка статуса мастера
     var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
     if (!userCheck || userCheck.status !== 'approved') {
       showToast('Ваш аккаунт удален или не подтвержден.', true);
@@ -1641,7 +1622,6 @@
     if (!pendingTransferId) return;
     var newServiceId = transferServiceSelect.value;
     
-    // Проверка статуса службы
     var userCheck = allUsers.find(function(u) { return u.phone === loggedService.phone; });
     if (!userCheck || userCheck.status !== 'approved') {
       showToast('Ваш аккаунт службы удален или не подтвержден.', true);
@@ -1720,10 +1700,8 @@
       }
       chatMessages.scrollTop = chatMessages.scrollHeight;
       
-      // Помечаем как прочитанные, когда открываем чат
       localStorage.setItem('last_read_chat_' + requestId, Date.now());
       
-      // Обновляем интерфейс (убираем красные кнопки)
       renderMyRequests();
       if (currentDetailServiceId) renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
       if (isAdminLoggedIn && !adminRequestsBlock.classList.contains('hidden')) renderAdminRequests();
@@ -1765,7 +1743,7 @@
     }
   });
 
-  // ====== ОТРИСОВКА ГЛАВНОГО ЭКРАНА ======
+  // ====== ВЫБОР СЛУЖБЫ ПРИ ПОДАЧЕ ======
   function renderServicePicker() {
     var html = '';
     for (var i = 0; i < SERVICES.length; i++) {
@@ -1784,13 +1762,12 @@
     }
   }
 
-  // ====== ОТПРАВКА ЗАЯВКИ (МАСТЕР) ======
+  // ====== ОТПРАВКА ЗАЯВКИ ======
   document.getElementById('requestForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
     if (!loggedMaster.name) { showToast('Сначала войдите в систему', true); return; }
 
-    // СТРОГАЯ ПРОВЕРКА: перед отправкой проверяем, не удален ли аккаунт
     var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
     if (!userCheck || userCheck.status !== 'approved') {
       showToast('Ваш аккаунт удален или не подтвержден. Вы не можете подать заявку.', true);
@@ -1899,7 +1876,7 @@
     return snapshot.val() === phone;
   }
 
-  // ====== ИСТОРИЯ И ЭКСПОРТ ======
+  // ====== ИСТОРИЯ ======
   function renderHistory() {
     var fs = document.getElementById('filterService');
     var fb = document.getElementById('filterBrigade');
@@ -2010,9 +1987,7 @@
   document.getElementById('filterBrigade').addEventListener('change', renderHistory);
   document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
 
-  // ====== СЛУШАЕМ БАЗУ ======
-  
-  // 1. Слушаем заявки
+  // ====== СЛУШАТЕЛИ БАЗЫ ======
   onValue(ref(db, 'requests'), (snapshot) => {
     var data = snapshot.val();
     allRequests = [];
@@ -2043,7 +2018,6 @@
     renderServicePicker();
   });
 
-  // 2. Слушаем настройки
   onValue(ref(db, 'settings'), (snapshot) => {
     var data = snapshot.val();
     if (data) {
@@ -2060,7 +2034,6 @@
     }
   });
 
-  // 3. Слушаем пользователей
   onValue(ref(db, 'users'), (snapshot) => {
     var data = snapshot.val();
     allUsers = [];
@@ -2070,25 +2043,17 @@
       }
     }
 
-    // Проверяем статус текущего мастера
     if (loggedMaster.name) {
       var currentM = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
-      if (currentM) {
-        loggedMaster.status = currentM.status;
-      } else {
-        loggedMaster.status = 'rejected'; // Если аккаунт удален, блокируем
-      }
+      if (currentM) loggedMaster.status = currentM.status;
+      else loggedMaster.status = 'rejected';
       updateUIState();
     }
     
-    // Проверяем статус текущей службы
     if (loggedService.name) {
       var currentS = allUsers.find(function(u) { return u.phone === loggedService.phone; });
-      if (currentS) {
-        loggedService.status = currentS.status;
-      } else {
-        loggedService.status = 'rejected'; // Если аккаунт удален, блокируем
-      }
+      if (currentS) loggedService.status = currentS.status;
+      else loggedService.status = 'rejected';
       updateUIState();
     }
 
@@ -2097,7 +2062,7 @@
     }
   });
 
-  // Первичный рендер и АВТОВХОД
+  // Старт
   renderServicePicker();
   loadSavedCredentials();
   updateUIState();
