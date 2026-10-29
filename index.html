@@ -37,14 +37,18 @@
   .notify-btn:hover { background: #fde68a; }
   .notify-btn.on { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
 
-  /* Плашки статуса приема */
-  .schedule-alert {
-    padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
-    font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px;
+  /* Стили для плашки в шапке */
+  .header-timer {
+    padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 14px;
+    display: inline-flex; align-items: center; gap: 6px; transition: all .3s;
   }
-  .schedule-alert.open { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-  .schedule-alert.wait { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
-  .schedule-alert.closed { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+  .header-timer.open {
+    background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7;
+  }
+  .header-timer.closed {
+    background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
+  }
+  .header-timer span { font-size: 15px; font-family: monospace; }
 
   .closed-alert {
     background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
@@ -318,12 +322,14 @@
           <h2>Рабочий стол</h2>
           <div class="user-info">Вы вошли как: <strong id="loggedMasterBrigade"></strong> (<span id="loggedMasterName"></span>)</div>
         </div>
-        <button class="btn gray small" id="logoutMasterBtn">Выйти</button>
-      </div>
-
-      <!-- НОВАЯ ПЛАШКА: Расписание приема -->
-      <div id="masterScheduleInfo" class="schedule-alert open">
-        Загрузка расписания...
+        
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <!-- Плашка таймера теперь в одну строку с кнопкой Выйти -->
+          <div id="masterScheduleInfo" class="header-timer open">
+            Загрузка...
+          </div>
+          <button class="btn gray small" id="logoutMasterBtn">Выйти</button>
+        </div>
       </div>
 
       <div class="sub-tabs">
@@ -919,7 +925,7 @@
     return false;
   }
 
-  // ====== ТАЙМЕР РАСПИСАНИЯ ======
+  // ====== ТАЙМЕР РАСПИСАНИЯ В ШАПКЕ ======
   function formatTime(ms) {
     if (ms < 0) ms = 0;
     var totalSec = Math.floor(ms / 1000);
@@ -934,8 +940,8 @@
     if (!el) return;
 
     if (settings.isManuallyClosed) {
-      el.className = 'schedule-alert closed';
-      el.innerHTML = '⛔ Прием заявок временно приостановлен Главным инженером.';
+      el.className = 'header-timer closed';
+      el.innerHTML = '⛔ Прием остановлен';
       return;
     }
 
@@ -948,7 +954,6 @@
     var currentInterval = null;
     var nextInterval = null;
 
-    // Ищем текущий интервал и следующий
     for (var i = 0; i < settings.intervals.length; i++) {
       var inv = settings.intervals[i];
       var startSec = inv.start * 3600;
@@ -966,20 +971,19 @@
     if (currentInterval) {
       var endSec = currentInterval.end * 3600;
       var leftMs = (endSec - nowSec) * 1000;
-      el.className = 'schedule-alert open';
-      el.innerHTML = '🟢 Прием заявок открыт! До окончания: <strong style="margin-left:6px; font-size: 16px;">' + formatTime(leftMs) + '</strong>';
+      el.className = 'header-timer open';
+      el.innerHTML = '🟢 Открыт <span>' + formatTime(leftMs) + '</span>';
     } else if (nextInterval) {
       var startSec = nextInterval.start * 3600;
       var leftMs = (startSec - nowSec) * 1000;
-      el.className = 'schedule-alert wait';
-      el.innerHTML = '⏳ Прием заявок откроется через: <strong style="margin-left:6px; font-size: 16px;">' + formatTime(leftMs) + '</strong>';
+      el.className = 'header-timer closed';
+      el.innerHTML = '🔴 Откроется через <span>' + formatTime(leftMs) + '</span>';
     } else {
-      el.className = 'schedule-alert closed';
-      el.innerHTML = '⛔ Прием заявок на сегодня закрыт.';
+      el.className = 'header-timer closed';
+      el.innerHTML = '🔴 Прием закрыт';
     }
   }
 
-  // Таймер обновляется каждую секунду
   setInterval(updateScheduleTimer, 1000);
 
   function updateUIState() {
@@ -1036,7 +1040,6 @@
       serviceQuickRequestBlock.classList.add('hidden');
     }
     
-    // Обновляем плашку расписания сразу при изменении UI
     updateScheduleTimer();
   }
 
@@ -2260,7 +2263,7 @@
       }
     }
     updateUIState();
-    updateScheduleTimer(); // Обновляем таймер при изменении настроек
+    updateScheduleTimer();
     if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) {
       renderAdminPanel();
     }
