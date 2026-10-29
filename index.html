@@ -37,6 +37,15 @@
   .notify-btn:hover { background: #fde68a; }
   .notify-btn.on { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
 
+  /* Плашки статуса приема */
+  .schedule-alert {
+    padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
+    font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px;
+  }
+  .schedule-alert.open { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+  .schedule-alert.wait { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .schedule-alert.closed { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
   .closed-alert {
     background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
     padding: 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;
@@ -310,6 +319,11 @@
           <div class="user-info">Вы вошли как: <strong id="loggedMasterBrigade"></strong> (<span id="loggedMasterName"></span>)</div>
         </div>
         <button class="btn gray small" id="logoutMasterBtn">Выйти</button>
+      </div>
+
+      <!-- НОВАЯ ПЛАШКА: Расписание приема -->
+      <div id="masterScheduleInfo" class="schedule-alert open">
+        Загрузка расписания...
       </div>
 
       <div class="sub-tabs">
@@ -628,7 +642,7 @@
   var currentDetailServiceId = '';
   var currentDetailViewMode = 'master';
 
-  // ====== УВЕДОМЛЕНИЯ (Вариант 1) ======
+  // ====== УВЕДОМЛЕНИЯ ======
   var knownRequestIds = null;
   var audioCtx = null;
 
@@ -708,12 +722,9 @@
     });
   }
 
-  // Определяет, кому адресована новая заявка (для уведомлений)
   function isRequestForMe(req) {
-    // 1) Мастеру — если это его собственная заявка (по телефону)
     if (loggedMaster.phone && req.phone === loggedMaster.phone) return true;
 
-    // 2) Главному энергетику — заявки в службы "Энергетик" и "КИПиА"
     var isChiefEnergyLogged =
       (loggedMaster.brigade === 'Главный энергетик') ||
       (loggedService.role === 'Главный энергетик');
@@ -721,14 +732,12 @@
       return true;
     }
 
-    // 3) Службе — если заявка адресована именно её службе
     if (loggedService.role) {
       for (var i = 0; i < SERVICES.length; i++) {
         if (SERVICES[i].name === loggedService.role && SERVICES[i].id === req.serviceId) return true;
       }
     }
 
-    // 4) Админу — все заявки
     if (isAdminLoggedIn) return true;
 
     return false;
@@ -773,6 +782,7 @@
   
   var masterLoginBlock = document.getElementById('masterLoginBlock');
   var masterWorkBlock = document.getElementById('masterWorkBlock');
+  var masterScheduleInfo = document.getElementById('masterScheduleInfo');
   var loggedMasterBrigade = document.getElementById('loggedMasterBrigade');
   var loggedMasterName = document.getElementById('loggedMasterName');
   
@@ -909,6 +919,69 @@
     return false;
   }
 
+  // ====== ТАЙМЕР РАСПИСАНИЯ ======
+  function formatTime(ms) {
+    if (ms < 0) ms = 0;
+    var totalSec = Math.floor(ms / 1000);
+    var h = Math.floor(totalSec / 3600);
+    var m = Math.floor((totalSec % 3600) / 60);
+    var s = totalSec % 60;
+    return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function updateScheduleTimer() {
+    var el = document.getElementById('masterScheduleInfo');
+    if (!el) return;
+
+    if (settings.isManuallyClosed) {
+      el.className = 'schedule-alert closed';
+      el.innerHTML = '⛔ Прием заявок временно приостановлен Главным инженером.';
+      return;
+    }
+
+    var now = new Date();
+    var h = now.getHours();
+    var m = now.getMinutes();
+    var s = now.getSeconds();
+    var nowSec = h * 3600 + m * 60 + s;
+    
+    var currentInterval = null;
+    var nextInterval = null;
+
+    // Ищем текущий интервал и следующий
+    for (var i = 0; i < settings.intervals.length; i++) {
+      var inv = settings.intervals[i];
+      var startSec = inv.start * 3600;
+      var endSec = inv.end * 3600;
+
+      if (nowSec >= startSec && nowSec < endSec) {
+        currentInterval = inv;
+        break;
+      }
+      if (nowSec < startSec && (!nextInterval || startSec < nextInterval.start * 3600)) {
+        nextInterval = inv;
+      }
+    }
+
+    if (currentInterval) {
+      var endSec = currentInterval.end * 3600;
+      var leftMs = (endSec - nowSec) * 1000;
+      el.className = 'schedule-alert open';
+      el.innerHTML = '🟢 Прием заявок открыт! До окончания: <strong style="margin-left:6px; font-size: 16px;">' + formatTime(leftMs) + '</strong>';
+    } else if (nextInterval) {
+      var startSec = nextInterval.start * 3600;
+      var leftMs = (startSec - nowSec) * 1000;
+      el.className = 'schedule-alert wait';
+      el.innerHTML = '⏳ Прием заявок откроется через: <strong style="margin-left:6px; font-size: 16px;">' + formatTime(leftMs) + '</strong>';
+    } else {
+      el.className = 'schedule-alert closed';
+      el.innerHTML = '⛔ Прием заявок на сегодня закрыт.';
+    }
+  }
+
+  // Таймер обновляется каждую секунду
+  setInterval(updateScheduleTimer, 1000);
+
   function updateUIState() {
     if (!isAcceptingNow()) {
       globalClosedAlert.classList.remove('hidden');
@@ -962,6 +1035,9 @@
     } else if (serviceQuickRequestBlock) {
       serviceQuickRequestBlock.classList.add('hidden');
     }
+    
+    // Обновляем плашку расписания сразу при изменении UI
+    updateScheduleTimer();
   }
 
   function switchToTab(tabName) {
@@ -2184,6 +2260,7 @@
       }
     }
     updateUIState();
+    updateScheduleTimer(); // Обновляем таймер при изменении настроек
     if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) {
       renderAdminPanel();
     }
@@ -2221,6 +2298,7 @@
   renderServicePicker();
   loadSavedCredentials();
   updateUIState();
+  updateScheduleTimer();
   updateNotifyBtn();
 
 </script>
