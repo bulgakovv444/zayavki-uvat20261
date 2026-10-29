@@ -37,18 +37,26 @@
   .notify-btn:hover { background: #fde68a; }
   .notify-btn.on { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
 
-  /* Стили для плашки в шапке */
+  /* Стили для плашки в шапке (полная заливка) */
   .header-timer {
-    padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 14px;
-    display: inline-flex; align-items: center; gap: 6px; transition: all .3s;
+    padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 15px;
+    display: inline-flex; align-items: center; gap: 8px; transition: all .3s;
+    color: #fff;
   }
   .header-timer.open {
-    background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7;
+    background: #10b981; /* Сплошной зеленый */
+    border: 1px solid #059669;
   }
   .header-timer.closed {
-    background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
+    background: #ef4444; /* Сплошной красный */
+    border: 1px solid #dc2626;
   }
-  .header-timer span { font-size: 15px; font-family: monospace; }
+  .header-timer span { 
+    font-size: 18px; /* Крупный шрифт времени */
+    font-family: monospace; 
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
 
   .closed-alert {
     background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
@@ -324,7 +332,7 @@
         </div>
         
         <div style="display:flex; align-items:center; gap: 10px;">
-          <!-- Плашка таймера теперь в одну строку с кнопкой Выйти -->
+          <!-- Плашка таймера в одну строку с кнопкой Выйти -->
           <div id="masterScheduleInfo" class="header-timer open">
             Загрузка...
           </div>
@@ -941,7 +949,7 @@
 
     if (settings.isManuallyClosed) {
       el.className = 'header-timer closed';
-      el.innerHTML = '⛔ Прием остановлен';
+      el.innerHTML = 'Прием заявок остановлен';
       return;
     }
 
@@ -972,15 +980,15 @@
       var endSec = currentInterval.end * 3600;
       var leftMs = (endSec - nowSec) * 1000;
       el.className = 'header-timer open';
-      el.innerHTML = '🟢 Открыт <span>' + formatTime(leftMs) + '</span>';
+      el.innerHTML = 'Прием заявок открыт <span>' + formatTime(leftMs) + '</span>';
     } else if (nextInterval) {
       var startSec = nextInterval.start * 3600;
       var leftMs = (startSec - nowSec) * 1000;
       el.className = 'header-timer closed';
-      el.innerHTML = '🔴 Откроется через <span>' + formatTime(leftMs) + '</span>';
+      el.innerHTML = 'Прием заявок закрыт <span>' + formatTime(leftMs) + '</span>';
     } else {
       el.className = 'header-timer closed';
-      el.innerHTML = '🔴 Прием закрыт';
+      el.innerHTML = 'Прием заявок закрыт';
     }
   }
 
