@@ -6,193 +6,98 @@
 <title>Заявки Уватский проект</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: #f4f6f9;
-    color: #1f2933;
-    padding: 15px;
-    font-size: 14px;
-  }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f4f6f9; color: #1f2933; padding: 15px; font-size: 14px; }
   h1 { font-size: 20px; margin-bottom: 12px; color: #1e3a8a; }
   h2 { font-size: 16px; margin: 16px 0 10px; }
   .container { max-width: 1100px; margin: 0 auto; }
 
-  .tabs {
-    display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
-    flex-wrap: wrap;
-  }
-  .tab-btn {
-    background: none; border: none; font-size: 16px; font-weight: 600; color: #6b7280;
-    cursor: pointer; padding: 8px 12px; border-radius: 6px; transition: all .15s;
-  }
+  .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; flex-wrap: wrap; }
+  .tab-btn { background: none; border: none; font-size: 16px; font-weight: 600; color: #6b7280; cursor: pointer; padding: 8px 12px; border-radius: 6px; transition: all .15s; }
   .tab-btn:hover { background: #e5e7eb; color: #1f2933; }
   .tab-btn.active { background: #2563eb; color: #fff; }
 
-  .notify-btn {
-    margin-left: auto; align-self: center;
-    background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;
-    padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: all .15s;
-  }
+  .notify-btn { margin-left: auto; align-self: center; background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
   .notify-btn:hover { background: #fde68a; }
   .notify-btn.on { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
 
-  .header-timer {
-    padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 15px;
-    display: inline-flex; align-items: center; gap: 10px; transition: all .3s;
-    color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  .header-timer.open {
-    background: #10b981; border: 1px solid #059669;
-  }
-  .header-timer.closed {
-    background: #ef4444; border: 1px solid #dc2626;
-  }
-  .header-timer span { 
-    font-size: 20px; font-family: monospace; font-weight: 700; letter-spacing: 0.5px;
-  }
+  .header-timer { padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 10px; transition: all .3s; color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  .header-timer.open { background: #10b981; border: 1px solid #059669; }
+  .header-timer.closed { background: #ef4444; border: 1px solid #dc2626; }
+  .header-timer span { font-size: 20px; font-family: monospace; font-weight: 700; letter-spacing: 0.5px; }
 
-  .pending-alert {
-    background: #fef3c7; border: 1px solid #fcd34d; color: #92400e;
-    padding: 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;
-    display: flex; align-items: center; gap: 8px; font-size: 15px;
-  }
+  .pending-alert { background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; font-size: 15px; }
   .pending-alert.hidden { display: none; }
 
-  .login-box {
-    background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.08);
-    max-width: 400px; margin: 0 auto; text-align: center;
-  }
+  .login-box { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.08); max-width: 400px; margin: 0 auto; text-align: center; }
   .login-box h2 { margin-top: 0; color: #1e3a8a; }
   .login-box p { color: #6b7280; margin-bottom: 20px; font-size: 14px; }
   .login-box input, .login-box select { margin-bottom: 12px; text-align: center; }
 
   .step { margin-bottom: 16px; }
   .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .step-number {
-    display: flex; align-items: center; justify-content: center;
-    width: 24px; height: 24px; background: #2563eb; color: #fff;
-    border-radius: 50%; font-size: 14px; font-weight: 700; flex-shrink: 0;
-  }
+  .step-number { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: #2563eb; color: #fff; border-radius: 50%; font-size: 14px; font-weight: 700; flex-shrink: 0; }
   .step-title { font-size: 15px; font-weight: 600; }
 
-  .services {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
-  }
-  .service-card {
-    background: #fff; border-radius: 10px; padding: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,.06); cursor: pointer;
-    transition: transform .15s, box-shadow .15s, border-color .15s;
-    border: 2px solid transparent; position: relative;
-  }
+  .services { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .service-card { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,.06); cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; border: 2px solid transparent; position: relative; }
   .service-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
   .service-card.has-new { border-color: #ef4444; }
-  .service-card.has-wait { border-color: #f59e0b; }
+  .service-card.has-progress { border-color: #f59e0b; }
+  .service-card.has-wait { border-color: #94a3b8; }
   .service-card h3 { font-size: 15px; margin-bottom: 8px; }
-  
-  .badges-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
-  .badge {
-    display: inline-block; background: #ef4444; color: #fff;
-    font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px;
-  }
-  .badge.ok { background: #10b981; }
-  .badge.wait { background: #f59e0b; }
-  .badge.dual { background: #8b5cf6; }
-  
-  .dot {
-    position: absolute; top: 10px; right: 10px; width: 10px; height: 10px;
-    border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.2);
-    animation: pulse 1.5s infinite;
-  }
-  @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 3px rgba(239,68,68,.2); }
-    50% { box-shadow: 0 0 0 6px rgba(239,68,68,.05); }
-  }
 
-  .btn {
-    display: inline-block; background: #2563eb; color: #fff; border: none;
-    padding: 10px 20px; border-radius: 6px; cursor: pointer;
-    font-size: 14px; font-weight: 600; transition: background .15s; text-align: center;
-  }
+  .badges-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+  .badge { display: inline-block; background: #ef4444; color: #fff; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; }
+  .badge.ok { background: #10b981; }
+  .badge.progress { background: #f59e0b; }
+  .badge.wait { background: #94a3b8; }
+  .badge.dual { background: #8b5cf6; }
+
+  .dot { position: absolute; top: 10px; right: 10px; width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.2); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(239,68,68,.2); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,.05); } }
+
+  .btn { display: inline-block; background: #2563eb; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background .15s; text-align: center; }
   .btn:hover { background: #1d4ed8; }
-  .btn.green { background: #10b981; }
-  .btn.green:hover { background: #059669; }
-  .btn.gray { background: #6b7280; }
-  .btn.gray:hover { background: #4b5563; }
-  .btn.red { background: #ef4444; }
-  .btn.red:hover { background: #dc2626; }
-  .btn.orange { background: #f59e0b; }
-  .btn.orange:hover { background: #d97706; }
-  .btn.purple { background: #8b5cf6; }
-  .btn.purple:hover { background: #7c3aed; }
+  .btn.green { background: #10b981; } .btn.green:hover { background: #059669; }
+  .btn.gray { background: #6b7280; } .btn.gray:hover { background: #4b5563; }
+  .btn.red { background: #ef4444; } .btn.red:hover { background: #dc2626; }
+  .btn.orange { background: #f59e0b; } .btn.orange:hover { background: #d97706; }
+  .btn.purple { background: #8b5cf6; } .btn.purple:hover { background: #7c3aed; }
   .btn.small { padding: 6px 10px; font-size: 12px; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
   .btn.block { display: block; width: 100%; }
 
   .service-picker { display: flex; flex-wrap: wrap; gap: 8px; }
-  .service-pick-btn {
-    background: #eef2ff; color: #1e3a8a; border: 2px solid #c7d2fe;
-    padding: 8px 14px; border-radius: 6px; font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: all .15s; text-align: center;
-  }
+  .service-pick-btn { background: #eef2ff; color: #1e3a8a; border: 2px solid #c7d2fe; padding: 8px 14px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; text-align: center; }
   .service-pick-btn:hover { background: #e0e7ff; }
-  .service-pick-btn.active {
-    background: #2563eb; color: #fff; border-color: #2563eb;
-    box-shadow: 0 2px 4px rgba(37,99,235,.3);
-  }
+  .service-pick-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 2px 4px rgba(37,99,235,.3); }
 
   .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  input, select, textarea {
-    font: inherit; padding: 10px 12px; border: 2px solid #d1d5db; border-radius: 6px;
-    background: #fff; width: 100%; font-size: 14px;
-  }
-  input:focus, select:focus, textarea:focus {
-    outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1);
-  }
+  input, select, textarea { font: inherit; padding: 10px 12px; border: 2px solid #d1d5db; border-radius: 6px; background: #fff; width: 100%; font-size: 14px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
   textarea { resize: vertical; min-height: 60px; }
 
-  .card {
-    background: #fff; border-radius: 10px; padding: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 16px;
-  }
+  .card { background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 16px; }
 
-  .header-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06); flex-wrap: wrap; gap: 10px;
-  }
+  .header-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); flex-wrap: wrap; gap: 10px; }
   .header-bar h2 { margin: 0; font-size: 18px; }
   .header-bar .user-info { font-size: 14px; color: #6b7280; }
   .header-bar .user-info strong { color: #1e3a8a; }
-  
+
   .sub-tabs { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
   .sub-tab-btn { background: none; border: none; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; padding: 6px 12px; border-radius: 4px; }
   .sub-tab-btn.active { background: #e0e7ff; color: #1e3a8a; }
 
-  .request {
-    border-left: 4px solid #ef4444; background: #fff; padding: 12px;
-    border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05);
-  }
-  .request.status-service_done { border-left-color: #f59e0b; }
+  .request { border-left: 4px solid #ef4444; background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+  .request.status-new { border-left-color: #ef4444; }
+  .request.status-in_progress { border-left-color: #f59e0b; }
+  .request.status-service_done { border-left-color: #94a3b8; }
   .request.status-closed { border-left-color: #10b981; opacity: .75; }
   .request .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 
   .chat-btn { position: relative; }
-  .chat-btn.unread {
-    background: #ef4444 !important;
-    color: #fff;
-    border-color: #dc2626 !important;
-  }
-  .chat-badge {
-    position: absolute; top: -6px; right: -6px;
-    background: #fff; color: #ef4444;
-    font-size: 11px; font-weight: bold;
-    border-radius: 50%; width: 18px; height: 18px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,.3); border: 1px solid #ef4444;
-  }
+  .chat-btn.unread { background: #ef4444 !important; color: #fff; border-color: #dc2626 !important; }
+  .chat-badge { position: absolute; top: -6px; right: -6px; background: #fff; color: #ef4444; font-size: 11px; font-weight: bold; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.3); border: 1px solid #ef4444; }
 
   .hidden { display: none !important; }
   .back { margin-bottom: 12px; }
@@ -203,76 +108,52 @@
   .stat .num { font-size: 20px; font-weight: 700; }
   .stat .lbl { font-size: 12px; color: #6b7280; margin-top: 2px; }
   .stat.red .num { color: #ef4444; }
-  .stat.wait .num { color: #f59e0b; }
+  .stat.progress .num { color: #f59e0b; }
+  .stat.wait .num { color: #94a3b8; }
   .stat.ok .num { color: #10b981; }
 
   .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   .filters select { width: auto; min-width: 140px; }
 
-  .history-table {
-    width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px;
-    overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); font-size: 13px;
-  }
+  .history-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); font-size: 13px; }
   .history-table th { text-align: left; background: #f9fafb; padding: 10px; font-weight: 600; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
   .history-table td { padding: 10px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
   .history-table tr:last-child td { border-bottom: none; }
   .history-table .status-new { color: #ef4444; font-weight: 600; }
-  .history-table .status-service_done { color: #f59e0b; font-weight: 600; }
+  .history-table .status-in_progress { color: #f59e0b; font-weight: 600; }
+  .history-table .status-service_done { color: #94a3b8; font-weight: 600; }
   .history-table .status-closed { color: #10b981; font-weight: 600; }
 
-  .event-log {
-    font-size: 12px; color: #4b5563; margin-top: 6px; line-height: 1.5;
-    background: #f8fafc; padding: 8px; border-radius: 4px;
-  }
+  .event-log { font-size: 12px; color: #4b5563; margin-top: 6px; line-height: 1.5; background: #f8fafc; padding: 8px; border-radius: 4px; }
   .event-log div { margin-bottom: 2px; }
 
   .admin-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
   .admin-controls input { width: auto; }
   .admin-controls label { font-size: 12px; color: #6b7280; display: block; margin-bottom: 4px; }
-  
-  .moderation-user {
-    background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05); border-left: 4px solid #f59e0b;
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-  }
+
+  .moderation-user { background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05); border-left: 4px solid #f59e0b; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
   .moderation-user.approved { border-left-color: #10b981; }
   .moderation-user.rejected { border-left-color: #ef4444; opacity: 0.6; }
   .moderation-user .info { flex: 1; min-width: 200px; }
   .moderation-user .btns { display: flex; gap: 6px; }
 
   .chat-window { display: flex; flex-direction: column; height: 400px; }
-  .chat-messages {
-    flex: 1; overflow-y: auto; background: #f8fafc; border-radius: 8px; padding: 10px; margin-bottom: 10px;
-    border: 1px solid #e5e7eb;
-  }
+  .chat-messages { flex: 1; overflow-y: auto; background: #f8fafc; border-radius: 8px; padding: 10px; margin-bottom: 10px; border: 1px solid #e5e7eb; }
   .chat-msg { margin-bottom: 8px; display: flex; flex-direction: column; }
   .chat-msg.right { align-items: flex-end; }
-  .chat-msg .bubble {
-    background: #fff; padding: 8px 12px; border-radius: 8px; max-width: 80%;
-    box-shadow: 0 1px 2px rgba(0,0,0,.05); border: 1px solid #e5e7eb;
-  }
+  .chat-msg .bubble { background: #fff; padding: 8px 12px; border-radius: 8px; max-width: 80%; box-shadow: 0 1px 2px rgba(0,0,0,.05); border: 1px solid #e5e7eb; }
   .chat-msg.right .bubble { background: #dcfce7; border-color: #bbf7d0; }
   .chat-msg .meta { font-size: 10px; color: #9ca3af; margin-bottom: 2px; }
   .chat-input-row { display: flex; gap: 8px; }
   .chat-input-row input { flex: 1; }
 
-  .toast {
-    position: fixed; top: 15px; right: 15px; background: #10b981; color: #fff;
-    padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0,0,0,.15); opacity: 0; transform: translateY(-10px);
-    transition: opacity .2s, transform .2s; pointer-events: none; z-index: 1001;
-  }
+  .toast { position: fixed; top: 15px; right: 15px; background: #10b981; color: #fff; padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,.15); opacity: 0; transform: translateY(-10px); transition: opacity .2s, transform .2s; pointer-events: none; z-index: 1001; }
   .toast.error { background: #ef4444; }
   .toast.show { opacity: 1; transform: translateY(0); }
 
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,.5);
-    display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000;
-  }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
   .modal-overlay.hidden { display: none !important; }
-  .modal {
-    background: #fff; border-radius: 10px; padding: 20px; max-width: 600px; width: 100%;
-    box-shadow: 0 20px 50px rgba(0,0,0,.3);
-  }
+  .modal { background: #fff; border-radius: 10px; padding: 20px; max-width: 600px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
   .modal h3 { font-size: 16px; margin-bottom: 6px; }
   .modal p { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
   .modal input, .modal textarea, .modal select { margin-bottom: 12px; }
@@ -313,11 +194,8 @@
           <h2>Рабочий стол</h2>
           <div class="user-info">Вы вошли как: <strong id="loggedMasterBrigade"></strong> (<span id="loggedMasterName"></span>)</div>
         </div>
-        
         <div style="display:flex; align-items:center; gap: 10px;">
-          <div id="masterScheduleInfo" class="header-timer open">
-            Загрузка...
-          </div>
+          <div id="masterScheduleInfo" class="header-timer open">Загрузка...</div>
           <button class="btn gray small" id="logoutMasterBtn">Выйти</button>
         </div>
       </div>
@@ -337,7 +215,6 @@
               </div>
               <div class="service-picker" id="servicePicker"></div>
             </div>
-
             <div class="step">
               <div class="step-header">
                 <div class="step-number">2</div>
@@ -347,13 +224,11 @@
                 <textarea id="reqDesc" placeholder="Опишите проблему..."></textarea>
               </div>
             </div>
-
             <div style="margin-top: 16px;">
               <button class="btn block" type="submit" id="submitBtn">Отправить заявку</button>
             </div>
           </form>
         </div>
-
         <h2>Все службы (нажмите для просмотра)</h2>
         <div class="services" id="masterServicesGrid"></div>
       </div>
@@ -386,7 +261,7 @@
         </div>
         <button class="btn gray small" id="logoutServiceBtn">Выйти</button>
       </div>
-      
+
       <div id="servicePendingAlert" class="pending-alert hidden" style="margin-top: 10px;">
         <span>⏳</span> Ваш аккаунт службы находится на проверке. Вы не можете просматривать и выполнять заявки, пока Главный инженер не подтвердит вас.
       </div>
@@ -396,19 +271,18 @@
           <div class="card" style="border-left:4px solid #8b5cf6;">
             <h2 style="margin-top:0;">Подать заявку как мастер</h2>
             <p style="color:#6b7280;font-size:13px;margin-bottom:10px;">
-              Вы — Нач.смены: у вас есть права и мастера, и службы. Можете подавать заявки и закрывать их.
+              У вас есть права мастера. Можете подавать заявки.
             </p>
             <button class="btn purple small" id="quickOpenMasterTab">Перейти к форме заявки мастера →</button>
           </div>
         </div>
-
         <h2>Все службы (нажмите для просмотра)</h2>
         <div class="services" id="serviceServicesGrid"></div>
       </div>
     </div>
   </div>
 
-  <!-- ЭКРАН 3: ПРОСМОТР ЗАЯВОК СЛУЖБЫ -->
+  <!-- ЭКРАН 3: ДЕТАЛИ -->
   <div id="requestsDetailView" class="hidden">
     <div class="back"><button class="btn gray" id="backFromDetail">← Назад</button></div>
     <h1 id="detailTitle"></h1>
@@ -423,21 +297,18 @@
       <select id="filterStatus">
         <option value="">Все статусы</option>
         <option value="new">Новые</option>
+        <option value="in_progress">В работе</option>
         <option value="service_done">Ждут мастера</option>
         <option value="closed">Закрытые</option>
       </select>
-      <select id="filterService">
-        <option value="">Все службы</option>
-      </select>
-      <select id="filterBrigade">
-        <option value="">Все бригады</option>
-      </select>
+      <select id="filterService"><option value="">Все службы</option></select>
+      <select id="filterBrigade"><option value="">Все бригады</option></select>
       <button class="btn green small" id="exportCsvBtn">⬇ Выгрузить в Excel</button>
     </div>
     <div id="historyContent"></div>
   </div>
 
-  <!-- ЭКРАН 5: ПАНЕЛЬ ГЛАВНОГО ИНЖЕНЕРА -->
+  <!-- ЭКРАН 5: АДМИН -->
   <div id="adminView" class="hidden">
     <div id="adminLoginBlock" class="login-box">
       <h2>Панель Главного инженера</h2>
@@ -463,7 +334,7 @@
       <div id="adminUsersBlock">
         <div class="card" style="border-left: 4px solid #f59e0b;">
           <h2>Реестр пользователей</h2>
-          <p style="color: #6b7280; font-size: 13px; margin-bottom: 12px;">Подтверждайте новых пользователей. Если пользователь сменил бригаду/службу, статус сохраняется.</p>
+          <p style="color: #6b7280; font-size: 13px; margin-bottom: 12px;">Подтверждайте новых пользователей.</p>
           <div id="moderationList"></div>
         </div>
       </div>
@@ -484,17 +355,15 @@
             Статус: <strong id="adminStatusText">Загрузка...</strong>
           </div>
         </div>
-
         <h2>Все заявки (полный доступ)</h2>
         <div id="adminRequestsList"></div>
       </div>
-
     </div>
   </div>
 
 </div>
 
-<!-- Модальные окна -->
+<!-- Модалки -->
 <div class="modal-overlay hidden" id="serviceCodeModal">
   <div class="modal">
     <h3>Подтверждение службы</h3>
@@ -515,6 +384,18 @@
     <div class="modal-actions">
       <button class="btn gray small" id="cancelChiefCode">Отмена</button>
       <button class="btn green small" id="confirmChiefCode">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="chiefEngineerCodeModal">
+  <div class="modal">
+    <h3>Доступ Главного инженера</h3>
+    <p>Введите код Главного инженера, чтобы зарегистрироваться.</p>
+    <input type="password" id="chiefEngineerCodeInput" placeholder="Код Главного инженера" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn gray small" id="cancelChiefEngineerCode">Отмена</button>
+      <button class="btn green small" id="confirmChiefEngineerCode">Подтвердить</button>
     </div>
   </div>
 </div>
@@ -547,7 +428,6 @@
   <div class="modal" style="max-width: 500px;">
     <h3 id="chatTitle">Чат по заявке</h3>
     <p style="margin-bottom: 10px;">Обсуждение деталей выполнения.</p>
-    
     <div class="chat-window">
       <div class="chat-messages" id="chatMessages"></div>
       <div class="chat-input-row">
@@ -555,7 +435,6 @@
         <button class="btn green small" id="sendChatBtn">Отправить</button>
       </div>
     </div>
-    
     <div class="modal-actions" style="margin-top: 15px;">
       <button class="btn gray small" id="closeChatBtn">Закрыть</button>
     </div>
@@ -564,7 +443,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, push, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
@@ -587,27 +465,31 @@
   var CHIEF_CODE = '7642';
   var SERVICE_PASSWORD = '1234';
   var ADMIN_CODE = 'admin2483';
+  var CHIEF_ENGINEER_CODE = '2483';
 
   var SERVICES = [
-    { id: 'energy',   name: 'Энергетик' },
-    { id: 'kip',      name: 'КИПиА' },
-    { id: 'npo',      name: 'НПО' },
-    { id: 'vo',       name: 'ВО' },
-    { id: 'bpo',      name: 'БПО' },
-    { id: 'pipe',     name: 'Трубная база' },
-    { id: 'shift',    name: 'Нач.смены (СПТ)' }
+    { id: 'energy', name: 'Энергетик' },
+    { id: 'kip', name: 'КИПиА' },
+    { id: 'npo', name: 'НПО' },
+    { id: 'vo', name: 'ВО' },
+    { id: 'bpo', name: 'БПО' },
+    { id: 'pipe', name: 'Трубная база' },
+    { id: 'shift', name: 'Нач.смены (СПТ)' }
   ];
-  
+
+  // Должности мастеров / ИТР
   var BRIGADES = [
-    'Главный энергетик', 
+    'Главный инженер',        // единственный, требует код
+    'Старший мастер',         // подаёт как мастер, закрывает ЛЮБУЮ заявку
+    'Главный энергетик',
     'Технолог',
-    'Зам. исполнительного директора', 
-    'Главный механик ВО',             
-    'Главный механик НПО',            
-    'Начальник БПО',                  
+    'Зам. исполнительного директора',
+    'Главный механик ВО',
+    'Главный механик НПО',
+    'Начальник БПО',
     'Нач.смены',
-    'Начальник цеха',      
-    'Ведущий инженер',     
+    'Начальник цеха',
+    'Ведущий инженер',
     'Бригада 2', 'Бригада 26', 'Бригада 37', 'Бригада 38', 'Бригада 45',
     'Бригада 53', 'Бригада 59', 'Бригада 61', 'Бригада 62', 'Бригада 63',
     'Бригада 65', 'Бригада 69', 'Бригада 70', 'Бригада 129', 'Бригада 136'
@@ -615,7 +497,7 @@
 
   var allRequests = [];
   var allUsers = [];
-  var settings = { 
+  var settings = {
     isManuallyClosed: false,
     intervals: [
       { start: 8, end: 12 },
@@ -630,32 +512,77 @@
   var pendingNewRequest = null;
   var pendingTransferId = null;
   var currentChatRequestId = null;
-  
+  var chatUnsubscribe = null;
+
+  var pendingChiefEngineerReg = null;
+
   var loggedMaster = { name: '', phone: '', brigade: '', status: 'pending' };
   var loggedService = { name: '', phone: '', role: '', status: 'pending' };
-  
+
   var currentDetailServiceId = '';
   var currentDetailViewMode = 'master';
+
+  // ====== РОЛИ ======
+  function isChiefEngineerMaster() { return loggedMaster.name && loggedMaster.brigade === 'Главный инженер'; }
+  function isSeniorMaster()        { return loggedMaster.name && loggedMaster.brigade === 'Старший мастер'; }
+  function isChiefEnergetic()      { return loggedMaster.name && loggedMaster.brigade === 'Главный энергетик'; }
+  function isShiftChiefMaster()    { return loggedMaster.name && loggedMaster.brigade === 'Нач.смены'; }
+
+  // Подавать на все службы без выбора — только Главный инженер
+  function canSubmitToAllServices() {
+    return isChiefEngineerMaster();
+  }
+
+  // Кто может ЗАКРЫТЬ / ВЕРНУТЬ заявку
+  function canMasterClose(req) {
+    if (isAdminLoggedIn) return true;            // Главный инженер (админ-панель) — все
+    if (isChiefEngineerMaster()) return true;    // Главный инженер — все
+    if (isSeniorMaster()) return true;           // ✅ Старший мастер — закрывает ЛЮБУЮ заявку
+    if (isChiefEnergetic()) {
+      if (req.phone === loggedMaster.phone) return true;                     // свои
+      if (req.serviceId === 'energy' || req.serviceId === 'kip') return true; // energy/kip
+    }
+    if (loggedMaster.brigade && loggedMaster.brigade === req.brigade) return true; // обычный мастер — своя бригада
+    return false;
+  }
+  function canMasterReturn(req) { return canMasterClose(req); }
+
+  // Служба может действовать только в своей службе
+  function canServiceActOn(req) {
+    if (!loggedService.name) return false;
+    if (loggedService.status !== 'approved') return false;
+    for (var i = 0; i < SERVICES.length; i++) {
+      if (SERVICES[i].name === loggedService.role && SERVICES[i].id === req.serviceId) return true;
+    }
+    return false;
+  }
+
+  function getCurrentAuthor() {
+    if (isAdminLoggedIn) return 'Главный инженер';
+    if (loggedMaster.name) return loggedMaster.name;
+    if (loggedService.name) return loggedService.name;
+    return 'Неизвестный';
+  }
+  function getCurrentPhone() {
+    if (isAdminLoggedIn) return 'admin';
+    if (loggedMaster.phone) return loggedMaster.phone;
+    if (loggedService.phone) return loggedService.phone;
+    return '';
+  }
 
   // ====== УВЕДОМЛЕНИЯ ======
   var knownRequestIds = null;
   var audioCtx = null;
 
   function initAudio() {
-    if (!audioCtx) {
-      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(function(){});
-    }
+    if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(function(){});
   }
-
   function playDing() {
     try {
       initAudio();
       if (!audioCtx) return;
-      var times = [0, 0.18];
-      var freqs = [880, 1174];
+      var times = [0, 0.18], freqs = [880, 1174];
       for (var i = 0; i < times.length; i++) {
         var o = audioCtx.createOscillator(), g = audioCtx.createGain();
         o.type = 'sine'; o.frequency.value = freqs[i];
@@ -672,94 +599,47 @@
   function updateNotifyBtn() {
     var btn = document.getElementById('notifyBtn');
     if (!btn) return;
-    if (!('Notification' in window)) {
-      btn.textContent = '🔕 Уведомления не поддерживаются';
-      btn.disabled = true;
-      btn.classList.remove('on');
-      return;
-    }
-    if (Notification.permission === 'granted') {
-      btn.textContent = '🔔 Уведомления включены';
-      btn.classList.add('on');
-    } else if (Notification.permission === 'denied') {
-      btn.textContent = '🔕 Уведомления заблокированы';
-      btn.classList.remove('on');
-    } else {
-      btn.textContent = '🔔 Включить уведомления';
-      btn.classList.remove('on');
-    }
+    if (!('Notification' in window)) { btn.textContent = '🔕 Уведомления не поддерживаются'; btn.disabled = true; btn.classList.remove('on'); return; }
+    if (Notification.permission === 'granted') { btn.textContent = '🔔 Уведомления включены'; btn.classList.add('on'); }
+    else if (Notification.permission === 'denied') { btn.textContent = '🔕 Уведомления заблокированы'; btn.classList.remove('on'); }
+    else { btn.textContent = '🔔 Включить уведомления'; btn.classList.remove('on'); }
   }
-
   function requestNotifyPermission() {
-    if (!('Notification' in window)) {
-      showToast('Браузер не поддерживает уведомления', true);
-      return;
-    }
-    if (Notification.permission === 'granted') {
-      showToast('Уведомления уже включены');
-      initAudio();
-      playDing();
-      return;
-    }
-    if (Notification.permission === 'denied') {
-      showToast('Уведомления заблокированы в настройках браузера. Разрешите их вручную.', true);
-      return;
-    }
+    if (!('Notification' in window)) { showToast('Браузер не поддерживает уведомления', true); return; }
+    if (Notification.permission === 'granted') { showToast('Уведомления уже включены'); initAudio(); playDing(); return; }
+    if (Notification.permission === 'denied') { showToast('Уведомления заблокированы в настройках браузера. Разрешите их вручную.', true); return; }
     Notification.requestPermission().then(function(perm) {
       updateNotifyBtn();
-      if (perm === 'granted') {
-        showToast('Уведомления включены');
-        initAudio();
-        playDing();
-      } else {
-        showToast('Уведомления отключены', true);
-      }
+      if (perm === 'granted') { showToast('Уведомления включены'); initAudio(); playDing(); }
+      else showToast('Уведомления отключены', true);
     });
   }
 
   function isRequestForMe(req) {
     if (loggedMaster.phone && req.phone === loggedMaster.phone) return true;
-
-    var isChiefEnergyLogged =
-      (loggedMaster.brigade === 'Главный энергетик') ||
-      (loggedService.role === 'Главный энергетик');
-    if (isChiefEnergyLogged && (req.serviceId === 'energy' || req.serviceId === 'kip')) {
-      return true;
-    }
-
-    if (loggedService.role) {
+    if (isChiefEnergetic() && (req.serviceId === 'energy' || req.serviceId === 'kip')) return true;
+    if (isChiefEngineerMaster()) return true;
+    if (isSeniorMaster()) return true;   // уведомления по всем — он может закрывать любые
+    if (loggedService.role && loggedService.status === 'approved') {
       for (var i = 0; i < SERVICES.length; i++) {
         if (SERVICES[i].name === loggedService.role && SERVICES[i].id === req.serviceId) return true;
       }
     }
-
     if (isAdminLoggedIn) return true;
-
     return false;
   }
 
   function notifyNewRequest(req) {
     if (!isRequestForMe(req)) return;
-
     playDing();
-
     if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
       try {
         var title = '🛢️ Новая заявка: ' + serviceName(req.serviceId);
-        var body = (req.brigade ? 'Бригада: ' + req.brigade + '\n' : '') +
-                   (req.desc ? req.desc.substring(0, 120) : '');
-        var n = new Notification(title, {
-          body: body,
-          tag: 'req-' + req.id,
-          requireInteraction: false
-        });
-        n.onclick = function() {
-          window.focus();
-          n.close();
-        };
-      } catch(e) { console.log('Notification error', e); }
+        var body = (req.brigade ? 'Бригада: ' + req.brigade + '\n' : '') + (req.desc ? req.desc.substring(0, 120) : '');
+        var n = new Notification(title, { body: body, tag: 'req-' + req.id });
+        n.onclick = function() { window.focus(); n.close(); };
+      } catch(e) {}
     }
-
     showToast('🛢️ Новая заявка: ' + serviceName(req.serviceId));
   }
 
@@ -768,90 +648,77 @@
   var tabService = document.getElementById('tabService');
   var tabHistory = document.getElementById('tabHistory');
   var tabAdmin = document.getElementById('tabAdmin');
-  
   var masterView = document.getElementById('masterView');
   var serviceView = document.getElementById('serviceView');
   var historyView = document.getElementById('historyView');
   var requestsDetailView = document.getElementById('requestsDetailView');
   var adminView = document.getElementById('adminView');
-  
   var masterLoginBlock = document.getElementById('masterLoginBlock');
   var masterWorkBlock = document.getElementById('masterWorkBlock');
   var masterScheduleInfo = document.getElementById('masterScheduleInfo');
   var loggedMasterBrigade = document.getElementById('loggedMasterBrigade');
   var loggedMasterName = document.getElementById('loggedMasterName');
-  
   var subTabNewRequest = document.getElementById('subTabNewRequest');
   var subTabMyRequests = document.getElementById('subTabMyRequests');
   var newRequestBlock = document.getElementById('newRequestBlock');
   var myRequestsBlock = document.getElementById('myRequestsBlock');
   var myRequestsList = document.getElementById('myRequestsList');
-
   var serviceLoginBlock = document.getElementById('serviceLoginBlock');
   var serviceWorkBlock = document.getElementById('serviceWorkBlock');
   var servicePendingAlert = document.getElementById('servicePendingAlert');
   var serviceContentBlock = document.getElementById('serviceContentBlock');
   var loggedServiceName = document.getElementById('loggedServiceName');
   var loggedServicePhone = document.getElementById('loggedServicePhone');
-
   var adminLoginBlock = document.getElementById('adminLoginBlock');
   var adminWorkBlock = document.getElementById('adminWorkBlock');
   var adminUsersBlock = document.getElementById('adminUsersBlock');
   var adminRequestsBlock = document.getElementById('adminRequestsBlock');
   var adminTabUsers = document.getElementById('adminTabUsers');
   var adminTabRequests = document.getElementById('adminTabRequests');
-  
   var adminRequestsList = document.getElementById('adminRequestsList');
   var adminStatusText = document.getElementById('adminStatusText');
   var globalPendingAlert = document.getElementById('globalPendingAlert');
   var submitBtn = document.getElementById('submitBtn');
   var moderationList = document.getElementById('moderationList');
-
   var masterServicesGrid = document.getElementById('masterServicesGrid');
   var serviceServicesGrid = document.getElementById('serviceServicesGrid');
   var detailRequestsList = document.getElementById('detailRequestsList');
   var detailTitle = document.getElementById('detailTitle');
   var servicePicker = document.getElementById('servicePicker');
   var reqDescEl = document.getElementById('reqDesc');
-
   var toastEl = document.getElementById('toast');
-  
   var serviceCodeModal = document.getElementById('serviceCodeModal');
   var serviceCodeInput = document.getElementById('serviceCodeInput');
   var confirmServiceCodeBtn = document.getElementById('confirmServiceCode');
   var cancelServiceCodeBtn = document.getElementById('cancelServiceCode');
-  
   var chiefCodeModal = document.getElementById('chiefCodeModal');
   var chiefCodeInput = document.getElementById('chiefCodeInput');
   var confirmChiefCodeBtn = document.getElementById('confirmChiefCode');
   var cancelChiefCodeBtn = document.getElementById('cancelChiefCode');
-
+  var chiefEngineerCodeModal = document.getElementById('chiefEngineerCodeModal');
+  var chiefEngineerCodeInput = document.getElementById('chiefEngineerCodeInput');
+  var confirmChiefEngineerCodeBtn = document.getElementById('confirmChiefEngineerCode');
+  var cancelChiefEngineerCodeBtn = document.getElementById('cancelChiefEngineerCode');
   var returnModal = document.getElementById('returnModal');
   var returnCommentInput = document.getElementById('returnCommentInput');
   var confirmReturnBtn = document.getElementById('confirmReturn');
   var cancelReturnBtn = document.getElementById('cancelReturn');
-
   var transferModal = document.getElementById('transferModal');
   var transferServiceSelect = document.getElementById('transferServiceSelect');
   var confirmTransferBtn = document.getElementById('confirmTransfer');
   var cancelTransferBtn = document.getElementById('cancelTransfer');
-
   var chatModal = document.getElementById('chatModal');
   var chatTitle = document.getElementById('chatTitle');
   var chatMessages = document.getElementById('chatMessages');
   var chatInput = document.getElementById('chatInput');
   var sendChatBtn = document.getElementById('sendChatBtn');
   var closeChatBtn = document.getElementById('closeChatBtn');
-
   var serviceQuickRequestBlock = document.getElementById('serviceQuickRequestBlock');
 
   var notifyBtn = document.getElementById('notifyBtn');
   if (notifyBtn) notifyBtn.addEventListener('click', requestNotifyPermission);
   updateNotifyBtn();
-  document.addEventListener('click', function once() {
-    initAudio();
-    document.removeEventListener('click', once);
-  }, { once: true });
+  document.addEventListener('click', function once() { initAudio(); document.removeEventListener('click', once); }, { once: true });
 
   function showToast(msg, isError) {
     toastEl.textContent = msg;
@@ -859,50 +726,30 @@
     toastEl.classList.add('show');
     setTimeout(function () { toastEl.classList.remove('show'); }, 3500);
   }
-
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, function (c) {
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
   }
-
   function serviceName(id) {
     for (var i = 0; i < SERVICES.length; i++) if (SERVICES[i].id === id) return SERVICES[i].name;
     return id;
   }
-
   function statusLabel(status) {
     if (status === 'new') return 'Новая';
+    if (status === 'in_progress') return 'В работе';
     if (status === 'service_done') return 'Ждёт мастера';
     if (status === 'closed') return 'Закрыта';
     return status;
   }
-
-  function formatDate(ts) {
-    if (!ts) return '';
-    return new Date(ts).toLocaleString('ru-RU');
-  }
-
-  function newCount(serviceId) {
+  function formatDate(ts) { return ts ? new Date(ts).toLocaleString('ru-RU') : ''; }
+  function countByStatus(serviceId, status) {
     var n = 0;
     for (var i = 0; i < allRequests.length; i++) {
-      if (allRequests[i].serviceId === serviceId && allRequests[i].status === 'new') n++;
+      if (allRequests[i].serviceId === serviceId && allRequests[i].status === status) n++;
     }
     return n;
   }
-
-  function waitCount(serviceId) {
-    var n = 0;
-    for (var i = 0; i < allRequests.length; i++) {
-      if (allRequests[i].serviceId === serviceId && allRequests[i].status === 'service_done') n++;
-    }
-    return n;
-  }
-
-  function isShiftChiefService() {
-    return loggedService.name && loggedService.role === 'Нач.смены (СПТ)';
-  }
-
   function isAcceptingNow() {
     if (settings.isManuallyClosed) return false;
     var h = new Date().getHours();
@@ -912,97 +759,57 @@
     }
     return false;
   }
+  function isShiftChiefService() { return loggedService.name && loggedService.role === 'Нач.смены (СПТ)'; }
 
-  // ====== ТАЙМЕР РАСПИСАНИЯ В ШАПКЕ ======
+  // ====== ТАЙМЕР ======
   function formatTime(ms) {
     if (ms < 0) ms = 0;
     var totalSec = Math.floor(ms / 1000);
-    var h = Math.floor(totalSec / 3600);
-    var m = Math.floor((totalSec % 3600) / 60);
-    var s = totalSec % 60;
+    var h = Math.floor(totalSec / 3600), m = Math.floor((totalSec % 3600) / 60), s = totalSec % 60;
     return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
   }
-
   function updateScheduleTimer() {
     var el = document.getElementById('masterScheduleInfo');
     if (!el) return;
-
-    if (settings.isManuallyClosed) {
-      el.className = 'header-timer closed';
-      el.innerHTML = 'Прием заявок закрыт';
-      return;
-    }
-
-    var now = new Date();
-    var h = now.getHours();
-    var m = now.getMinutes();
-    var s = now.getSeconds();
+    if (settings.isManuallyClosed) { el.className = 'header-timer closed'; el.innerHTML = 'Прием заявок закрыт'; return; }
+    var now = new Date(), h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
     var nowSec = h * 3600 + m * 60 + s;
-    
-    var currentInterval = null;
-    var nextIntervalToday = null;
-    var firstIntervalTomorrow = null;
-
+    var currentInterval = null, nextIntervalToday = null, firstIntervalTomorrow = null;
     for (var i = 0; i < settings.intervals.length; i++) {
-      var inv = settings.intervals[i];
-      var startSec = inv.start * 3600;
-      var endSec = inv.end * 3600;
-
-      if (nowSec >= startSec && nowSec < endSec) {
-        currentInterval = inv;
-        break;
-      }
-      if (nowSec < startSec && (!nextIntervalToday || startSec < nextIntervalToday.start * 3600)) {
-        nextIntervalToday = inv;
-      }
-      if (!firstIntervalTomorrow || startSec < firstIntervalTomorrow.start * 3600) {
-        firstIntervalTomorrow = inv;
-      }
+      var inv = settings.intervals[i], startSec = inv.start * 3600, endSec = inv.end * 3600;
+      if (nowSec >= startSec && nowSec < endSec) { currentInterval = inv; break; }
+      if (nowSec < startSec && (!nextIntervalToday || startSec < nextIntervalToday.start * 3600)) nextIntervalToday = inv;
+      if (!firstIntervalTomorrow || startSec < firstIntervalTomorrow.start * 3600) firstIntervalTomorrow = inv;
     }
-
     if (currentInterval) {
-      var endSec = currentInterval.end * 3600;
-      var leftMs = (endSec - nowSec) * 1000;
       el.className = 'header-timer open';
-      el.innerHTML = 'Прием заявок открыт <span>' + formatTime(leftMs) + '</span>';
+      el.innerHTML = 'Прием заявок открыт <span>' + formatTime((currentInterval.end * 3600 - nowSec) * 1000) + '</span>';
     } else if (nextIntervalToday) {
-      var startSec = nextIntervalToday.start * 3600;
-      var leftMs = (startSec - nowSec) * 1000;
       el.className = 'header-timer closed';
-      el.innerHTML = 'Прием заявок закрыт <span>' + formatTime(leftMs) + '</span>';
+      el.innerHTML = 'Прием заявок закрыт <span>' + formatTime((nextIntervalToday.start * 3600 - nowSec) * 1000) + '</span>';
     } else if (firstIntervalTomorrow) {
-      var startSec = firstIntervalTomorrow.start * 3600;
-      var leftMs = ((24 * 3600) - nowSec + startSec) * 1000;
       el.className = 'header-timer closed';
-      el.innerHTML = 'Прием заявок закрыт <span>' + formatTime(leftMs) + '</span>';
+      el.innerHTML = 'Прием заявок закрыт <span>' + formatTime(((24 * 3600) - nowSec + firstIntervalTomorrow.start * 3600) * 1000) + '</span>';
     } else {
       el.className = 'header-timer closed';
       el.innerHTML = 'Прием заявок закрыт';
     }
   }
-
   setInterval(updateScheduleTimer, 1000);
 
   function updateUIState() {
     if (loggedMaster.name) {
       if (loggedMaster.status === 'pending') {
         globalPendingAlert.classList.remove('hidden');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Ожидает подтверждения';
+        submitBtn.disabled = true; submitBtn.textContent = 'Ожидает подтверждения';
       } else if (loggedMaster.status === 'rejected') {
         globalPendingAlert.classList.remove('hidden');
         globalPendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен или удален. Обратитесь к администратору.';
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Доступ закрыт';
+        submitBtn.disabled = true; submitBtn.textContent = 'Доступ закрыт';
       } else {
         globalPendingAlert.classList.add('hidden');
-        if (!isAcceptingNow()) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = 'Прием заявок закрыт';
-        } else {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Отправить заявку';
-        }
+        if (!isAcceptingNow()) { submitBtn.disabled = true; submitBtn.textContent = 'Прием заявок закрыт'; }
+        else { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
       }
     }
 
@@ -1010,70 +817,47 @@
       if (loggedService.status !== 'approved') {
         servicePendingAlert.classList.remove('hidden');
         serviceContentBlock.classList.add('hidden');
-        if (loggedService.status === 'rejected') {
-          servicePendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен или удален. Обратитесь к администратору.';
-        } else {
-          servicePendingAlert.innerHTML = '<span>⏳</span> Ваш аккаунт службы находится на проверке. Вы не можете просматривать и выполнять заявки, пока Главный инженер не подтвердит вас.';
-        }
+        if (loggedService.status === 'rejected') servicePendingAlert.innerHTML = '<span>⛔</span> Ваш аккаунт отклонен или удален. Обратитесь к администратору.';
+        else servicePendingAlert.innerHTML = '<span>⏳</span> Ваш аккаунт службы находится на проверке. Вы не можете просматривать и выполнять заявки, пока Главный инженер не подтвердит вас.';
       } else {
         servicePendingAlert.classList.add('hidden');
         serviceContentBlock.classList.remove('hidden');
       }
-
       if (serviceQuickRequestBlock) {
-        if (isShiftChiefService() && loggedService.status === 'approved') {
-          serviceQuickRequestBlock.classList.remove('hidden');
-        } else {
-          serviceQuickRequestBlock.classList.add('hidden');
-        }
+        if (isShiftChiefService() && loggedService.status === 'approved') serviceQuickRequestBlock.classList.remove('hidden');
+        else serviceQuickRequestBlock.classList.add('hidden');
       }
-    } else if (serviceQuickRequestBlock) {
-      serviceQuickRequestBlock.classList.add('hidden');
-    }
-    
+    } else if (serviceQuickRequestBlock) serviceQuickRequestBlock.classList.add('hidden');
     updateScheduleTimer();
   }
 
   function switchToTab(tabName) {
     tabMaster.classList.remove('active'); tabService.classList.remove('active'); tabHistory.classList.remove('active'); tabAdmin.classList.remove('active');
     masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); requestsDetailView.classList.add('hidden'); adminView.classList.add('hidden');
-
     if (tabName === 'master') {
-      tabMaster.classList.add('active');
-      masterView.classList.remove('hidden');
+      tabMaster.classList.add('active'); masterView.classList.remove('hidden');
       if (loggedMaster.name) {
-        masterLoginBlock.classList.add('hidden');
-        masterWorkBlock.classList.remove('hidden');
+        masterLoginBlock.classList.add('hidden'); masterWorkBlock.classList.remove('hidden');
         renderServicesGrid(masterServicesGrid, 'master');
       } else {
-        masterLoginBlock.classList.remove('hidden');
-        masterWorkBlock.classList.add('hidden');
+        masterLoginBlock.classList.remove('hidden'); masterWorkBlock.classList.add('hidden');
       }
     } else if (tabName === 'service') {
-      tabService.classList.add('active');
-      serviceView.classList.remove('hidden');
+      tabService.classList.add('active'); serviceView.classList.remove('hidden');
       if (loggedService.name) {
-        serviceLoginBlock.classList.add('hidden');
-        serviceWorkBlock.classList.remove('hidden');
+        serviceLoginBlock.classList.add('hidden'); serviceWorkBlock.classList.remove('hidden');
         renderServicesGrid(serviceServicesGrid, 'service');
       } else {
-        serviceLoginBlock.classList.remove('hidden');
-        serviceWorkBlock.classList.add('hidden');
+        serviceLoginBlock.classList.remove('hidden'); serviceWorkBlock.classList.add('hidden');
       }
     } else if (tabName === 'history') {
-      tabHistory.classList.add('active');
-      historyView.classList.remove('hidden');
-      renderHistory();
+      tabHistory.classList.add('active'); historyView.classList.remove('hidden'); renderHistory();
     } else if (tabName === 'admin') {
-      tabAdmin.classList.add('active');
-      adminView.classList.remove('hidden');
+      tabAdmin.classList.add('active'); adminView.classList.remove('hidden');
       if (isAdminLoggedIn) {
-        adminLoginBlock.classList.add('hidden');
-        adminWorkBlock.classList.remove('hidden');
-        renderAdminPanel();
+        adminLoginBlock.classList.add('hidden'); adminWorkBlock.classList.remove('hidden'); renderAdminPanel();
       } else {
-        adminLoginBlock.classList.remove('hidden');
-        adminWorkBlock.classList.add('hidden');
+        adminLoginBlock.classList.remove('hidden'); adminWorkBlock.classList.add('hidden');
       }
     }
     updateUIState();
@@ -1093,7 +877,6 @@
     newRequestBlock.classList.add('hidden'); myRequestsBlock.classList.remove('hidden');
     renderMyRequests();
   });
-
   adminTabUsers.addEventListener('click', function() {
     adminTabUsers.classList.add('active'); adminTabRequests.classList.remove('active');
     adminUsersBlock.classList.remove('hidden'); adminRequestsBlock.classList.add('hidden');
@@ -1104,6 +887,7 @@
     renderAdminRequests();
   });
 
+  // ====== СОХРАНЁННЫЕ ДАННЫЕ ======
   function loadSavedCredentials() {
     var mName = localStorage.getItem('save_m_name');
     var mPhone = localStorage.getItem('save_m_phone');
@@ -1124,22 +908,16 @@
 
     if (savedMasterActive === 'true' && mName && mPhone && mBrigade) {
       loggedMaster = { name: mName, phone: mPhone, brigade: mBrigade, status: 'pending' };
-      masterLoginBlock.classList.add('hidden');
-      masterWorkBlock.classList.remove('hidden');
+      masterLoginBlock.classList.add('hidden'); masterWorkBlock.classList.remove('hidden');
       loggedMasterBrigade.textContent = mBrigade;
       loggedMasterName.textContent = mName + ', ' + mPhone;
-      renderServicesGrid(masterServicesGrid, 'master');
-      updateUIState();
-      switchToTab('master');
+      renderServicesGrid(masterServicesGrid, 'master'); updateUIState(); switchToTab('master');
     } else if (savedServiceActive === 'true' && sName && sPhone && sRole) {
       loggedService = { name: sName, phone: sPhone, role: sRole, status: 'pending' };
-      serviceLoginBlock.classList.add('hidden');
-      serviceWorkBlock.classList.remove('hidden');
+      serviceLoginBlock.classList.add('hidden'); serviceWorkBlock.classList.remove('hidden');
       loggedServiceName.textContent = sRole;
       loggedServicePhone.textContent = sName + ', ' + sPhone;
-      renderServicesGrid(serviceServicesGrid, 'service');
-      updateUIState();
-      switchToTab('service');
+      renderServicesGrid(serviceServicesGrid, 'service'); updateUIState(); switchToTab('service');
     } else {
       switchToTab('master');
     }
@@ -1155,29 +933,34 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!brigade) { showToast('Выберите бригаду', true); return; }
 
-    var isShiftChief = (brigade === 'Нач.смены');
+    if (brigade === 'Главный инженер') {
+      pendingChiefEngineerReg = { name: name, phone: phone, brigade: brigade };
+      chiefEngineerCodeInput.value = '';
+      chiefEngineerCodeModal.classList.remove('hidden');
+      chiefEngineerCodeInput.focus();
+      return;
+    }
+    await processMasterLogin(name, phone, brigade);
+  });
 
+  async function processMasterLogin(name, phone, brigade) {
+    var isShiftChief = (brigade === 'Нач.смены');
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
-    
+
     if (existingUser) {
       if (existingUser.status === 'approved') {
-        var userRef = ref(db, 'users/' + existingUser.id);
-        await update(userRef, { name: name, brigade: brigade, role: 'master', dualRole: isShiftChief });
+        await update(ref(db, 'users/' + existingUser.id), { name: name, brigade: brigade, role: 'master', dualRole: isShiftChief });
         loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'approved' };
         showToast('Вы успешно вошли (данные обновлены).');
       } else if (existingUser.status === 'pending') {
         loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'pending' };
         showToast('Ваш аккаунт уже на проверке.', true);
       } else {
-        showToast('Ваш аккаунт отклонен. Обратитесь к администратору.', true);
-        return;
+        showToast('Ваш аккаунт отклонен. Обратитесь к администратору.', true); return;
       }
     } else {
       var newRef = push(ref(db, 'users'));
-      await set(newRef, {
-        name: name, phone: phone, brigade: brigade, role: 'master',
-        status: 'pending', createdAt: Date.now(), dualRole: isShiftChief
-      });
+      await set(newRef, { name: name, phone: phone, brigade: brigade, role: 'master', status: 'pending', createdAt: Date.now(), dualRole: isShiftChief });
       loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'pending' };
       showToast('Регистрация отправлена. Ожидайте подтверждения.');
     }
@@ -1188,20 +971,41 @@
     localStorage.setItem('logged_master_active', 'true');
     localStorage.removeItem('logged_service_active');
 
-    masterLoginBlock.classList.add('hidden');
-    masterWorkBlock.classList.remove('hidden');
+    masterLoginBlock.classList.add('hidden'); masterWorkBlock.classList.remove('hidden');
     loggedMasterBrigade.textContent = brigade;
     loggedMasterName.textContent = name + ', ' + phone;
-    
     renderServicesGrid(masterServicesGrid, 'master');
     updateUIState();
+  }
+
+  confirmChiefEngineerCodeBtn.addEventListener('click', async function() {
+    if (!pendingChiefEngineerReg) { chiefEngineerCodeModal.classList.add('hidden'); return; }
+    if (chiefEngineerCodeInput.value.trim() !== CHIEF_ENGINEER_CODE) {
+      showToast('Неверный код Главного инженера', true);
+      chiefEngineerCodeInput.value = ''; chiefEngineerCodeInput.focus(); return;
+    }
+    var existingChief = allUsers.find(function(u) {
+      return u.brigade === 'Главный инженер' && u.phone !== pendingChiefEngineerReg.phone && u.status !== 'rejected';
+    });
+    if (existingChief) {
+      showToast('Главный инженер уже зарегистрирован (' + existingChief.name + ').', true);
+      chiefEngineerCodeModal.classList.add('hidden');
+      pendingChiefEngineerReg = null;
+      return;
+    }
+    chiefEngineerCodeModal.classList.add('hidden');
+    var reg = pendingChiefEngineerReg; pendingChiefEngineerReg = null;
+    await processMasterLogin(reg.name, reg.phone, reg.brigade);
+  });
+  cancelChiefEngineerCodeBtn.addEventListener('click', function() {
+    chiefEngineerCodeModal.classList.add('hidden');
+    pendingChiefEngineerReg = null;
   });
 
   document.getElementById('logoutMasterBtn').addEventListener('click', function() {
     localStorage.removeItem('logged_master_active');
     loggedMaster = { name: '', phone: '', brigade: '', status: 'pending' };
-    masterLoginBlock.classList.remove('hidden');
-    masterWorkBlock.classList.add('hidden');
+    masterLoginBlock.classList.remove('hidden'); masterWorkBlock.classList.add('hidden');
     globalPendingAlert.classList.add('hidden');
   });
 
@@ -1215,34 +1019,27 @@
     var name = document.getElementById('loginServiceName').value.trim();
     var phone = document.getElementById('loginServicePhone').value.trim();
     var role = document.getElementById('loginServiceRole').value;
-
     if (!name) { showToast('Введите ваше имя', true); return; }
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!role) { showToast('Выберите службу', true); return; }
 
     var isShiftService = (role === 'Нач.смены (СПТ)');
-
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
 
     if (existingUser) {
       if (existingUser.status === 'approved') {
-        var userRef = ref(db, 'users/' + existingUser.id);
-        await update(userRef, { name: name, role: role, brigade: 'Служба', dualRole: isShiftService });
+        await update(ref(db, 'users/' + existingUser.id), { name: name, role: role, brigade: 'Служба', dualRole: isShiftService });
         loggedService = { name: name, phone: phone, role: role, status: 'approved' };
         showToast('Вы успешно вошли (данные обновлены).');
       } else if (existingUser.status === 'pending') {
         loggedService = { name: name, phone: phone, role: role, status: 'pending' };
         showToast('Ваш аккаунт уже на проверке.', true);
       } else {
-        showToast('Ваш аккаунт отклонен. Обратитесь к администратору.', true);
-        return;
+        showToast('Ваш аккаунт отклонен. Обратитесь к администратору.', true); return;
       }
     } else {
       var newRef = push(ref(db, 'users'));
-      await set(newRef, {
-        name: name, phone: phone, role: role, brigade: 'Служба',
-        status: 'pending', createdAt: Date.now(), dualRole: isShiftService
-      });
+      await set(newRef, { name: name, phone: phone, role: role, brigade: 'Служба', status: 'pending', createdAt: Date.now(), dualRole: isShiftService });
       loggedService = { name: name, phone: phone, role: role, status: 'pending' };
       showToast('Регистрация отправлена. Ожидайте подтверждения.');
     }
@@ -1253,11 +1050,9 @@
     localStorage.setItem('logged_service_active', 'true');
     localStorage.removeItem('logged_master_active');
 
-    serviceLoginBlock.classList.add('hidden');
-    serviceWorkBlock.classList.remove('hidden');
+    serviceLoginBlock.classList.add('hidden'); serviceWorkBlock.classList.remove('hidden');
     loggedServiceName.textContent = role;
     loggedServicePhone.textContent = name + ', ' + phone;
-    
     renderServicesGrid(serviceServicesGrid, 'service');
     updateUIState();
   });
@@ -1265,8 +1060,7 @@
   document.getElementById('logoutServiceBtn').addEventListener('click', function() {
     localStorage.removeItem('logged_service_active');
     loggedService = { name: '', phone: '', role: '', status: 'pending' };
-    serviceLoginBlock.classList.remove('hidden');
-    serviceWorkBlock.classList.add('hidden');
+    serviceLoginBlock.classList.remove('hidden'); serviceWorkBlock.classList.add('hidden');
     servicePendingAlert.classList.add('hidden');
     if (serviceQuickRequestBlock) serviceQuickRequestBlock.classList.add('hidden');
   });
@@ -1298,24 +1092,16 @@
   // ====== ВХОД АДМИНА ======
   document.getElementById('adminLoginBtn').addEventListener('click', function() {
     var code = document.getElementById('adminCodeInput').value;
-    if (code !== ADMIN_CODE) {
-      showToast('Неверный код доступа', true);
-      return;
-    }
+    if (code !== ADMIN_CODE) { showToast('Неверный код доступа', true); return; }
     isAdminLoggedIn = true;
-    adminLoginBlock.classList.add('hidden');
-    adminWorkBlock.classList.remove('hidden');
-    
+    adminLoginBlock.classList.add('hidden'); adminWorkBlock.classList.remove('hidden');
     adminTabUsers.classList.add('active'); adminTabRequests.classList.remove('active');
     adminUsersBlock.classList.remove('hidden'); adminRequestsBlock.classList.add('hidden');
-    
     renderAdminUsers();
   });
-
   document.getElementById('logoutAdminBtn').addEventListener('click', function() {
     isAdminLoggedIn = false;
-    adminLoginBlock.classList.remove('hidden');
-    adminWorkBlock.classList.add('hidden');
+    adminLoginBlock.classList.remove('hidden'); adminWorkBlock.classList.add('hidden');
     document.getElementById('adminCodeInput').value = '';
   });
 
@@ -1324,16 +1110,10 @@
     var e1 = parseInt(document.getElementById('adminEnd1').value) || 0;
     var s2 = parseInt(document.getElementById('adminStart2').value) || 0;
     var e2 = parseInt(document.getElementById('adminEnd2').value) || 0;
-
     var newIntervals = [];
     if (s1 !== e1) newIntervals.push({ start: s1, end: e1 });
     if (s2 !== e2) newIntervals.push({ start: s2, end: e2 });
-
-    if (newIntervals.length === 0) {
-      showToast('Укажите хотя бы один интервал', true);
-      return;
-    }
-
+    if (newIntervals.length === 0) { showToast('Укажите хотя бы один интервал', true); return; }
     await set(ref(db, 'settings/intervals'), newIntervals);
     showToast('Расписание сохранено');
   });
@@ -1346,54 +1126,36 @@
 
   // ====== АДМИН: ПОЛЬЗОВАТЕЛИ ======
   function renderAdminUsers() {
-    var usersHtml = '';
     var sortedUsers = allUsers.slice().sort(function(a,b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-
-    if (!sortedUsers.length) {
-      moderationList.innerHTML = '<p class="empty">Пользователей пока нет.</p>';
-      return;
-    }
-
+    if (!sortedUsers.length) { moderationList.innerHTML = '<p class="empty">Пользователей пока нет.</p>'; return; }
+    var usersHtml = '';
     for (var i = 0; i < sortedUsers.length; i++) {
       var u = sortedUsers[i];
       var statusClass = u.status === 'approved' ? 'approved' : (u.status === 'rejected' ? 'rejected' : '');
       var statusText = u.status === 'approved' ? 'Подтвержден' : (u.status === 'rejected' ? 'Отклонен' : 'На проверке');
       var dualText = u.dualRole ? ' · <span style="color:#8b5cf6;font-weight:600;">двойная роль</span>' : '';
-      
+      var chiefMark = u.brigade === 'Главный инженер' ? ' · <span style="color:#dc2626;font-weight:700;">ГЛАВНЫЙ ИНЖЕНЕР</span>' : '';
+      var seniorMark = u.brigade === 'Старший мастер' ? ' · <span style="color:#7c3aed;font-weight:700;">СТАРШИЙ МАСТЕР</span>' : '';
       usersHtml += '<div class="moderation-user ' + statusClass + '">';
       usersHtml += '<div class="info">';
       usersHtml += '<strong>' + escapeHtml(u.name) + '</strong> (' + escapeHtml(u.phone) + ')<br>';
-      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + dualText + '</span>';
-      usersHtml += '</div>';
-      usersHtml += '<div class="btns">';
-      if (u.status !== 'approved') {
-         usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
-      }
-      if (u.status !== 'rejected') {
-         usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
-      }
+      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + dualText + chiefMark + seniorMark + '</span>';
+      usersHtml += '</div><div class="btns">';
+      if (u.status !== 'approved') usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
+      if (u.status !== 'rejected') usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
       usersHtml += '<button class="btn gray small" data-uid="' + u.id + '" data-action="delete_user" style="background:#dc2626;">Удалить</button>';
       usersHtml += '</div></div>';
     }
     moderationList.innerHTML = usersHtml;
-    
     var modBtns = moderationList.querySelectorAll('[data-uid]');
     for (var j = 0; j < modBtns.length; j++) {
       modBtns[j].addEventListener('click', async function() {
         var uid = this.getAttribute('data-uid');
         var action = this.getAttribute('data-action');
-
-        if (action === 'approve') {
-          await update(ref(db, 'users/' + uid), { status: 'approved' });
-          showToast('Пользователь подтвержден');
-        } else if (action === 'reject') {
-          await update(ref(db, 'users/' + uid), { status: 'rejected' });
-          showToast('Пользователь отклонен');
-        } else if (action === 'delete_user') {
-          if (confirm('Вы уверены, что хотите удалить аккаунт? Пользователь больше не сможет войти с этим телефоном.')) {
-            await remove(ref(db, 'users/' + uid));
-            showToast('Аккаунт удален');
-          }
+        if (action === 'approve') { await update(ref(db, 'users/' + uid), { status: 'approved' }); showToast('Пользователь подтвержден'); }
+        else if (action === 'reject') { await update(ref(db, 'users/' + uid), { status: 'rejected' }); showToast('Пользователь отклонен'); }
+        else if (action === 'delete_user') {
+          if (confirm('Вы уверены, что хотите удалить аккаунт?')) { await remove(ref(db, 'users/' + uid)); showToast('Аккаунт удален'); }
         }
       });
     }
@@ -1401,72 +1163,56 @@
 
   // ====== АДМИН: ЗАЯВКИ ======
   function renderAdminRequests() {
-    if (settings.intervals.length > 0) {
-      document.getElementById('adminStart1').value = settings.intervals[0].start;
-      document.getElementById('adminEnd1').value = settings.intervals[0].end;
-    }
-    if (settings.intervals.length > 1) {
-      document.getElementById('adminStart2').value = settings.intervals[1].start;
-      document.getElementById('adminEnd2').value = settings.intervals[1].end;
+    var activeEl = document.activeElement;
+    var safeFocus = activeEl && activeEl.closest && activeEl.closest('#adminRequestsBlock');
+    if (!safeFocus) {
+      if (settings.intervals.length > 0) {
+        document.getElementById('adminStart1').value = settings.intervals[0].start;
+        document.getElementById('adminEnd1').value = settings.intervals[0].end;
+      }
+      if (settings.intervals.length > 1) {
+        document.getElementById('adminStart2').value = settings.intervals[1].start;
+        document.getElementById('adminEnd2').value = settings.intervals[1].end;
+      }
     }
 
     var toggleBtn = document.getElementById('toggleGlobalBtn');
     if (settings.isManuallyClosed) {
       toggleBtn.textContent = 'Возобновить прием';
       toggleBtn.className = 'btn green small';
-      adminStatusText.textContent = 'ОСТАНОВЛЕН (вручную)';
-      adminStatusText.style.color = '#dc2626';
+      adminStatusText.textContent = 'ОСТАНОВЛЕН (вручную)'; adminStatusText.style.color = '#dc2626';
     } else {
       toggleBtn.textContent = 'Остановить прием';
       toggleBtn.className = 'btn red small';
       var intervalStr = settings.intervals.map(function(inv) { return inv.start + ':00–' + inv.end + ':00'; }).join(' и ');
-      adminStatusText.textContent = 'Работает (' + intervalStr + ')';
-      adminStatusText.style.color = '#059669';
+      adminStatusText.textContent = 'Работает (' + intervalStr + ')'; adminStatusText.style.color = '#059669';
     }
 
-    var list = allRequests.slice();
-    list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-
+    var list = allRequests.slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
     if (!list.length) { adminRequestsList.innerHTML = '<p class="empty">Заявок нет.</p>'; return; }
 
     var html = '';
     for (var k = 0; k < list.length; k++) {
-      var r = list[k];
-      var status = r.status || 'new';
-      
+      var r = list[k], status = r.status || 'new';
       html += '<div class="request status-' + status + '">';
       html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>Служба: ' + escapeHtml(serviceName(r.serviceId)) + '</strong> | <strong>Бригада: ' + escapeHtml(r.brigade || '—') + '</strong> (' + escapeHtml(r.name) + ', тел: ' + escapeHtml(r.phone) + ')<br>' + escapeHtml(r.desc) + '</div>';
-      
-      html += '<div class="event-log">';
-      html += '<div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
-      if (r.events && r.events.length) {
-        for (var e = 0; e < r.events.length; e++) {
-          var ev = r.events[e];
-          html += '<div>' + escapeHtml(ev.text) + ' (' + formatDate(ev.time) + ')</div>';
-        }
-      }
-      html += '</div>';
-
-      html += '<div class="actions">';
-      if (status !== 'closed') {
-         html += '<button class="btn green small" data-action="admin_closed" data-id="' + r.id + '">Закрыть (Подтвердить)</button>';
-      } else {
-         html += '<span class="badge ok">Закрыта</span>';
-      }
-      
+      html += '<div class="event-log"><div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
+      if (r.events && r.events.length) for (var e = 0; e < r.events.length; e++) html += '<div>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')</div>';
+      html += '</div><div class="actions">';
+      if (status !== 'closed') html += '<button class="btn green small" data-action="admin_closed" data-id="' + r.id + '">Закрыть (Подтвердить)</button>';
+      else html += '<span class="badge ok">Закрыта</span>';
       html += '<button class="btn gray small chat-btn" data-action="chat" data-id="' + r.id + '">💬 Чат</button>';
       html += '<button class="btn red small" data-action="admin_delete" data-id="' + r.id + '">Удалить заявку</button>';
       html += '</div></div>';
     }
     adminRequestsList.innerHTML = html;
-
     var btns = adminRequestsList.querySelectorAll('[data-action]');
     for (var m = 0; m < btns.length; m++) {
-      btns[m].addEventListener('click', function () { 
+      btns[m].addEventListener('click', function () {
         var action = this.getAttribute('data-action');
         var id = this.getAttribute('data-id');
-        if (action === 'chat') { openChat(id); } 
-        else { handleAdminAction(action, id); }
+        if (action === 'chat') openChat(id);
+        else handleAdminAction(action, id);
       });
     }
   }
@@ -1479,20 +1225,13 @@
 
   async function handleAdminAction(action, id) {
     if (action === 'admin_delete') {
-      if (confirm('Вы уверены, что хотите удалить эту заявку? Это действие необратимо.')) {
-        await remove(ref(db, 'requests/' + id));
-        showToast('Заявка удалена');
-      }
+      if (confirm('Удалить эту заявку? Действие необратимо.')) { await remove(ref(db, 'requests/' + id)); showToast('Заявка удалена'); }
     } else if (action === 'admin_closed') {
       var req = allRequests.find(function(item) { return item.id === id; });
       if (!req) return;
       var currentEvents = req.events || [];
       var newEvent = { text: '🔒 Закрыта Главным инженером', time: Date.now() };
-      await update(ref(db, 'requests/' + id), {
-        status: 'closed',
-        closedAt: Date.now(),
-        events: currentEvents.concat([newEvent])
-      });
+      await update(ref(db, 'requests/' + id), { status: 'closed', closedAt: Date.now(), events: currentEvents.concat([newEvent]) });
       showToast('Заявка закрыта');
     }
   }
@@ -1502,221 +1241,141 @@
     var html = '';
     for (var j = 0; j < SERVICES.length; j++) {
       var s = SERVICES[j];
-      var nNew = newCount(s.id);
-      var nWait = waitCount(s.id);
-      
+      var nNew = countByStatus(s.id, 'new');
+      var nProg = countByStatus(s.id, 'in_progress');
+      var nWait = countByStatus(s.id, 'service_done');
       var cardClass = 'service-card';
       if (nNew > 0) cardClass += ' has-new';
-      if (nWait > 0) cardClass += ' has-wait';
-      
+      else if (nProg > 0) cardClass += ' has-progress';
+      else if (nWait > 0) cardClass += ' has-wait';
       html += '<div class="' + cardClass + '" data-id="' + s.id + '">';
       if (nNew > 0) html += '<span class="dot"></span>';
-      html += '<h3>' + s.name + '</h3>';
-      html += '<div class="badges-wrap">';
+      html += '<h3>' + s.name + '</h3><div class="badges-wrap">';
       if (nNew > 0) html += '<span class="badge">' + nNew + ' новых</span>';
+      if (nProg > 0) html += '<span class="badge progress">' + nProg + ' в работе</span>';
       if (nWait > 0) html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
-      if (nNew === 0 && nWait === 0) html += '<span class="badge ok">Нет заявок</span>';
+      if (nNew === 0 && nProg === 0 && nWait === 0) html += '<span class="badge ok">Нет заявок</span>';
       html += '</div></div>';
     }
     container.innerHTML = html;
-
     var cards = container.querySelectorAll('.service-card');
     for (var k = 0; k < cards.length; k++) {
-      cards[k].addEventListener('click', function () { 
-        openServiceDetail(this.getAttribute('data-id'), mode); 
-      });
+      cards[k].addEventListener('click', function () { openServiceDetail(this.getAttribute('data-id'), mode); });
     }
   }
 
   // ====== "МОИ ЗАЯВКИ" ======
+  function hasUnreadChat(r, myPhone) {
+    var lastRead = localStorage.getItem('last_read_chat_' + r.id) || 0;
+    var lastMsgTime = 0, lastMsgPhone = '';
+    if (r.messages) for (var mKey in r.messages) if (r.messages[mKey].time > lastMsgTime) { lastMsgTime = r.messages[mKey].time; lastMsgPhone = r.messages[mKey].phone; }
+    return (lastMsgTime > Number(lastRead)) && (lastMsgPhone !== myPhone);
+  }
+
   function renderMyRequests() {
-    if (!loggedMaster.name) {
-      myRequestsList.innerHTML = '<p class="empty">Вы не авторизованы.</p>';
-      return;
-    }
-
-    var myList = allRequests.filter(function(r) { 
-      return r.phone === loggedMaster.phone; 
-    });
+    if (!loggedMaster.name) { myRequestsList.innerHTML = '<p class="empty">Вы не авторизованы.</p>'; return; }
+    var myList = allRequests.filter(function(r) { return r.phone === loggedMaster.phone; });
     myList.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-
-    if (!myList.length) { 
-      myRequestsList.innerHTML = '<p class="empty">Вы еще не подавали заявок.</p>'; 
-      return; 
-    }
-
+    if (!myList.length) { myRequestsList.innerHTML = '<p class="empty">Вы еще не подавали заявок.</p>'; return; }
     var html = '';
     for (var i = 0; i < myList.length; i++) {
-      var r = myList[i];
-      var status = r.status || 'new';
-      
+      var r = myList[i], status = r.status || 'new';
       html += '<div class="request status-' + status + '">';
       html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>Служба: ' + escapeHtml(serviceName(r.serviceId)) + '</strong><br>' + escapeHtml(r.desc) + '</div>';
-      
-      html += '<div class="event-log">';
-      html += '<div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
-      if (r.events && r.events.length) {
-        for (var e = 0; e < r.events.length; e++) {
-          var ev = r.events[e];
-          html += '<div>' + escapeHtml(ev.text) + ' (' + formatDate(ev.time) + ')</div>';
-        }
-      }
-      html += '</div>';
-
-      html += '<div class="actions">';
+      html += '<div class="event-log"><div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
+      if (r.events && r.events.length) for (var e = 0; e < r.events.length; e++) html += '<div>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')</div>';
+      html += '</div><div class="actions">';
       if (status === 'service_done') {
-        html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
-        html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
-      } else if (status === 'closed') {
-        html += '<span class="badge ok">Закрыта</span>';
-      } else if (status === 'new') {
-        html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения</span>';
-      }
-      
-      var lastRead = localStorage.getItem('last_read_chat_' + r.id) || 0;
-      var lastMsgTime = 0;
-      var lastMsgPhone = '';
-      if (r.messages) {
-        for (var mKey in r.messages) {
-          if (r.messages[mKey].time > lastMsgTime) {
-            lastMsgTime = r.messages[mKey].time;
-            lastMsgPhone = r.messages[mKey].phone;
-          }
+        if (canMasterClose(r)) {
+          html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
+          html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
+        } else {
+          html += '<span class="badge wait">Ждёт мастера</span>';
         }
-      }
-      var isUnread = (lastMsgTime > Number(lastRead)) && (lastMsgPhone !== loggedMaster.phone);
+      } else if (status === 'closed') html += '<span class="badge ok">Закрыта</span>';
+      else if (status === 'new') html += '<span class="badge">Ожидает выполнения</span>';
+      else if (status === 'in_progress') html += '<span class="badge progress">В работе</span>';
 
-      html += '<button class="btn small chat-btn ' + (isUnread ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">';
-      html += '💬 Чат';
-      if (isUnread) html += '<span class="chat-badge">!</span>';
-      html += '</button>';
-      
+      var unread = hasUnreadChat(r, loggedMaster.phone);
+      html += '<button class="btn small chat-btn ' + (unread ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">💬 Чат' + (unread ? '<span class="chat-badge">!</span>' : '') + '</button>';
       html += '</div></div>';
     }
     myRequestsList.innerHTML = html;
-
     var btns = myRequestsList.querySelectorAll('[data-action]');
     for (var j = 0; j < btns.length; j++) {
-      btns[j].addEventListener('click', function () { 
+      btns[j].addEventListener('click', function () {
         var action = this.getAttribute('data-action');
         var id = this.getAttribute('data-id');
-        if (action === 'chat') { openChat(id); } 
-        else { handleAction(action, id); }
+        if (action === 'chat') openChat(id); else handleAction(action, id);
       });
     }
   }
 
-  // ====== ДЕТАЛИ СЛУЖБЫ ======
+  // ====== ДЕТАЛИ ======
   function openServiceDetail(serviceId, mode) {
-    currentDetailServiceId = serviceId;
-    currentDetailViewMode = mode;
+    currentDetailServiceId = serviceId; currentDetailViewMode = mode;
     detailTitle.textContent = serviceName(serviceId);
-    
-    masterView.classList.add('hidden');
-    serviceView.classList.add('hidden');
-    historyView.classList.add('hidden');
-    adminView.classList.add('hidden');
+    masterView.classList.add('hidden'); serviceView.classList.add('hidden'); historyView.classList.add('hidden'); adminView.classList.add('hidden');
     requestsDetailView.classList.remove('hidden');
-    
     renderDetailRequests(serviceId, mode);
   }
 
   function renderDetailRequests(serviceId, mode) {
     var list = allRequests.filter(function (r) { return r.serviceId === serviceId; });
     list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-
     if (!list.length) { detailRequestsList.innerHTML = '<p class="empty">Заявок нет.</p>'; return; }
-
     var html = '';
     for (var i = 0; i < list.length; i++) {
-      var r = list[i];
-      var status = r.status || 'new';
-      
+      var r = list[i], status = r.status || 'new';
       html += '<div class="request status-' + status + '">';
       html += '<div style="font-size:14px; margin-bottom: 4px;"><strong>Бригада: ' + escapeHtml(r.brigade || '—') + '</strong> (' + escapeHtml(r.name) + ', тел: ' + escapeHtml(r.phone) + ')<br>' + escapeHtml(r.desc) + '</div>';
-      
-      html += '<div class="event-log">';
-      html += '<div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
-      if (r.events && r.events.length) {
-        for (var e = 0; e < r.events.length; e++) {
-          var ev = r.events[e];
-          html += '<div>' + escapeHtml(ev.text) + ' (' + formatDate(ev.time) + ')</div>';
-        }
-      }
-      html += '</div>';
+      html += '<div class="event-log"><div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
+      if (r.events && r.events.length) for (var e = 0; e < r.events.length; e++) html += '<div>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')</div>';
+      html += '</div><div class="actions">';
 
-      html += '<div class="actions">';
-      
-      // ====== НОВАЯ ЛОГИКА: ТОЛЬКО МАСТЕР СВОЕЙ БРИГАДЫ МОЖЕТ ЗАКРЫТЬ ======
       if (mode === 'master') {
         if (status === 'service_done') {
-          // Проверяем: совпадает ли бригада текущего мастера с бригадой, подавшей заявку
-          if (loggedMaster.brigade === r.brigade) {
+          if (canMasterClose(r)) {
             html += '<button class="btn green small" data-action="closed" data-id="' + r.id + '">Мастер подтвердил</button>';
             html += '<button class="btn red small" data-action="return" data-id="' + r.id + '">Вернуть</button>';
           } else {
-            // Если бригада не совпадает — показываем серую плашку
-            html += '<span class="badge" style="background:#6b7280;">Ждет мастера из ' + escapeHtml(r.brigade) + '</span>';
+            html += '<span class="badge wait">Ждёт мастера из ' + escapeHtml(r.brigade) + '</span>';
           }
-        } else if (status === 'new') {
-          html += '<span class="badge" style="background:#6b7280;">Ожидает выполнения службой</span>';
-        } else if (status === 'closed') {
-          html += '<span class="badge ok">Закрыта</span>';
-        }
+        } else if (status === 'new') html += '<span class="badge">Ожидает выполнения службой</span>';
+        else if (status === 'in_progress') html += '<span class="badge progress">Служба взяла в работу</span>';
+        else if (status === 'closed') html += '<span class="badge ok">Закрыта</span>';
       } else if (mode === 'service') {
-        if (status === 'new') {
-          html += '<button class="btn orange small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
+        var canAct = canServiceActOn(r);
+        if (status === 'new' && canAct) {
+          html += '<button class="btn orange small" data-action="in_progress" data-id="' + r.id + '">Взять в работу</button>';
           html += '<button class="btn purple small" data-action="transfer" data-id="' + r.id + '">Передать</button>';
-        } else if (status === 'service_done') {
-          html += '<span class="badge wait">Ожидает мастера</span>';
-        } else if (status === 'closed') {
-          html += '<span class="badge ok">Закрыта</span>';
-        }
+        } else if (status === 'in_progress' && canAct) {
+          html += '<button class="btn green small" data-action="service_done" data-id="' + r.id + '">Служба выполнила</button>';
+          html += '<button class="btn purple small" data-action="transfer" data-id="' + r.id + '">Передать</button>';
+        } else if (status === 'service_done') html += '<span class="badge wait">Ожидает мастера</span>';
+        else if (status === 'closed') html += '<span class="badge ok">Закрыта</span>';
+        else if (!canAct) html += '<span class="badge" style="background:#6b7280;">Нет прав на эту службу</span>';
       }
-      // ======================================================================
-      
-      var lastReadS = localStorage.getItem('last_read_chat_' + r.id) || 0;
-      var lastMsgTimeS = 0;
-      var lastMsgPhoneS = '';
-      if (r.messages) {
-        for (var mKeyS in r.messages) {
-          if (r.messages[mKeyS].time > lastMsgTimeS) {
-            lastMsgTimeS = r.messages[mKeyS].time;
-            lastMsgPhoneS = r.messages[mKeyS].phone;
-          }
-        }
-      }
-      var isUnreadS = (lastMsgTimeS > Number(lastReadS)) && (lastMsgPhoneS !== loggedService.phone);
 
-      html += '<button class="btn small chat-btn ' + (isUnreadS ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">';
-      html += '💬 Чат';
-      if (isUnreadS) html += '<span class="chat-badge">!</span>';
-      html += '</button>';
-      
+      var unread = hasUnreadChat(r, getCurrentPhone());
+      html += '<button class="btn small chat-btn ' + (unread ? 'unread' : 'gray') + '" data-action="chat" data-id="' + r.id + '">💬 Чат' + (unread ? '<span class="chat-badge">!</span>' : '') + '</button>';
       html += '</div></div>';
     }
     detailRequestsList.innerHTML = html;
-
     var btns = detailRequestsList.querySelectorAll('[data-action]');
     for (var j = 0; j < btns.length; j++) {
-      btns[j].addEventListener('click', function () { 
+      btns[j].addEventListener('click', function () {
         var action = this.getAttribute('data-action');
         var id = this.getAttribute('data-id');
-        if (action === 'chat') { openChat(id); } 
-        else { handleAction(action, id); }
+        if (action === 'chat') openChat(id); else handleAction(action, id);
       });
     }
   }
 
   document.getElementById('backFromDetail').addEventListener('click', function() {
     requestsDetailView.classList.add('hidden');
-    if (currentDetailViewMode === 'service') {
-      serviceView.classList.remove('hidden');
-      renderServicesGrid(serviceServicesGrid, 'service');
-    } else {
-      masterView.classList.remove('hidden');
-      renderServicesGrid(masterServicesGrid, 'master');
-    }
+    if (currentDetailViewMode === 'service') { serviceView.classList.remove('hidden'); renderServicesGrid(serviceServicesGrid, 'service'); }
+    else { masterView.classList.remove('hidden'); renderServicesGrid(masterServicesGrid, 'master'); }
   });
 
   // ====== ДЕЙСТВИЯ ======
@@ -1724,178 +1383,81 @@
     var req = allRequests.find(function(item) { return item.id === id; });
     if (!req) return;
 
-    if (action === 'service_done') {
-      pendingServiceDoneId = id;
-      serviceCodeInput.value = '';
-      serviceCodeModal.classList.remove('hidden');
-      serviceCodeInput.focus();
-    } else if (action === 'return') {
-      pendingReturnId = id;
-      returnCommentInput.value = '';
-      returnModal.classList.remove('hidden');
-      returnCommentInput.focus();
-    } else if (action === 'closed') {
-      var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
-      if (!userCheck || userCheck.status !== 'approved') {
-        showToast('Ваш аккаунт удален или не подтвержден. Вы не можете закрыть заявку.', true);
-        return;
-      }
-
-      // БЭКЕНД-ПРОВЕРКА: закрывать может только мастер той же бригады!
-      if (loggedMaster.brigade !== req.brigade) {
-        showToast('Вы не можете закрыть заявку, так как она принадлежит другой бригаде.', true);
-        return;
-      }
-
-      var updates = {};
+    if (action === 'in_progress') {
+      if (!canServiceActOn(req)) { showToast('Нет прав на эту службу', true); return; }
       var currentEvents = req.events || [];
-      
-      var newEvent = { 
-        text: '🔒 Мастер подтвердил (Бригада: ' + (loggedMaster.brigade || req.brigade || '—') + ', Мастер: ' + (loggedMaster.name || '—') + ', Тел: ' + (loggedMaster.phone || '—') + ')', 
-        time: Date.now() 
-      };
-      
-      updates.status = 'closed';
-      updates.closedAt = Date.now();
-      updates.events = currentEvents.concat([newEvent]);
-      
-      await update(ref(db, 'requests/' + id), updates);
+      var newEvent = { text: '⚙️ Взята в работу (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', time: Date.now() };
+      await update(ref(db, 'requests/' + id), { status: 'in_progress', inProgressAt: Date.now(), events: currentEvents.concat([newEvent]) });
+      showToast('Заявка взята в работу');
+    } else if (action === 'service_done') {
+      if (!canServiceActOn(req)) { showToast('Нет прав на эту службу', true); return; }
+      pendingServiceDoneId = id; serviceCodeInput.value = '';
+      serviceCodeModal.classList.remove('hidden'); serviceCodeInput.focus();
+    } else if (action === 'return') {
+      pendingReturnId = id; returnCommentInput.value = '';
+      returnModal.classList.remove('hidden'); returnCommentInput.focus();
+    } else if (action === 'closed') {
+      if (!canMasterClose(req)) { showToast('Нет прав закрыть эту заявку', true); return; }
+      var currentEvents2 = req.events || [];
+      var newEvent2 = { text: '🔒 Мастер подтвердил (Бригада: ' + (loggedMaster.brigade || '—') + ', Мастер: ' + (loggedMaster.name || '—') + ', Тел: ' + (loggedMaster.phone || '—') + ')', time: Date.now() };
+      await update(ref(db, 'requests/' + id), { status: 'closed', closedAt: Date.now(), events: currentEvents2.concat([newEvent2]) });
       showToast('Мастер подтвердил. Заявка закрыта.');
     } else if (action === 'transfer') {
-      pendingTransferId = id;
-      transferServiceSelect.value = req.serviceId;
+      if (!canServiceActOn(req)) { showToast('Нет прав на эту службу', true); return; }
+      pendingTransferId = id; transferServiceSelect.value = req.serviceId;
       transferModal.classList.remove('hidden');
     }
   }
 
   confirmServiceCodeBtn.addEventListener('click', async function() {
-    var code = serviceCodeInput.value.trim();
-
-    if (code !== SERVICE_PASSWORD) {
-      showToast('Неверный код службы', true); 
-      serviceCodeInput.value = ''; 
-      serviceCodeInput.focus(); 
-      return;
-    }
-
-    var userCheck = allUsers.find(function(u) { return u.phone === loggedService.phone; });
-    if (!userCheck || userCheck.status !== 'approved') {
-      showToast('Ваш аккаунт службы удален или не подтвержден. Вы не можете выполнить заявку.', true);
-      serviceCodeModal.classList.add('hidden');
-      return;
-    }
-
+    if (serviceCodeInput.value.trim() !== SERVICE_PASSWORD) { showToast('Неверный код службы', true); serviceCodeInput.value = ''; serviceCodeInput.focus(); return; }
+    if (!pendingServiceDoneId) { serviceCodeModal.classList.add('hidden'); return; }
     var req = allRequests.find(function(item) { return item.id === pendingServiceDoneId; });
     if (!req) { serviceCodeModal.classList.add('hidden'); return; }
-
+    if (!canServiceActOn(req)) { showToast('Нет прав на эту службу', true); serviceCodeModal.classList.add('hidden'); return; }
     var currentEvents = req.events || [];
-    var eventText = '✅ Служба выполнила (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')';
-    var newEvent = { text: eventText, time: Date.now() };
-    
-    var updates = {
-      status: 'service_done',
-      serviceDoneAt: Date.now(),
-      events: currentEvents.concat([newEvent])
-    };
-
-    serviceCodeModal.classList.add('hidden');
-    pendingServiceDoneId = null;
-    await update(ref(db, 'requests/' + req.id), updates);
+    var newEvent = { text: '✅ Служба выполнила (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', time: Date.now() };
+    serviceCodeModal.classList.add('hidden'); pendingServiceDoneId = null;
+    await update(ref(db, 'requests/' + req.id), { status: 'service_done', serviceDoneAt: Date.now(), events: currentEvents.concat([newEvent]) });
     showToast('Служба подтвердила выполнение. Ждём мастера.');
   });
-
-  cancelServiceCodeBtn.addEventListener('click', function() {
-    serviceCodeModal.classList.add('hidden');
-    pendingServiceDoneId = null;
-  });
+  cancelServiceCodeBtn.addEventListener('click', function() { serviceCodeModal.classList.add('hidden'); pendingServiceDoneId = null; });
 
   confirmReturnBtn.addEventListener('click', async function() {
     var comment = returnCommentInput.value.trim();
     if (!comment) { showToast('Укажите причину возврата', true); return; }
     if (!pendingReturnId) return;
-
-    var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
-    if (!userCheck || userCheck.status !== 'approved') {
-      showToast('Ваш аккаунт удален или не подтвержден.', true);
-      returnModal.classList.add('hidden');
-      return;
-    }
-
     var req = allRequests.find(function(item) { return item.id === pendingReturnId; });
     if (!req) return;
-
-    // БЭКЕНД-ПРОВЕРКА: возвращать может только мастер той же бригады!
-    if (loggedMaster.brigade !== req.brigade) {
-      showToast('Вы не можете вернуть заявку, так как она принадлежит другой бригаде.', true);
-      returnModal.classList.add('hidden');
-      return;
-    }
-
+    if (!canMasterReturn(req)) { showToast('Нет прав вернуть эту заявку', true); returnModal.classList.add('hidden'); return; }
     var currentEvents = req.events || [];
-    var newEvent = { text: '↩ Возврат в работу (Бригада: ' + (loggedMaster.brigade || req.brigade || '—') + ', Мастер: ' + (loggedMaster.name || '—') + ', Тел: ' + (loggedMaster.phone || '—') + '). Причина: ' + comment, time: Date.now() };
-
-    var updates = {
-      status: 'new',
-      serviceDoneAt: null,
-      events: currentEvents.concat([newEvent])
-    };
-
-    returnModal.classList.add('hidden');
-    pendingReturnId = null;
-    await update(ref(db, 'requests/' + req.id), updates);
+    var newEvent = { text: '↩ Возврат в работу (Мастер: ' + (loggedMaster.name || '—') + ', Тел: ' + (loggedMaster.phone || '—') + '). Причина: ' + comment, time: Date.now() };
+    returnModal.classList.add('hidden'); pendingReturnId = null;
+    await update(ref(db, 'requests/' + req.id), { status: 'in_progress', serviceDoneAt: null, events: currentEvents.concat([newEvent]) });
     showToast('Заявка возвращена в работу.');
   });
-
-  cancelReturnBtn.addEventListener('click', function() {
-    returnModal.classList.add('hidden');
-    pendingReturnId = null;
-  });
+  cancelReturnBtn.addEventListener('click', function() { returnModal.classList.add('hidden'); pendingReturnId = null; });
 
   confirmTransferBtn.addEventListener('click', async function() {
     if (!pendingTransferId) return;
     var newServiceId = transferServiceSelect.value;
-    
-    var userCheck = allUsers.find(function(u) { return u.phone === loggedService.phone; });
-    if (!userCheck || userCheck.status !== 'approved') {
-      showToast('Ваш аккаунт службы удален или не подтвержден.', true);
-      transferModal.classList.add('hidden');
-      return;
-    }
-
     var req = allRequests.find(function(item) { return item.id === pendingTransferId; });
     if (!req) return;
-
-    if (newServiceId === req.serviceId) {
-      showToast('Заявка уже находится в этой службе', true);
-      return;
-    }
-
+    if (!canServiceActOn(req)) { showToast('Нет прав на эту службу', true); transferModal.classList.add('hidden'); return; }
+    if (newServiceId === req.serviceId) { showToast('Заявка уже находится в этой службе', true); return; }
     var currentEvents = req.events || [];
     var newEvent = { text: '🔄 Заявка передана в службу "' + serviceName(newServiceId) + '" (Сотрудник: ' + loggedService.name + ', Тел: ' + loggedService.phone + ')', time: Date.now() };
-
-    var updates = {
-      serviceId: newServiceId,
-      events: currentEvents.concat([newEvent])
-    };
-
-    transferModal.classList.add('hidden');
-    pendingTransferId = null;
-    await update(ref(db, 'requests/' + req.id), updates);
+    transferModal.classList.add('hidden'); pendingTransferId = null;
+    await update(ref(db, 'requests/' + req.id), { serviceId: newServiceId, status: 'new', events: currentEvents.concat([newEvent]) });
     showToast('Заявка успешно передана.');
   });
-
-  cancelTransferBtn.addEventListener('click', function() {
-    transferModal.classList.add('hidden');
-    pendingTransferId = null;
-  });
+  cancelTransferBtn.addEventListener('click', function() { transferModal.classList.add('hidden'); pendingTransferId = null; });
 
   // ====== ЧАТ ======
   function openChat(requestId) {
     currentChatRequestId = requestId;
     var req = allRequests.find(function(r) { return r.id === requestId; });
-    if (req) {
-      chatTitle.textContent = 'Чат по заявке: ' + escapeHtml(serviceName(req.serviceId)) + ' (' + escapeHtml(req.brigade || '—') + ')';
-    }
+    if (req) chatTitle.textContent = 'Чат по заявке: ' + escapeHtml(serviceName(req.serviceId)) + ' (' + escapeHtml(req.brigade || '—') + ')';
     chatInput.value = '';
     chatModal.classList.remove('hidden');
     loadChatMessages(requestId);
@@ -1903,38 +1465,22 @@
   }
 
   function loadChatMessages(requestId) {
-    onValue(ref(db, 'requests/' + requestId + '/messages'), (snapshot) => {
+    if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
+    chatUnsubscribe = onValue(ref(db, 'requests/' + requestId + '/messages'), (snapshot) => {
       var data = snapshot.val();
       chatMessages.innerHTML = '';
-      
-      if (!data) {
-        chatMessages.innerHTML = '<p class="empty" style="text-align:center;">Сообщений пока нет. Напишите первым!</p>';
-        return;
-      }
-
+      if (!data) { chatMessages.innerHTML = '<p class="empty" style="text-align:center;">Сообщений пока нет. Напишите первым!</p>'; return; }
       var msgs = [];
-      for (var key in data) {
-        msgs.push({ id: key, ...data[key] });
-      }
+      for (var key in data) msgs.push({ id: key, ...data[key] });
       msgs.sort(function(a,b) { return a.time - b.time; });
-
-      var myPhone = loggedMaster.phone || loggedService.phone || '';
-      
+      var myPhone = getCurrentPhone();
       for (var i = 0; i < msgs.length; i++) {
         var m = msgs[i];
         var isMine = (m.phone === myPhone);
-        var className = isMine ? 'chat-msg right' : 'chat-msg';
-        
-        chatMessages.innerHTML += 
-          '<div class="' + className + '">' +
-            '<div class="meta">' + escapeHtml(m.author) + ' · ' + formatDate(m.time) + '</div>' +
-            '<div class="bubble">' + escapeHtml(m.text) + '</div>' +
-          '</div>';
+        chatMessages.innerHTML += '<div class="' + (isMine ? 'chat-msg right' : 'chat-msg') + '"><div class="meta">' + escapeHtml(m.author) + ' · ' + formatDate(m.time) + '</div><div class="bubble">' + escapeHtml(m.text) + '</div></div>';
       }
       chatMessages.scrollTop = chatMessages.scrollHeight;
-      
       localStorage.setItem('last_read_chat_' + requestId, Date.now());
-      
       renderMyRequests();
       if (currentDetailServiceId) renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
       if (isAdminLoggedIn && !adminRequestsBlock.classList.contains('hidden')) renderAdminRequests();
@@ -1945,33 +1491,23 @@
     if (!currentChatRequestId) return;
     var text = chatInput.value.trim();
     if (!text) return;
-
-    var author = loggedMaster.name || loggedService.name || 'Неизвестный';
-    var phone = loggedMaster.phone || loggedService.phone || '';
-
+    var author = getCurrentAuthor();
+    var phone = getCurrentPhone();
     var newMsgRef = push(ref(db, 'requests/' + currentChatRequestId + '/messages'));
-    await set(newMsgRef, {
-      author: author,
-      phone: phone,
-      text: text,
-      time: Date.now()
-    });
-
-    chatInput.value = '';
-    chatInput.focus();
+    await set(newMsgRef, { author: author, phone: phone, text: text, time: Date.now() });
+    chatInput.value = ''; chatInput.focus();
   }
-
   sendChatBtn.addEventListener('click', sendChatMessage);
-  chatInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') sendChatMessage();
-  });
+  chatInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendChatMessage(); });
   closeChatBtn.addEventListener('click', function() {
     chatModal.classList.add('hidden');
+    if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
     currentChatRequestId = null;
   });
   chatModal.addEventListener('click', function(e) {
     if (e.target === chatModal) {
       chatModal.classList.add('hidden');
+      if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
       currentChatRequestId = null;
     }
   });
@@ -1998,29 +1534,17 @@
   // ====== ОТПРАВКА ЗАЯВКИ ======
   document.getElementById('requestForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-
     if (!loggedMaster.name) { showToast('Сначала войдите в систему', true); return; }
-
     var userCheck = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
-    if (!userCheck || userCheck.status !== 'approved') {
-      showToast('Ваш аккаунт удален или не подтвержден. Вы не можете подать заявку.', true);
-      return;
-    }
-
+    if (!userCheck || userCheck.status !== 'approved') { showToast('Ваш аккаунт удален или не подтвержден.', true); return; }
     if (!isAcceptingNow()) { showToast('Прием заявок закрыт', true); return; }
-
     var serviceId = selectedServiceId;
     var desc = reqDescEl.value.trim();
-
     if (!serviceId) { showToast('Шаг 1: Выберите службу', true); return; }
-    if (!desc)      { showToast('Шаг 2: Введите описание', true); return; }
-
+    if (!desc) { showToast('Шаг 2: Введите описание', true); return; }
     pendingNewRequest = { serviceId: serviceId, brigade: loggedMaster.brigade, name: loggedMaster.name, phone: loggedMaster.phone, desc: desc };
-
     if (loggedMaster.brigade === 'Главный энергетик') {
-      chiefCodeInput.value = '';
-      chiefCodeModal.classList.remove('hidden');
-      chiefCodeInput.focus();
+      chiefCodeInput.value = ''; chiefCodeModal.classList.remove('hidden'); chiefCodeInput.focus();
     } else {
       submitPendingRequest();
     }
@@ -2029,83 +1553,42 @@
   async function submitPendingRequest() {
     if (!pendingNewRequest) return;
     var data = pendingNewRequest;
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Отправка...';
-
+    submitBtn.disabled = true; submitBtn.textContent = 'Отправка...';
     try {
       var newRef = push(ref(db, 'requests'));
       await set(newRef, {
-        serviceId: data.serviceId, 
-        brigade: data.brigade, 
-        name: data.name,
-        phone: data.phone,
-        desc: data.desc, 
-        createdAt: Date.now(), 
-        status: 'new',
+        serviceId: data.serviceId, brigade: data.brigade, name: data.name, phone: data.phone, desc: data.desc,
+        createdAt: Date.now(), status: 'new',
         events: [{ text: '📝 Заявка создана (Бригада: ' + data.brigade + ', ' + data.name + ', Тел: ' + data.phone + ')', time: Date.now() }]
       });
-
-      reqDescEl.value = ''; 
-      selectedServiceId = ''; 
-      renderServicePicker();
-      
+      reqDescEl.value = ''; selectedServiceId = ''; renderServicePicker();
       showToast('Заявка отправлена!');
       pendingNewRequest = null;
     } catch (error) {
       showToast('Ошибка сети. Попробуйте еще раз.', true);
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Отправить заявку';
       updateUIState();
     }
   }
 
   confirmChiefCodeBtn.addEventListener('click', async function() {
+    if (!pendingNewRequest) { chiefCodeModal.classList.add('hidden'); return; }
     var code = chiefCodeInput.value.trim();
-    if (code !== CHIEF_CODE) {
-      showToast('Неверный код доступа!', true);
-      chiefCodeInput.value = '';
-      chiefCodeInput.focus();
-      return;
-    }
-
-    confirmChiefCodeBtn.disabled = true;
-    confirmChiefCodeBtn.textContent = 'Проверка...';
-
+    if (code !== CHIEF_CODE) { showToast('Неверный код доступа!', true); chiefCodeInput.value = ''; chiefCodeInput.focus(); return; }
+    confirmChiefCodeBtn.disabled = true; confirmChiefCodeBtn.textContent = 'Проверка...';
     try {
       var isValid = await isChiefEnergyPhoneValid(pendingNewRequest.phone);
-      if (!isValid) {
-        showToast('Ошибка: этот номер телефона уже привязан к другому человеку!', true);
-        chiefCodeModal.classList.add('hidden');
-        confirmChiefCodeBtn.disabled = false;
-        confirmChiefCodeBtn.textContent = 'Подтвердить';
-        return;
-      }
-      chiefCodeModal.classList.add('hidden');
-      confirmChiefCodeBtn.disabled = false;
-      confirmChiefCodeBtn.textContent = 'Подтвердить';
-      await submitPendingRequest();
-    } catch (error) {
-      showToast('Ошибка сети.', true);
-      confirmChiefCodeBtn.disabled = false;
-      confirmChiefCodeBtn.textContent = 'Подтвердить';
-    }
+      if (!isValid) { showToast('Этот номер уже привязан к другому Главному энергетику!', true); chiefCodeModal.classList.add('hidden'); }
+      else { chiefCodeModal.classList.add('hidden'); await submitPendingRequest(); }
+    } catch (error) { showToast('Ошибка сети.', true); }
+    finally { confirmChiefCodeBtn.disabled = false; confirmChiefCodeBtn.textContent = 'Подтвердить'; }
   });
-
-  cancelChiefCodeBtn.addEventListener('click', function() {
-    chiefCodeModal.classList.add('hidden');
-    chiefCodeInput.value = '';
-    pendingNewRequest = null;
-  });
+  cancelChiefCodeBtn.addEventListener('click', function() { chiefCodeModal.classList.add('hidden'); chiefCodeInput.value = ''; pendingNewRequest = null; });
 
   async function isChiefEnergyPhoneValid(phone) {
     const chiefRef = ref(db, 'settings/chief_energy_phone');
     const snapshot = await get(chiefRef);
-    if (!snapshot.exists()) {
-      await set(chiefRef, phone);
-      return true;
-    }
+    if (!snapshot.exists()) { await set(chiefRef, phone); return true; }
     return snapshot.val() === phone;
   }
 
@@ -2114,25 +1597,22 @@
     var fs = document.getElementById('filterService');
     var fb = document.getElementById('filterBrigade');
     var fsVal = fs.value, fbVal = fb.value;
-    
     var sopts = '<option value="">Все службы</option>';
     for (var i = 0; i < SERVICES.length; i++) sopts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
     fs.innerHTML = sopts; fs.value = fsVal;
-
     var bopts = '<option value="">Все бригады</option>';
     for (var b = 0; b < BRIGADES.length; b++) bopts += '<option value="' + BRIGADES[b] + '">' + BRIGADES[b] + '</option>';
     fb.innerHTML = bopts; fb.value = fbVal;
 
-    var total = allRequests.length, nNew = 0, nWait = 0, nClosed = 0;
+    var total = allRequests.length, nNew = 0, nProg = 0, nWait = 0, nClosed = 0;
     for (var s = 0; s < allRequests.length; s++) {
       var st = allRequests[s].status || 'new';
-      if (st === 'new') nNew++;
-      else if (st === 'service_done') nWait++;
-      else if (st === 'closed') nClosed++;
+      if (st === 'new') nNew++; else if (st === 'in_progress') nProg++; else if (st === 'service_done') nWait++; else if (st === 'closed') nClosed++;
     }
     document.getElementById('historyStats').innerHTML =
       '<div class="stat"><div class="num">' + total + '</div><div class="lbl">Всего</div></div>' +
       '<div class="stat red"><div class="num">' + nNew + '</div><div class="lbl">Новых</div></div>' +
+      '<div class="stat progress"><div class="num">' + nProg + '</div><div class="lbl">В работе</div></div>' +
       '<div class="stat wait"><div class="num">' + nWait + '</div><div class="lbl">Ждут мастера</div></div>' +
       '<div class="stat ok"><div class="num">' + nClosed + '</div><div class="lbl">Закрытых</div></div>';
 
@@ -2144,29 +1624,14 @@
       return true;
     });
     filtered.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-
     if (!filtered.length) { document.getElementById('historyContent').innerHTML = '<p class="empty">Заявок по выбранным фильтрам нет.</p>'; return; }
 
     var rows = '';
     for (var k = 0; k < filtered.length; k++) {
-      var r = filtered[k]; var status = r.status || 'new';
-      
+      var r = filtered[k], status = r.status || 'new';
       var historyText = '🕒 Подана: ' + formatDate(r.createdAt);
-      if (r.events && r.events.length) {
-        for (var e = 0; e < r.events.length; e++) {
-          historyText += '<br>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')';
-        }
-      }
-
-      rows += '<tr>';
-      rows += '<td>' + formatDate(r.createdAt) + '</td>';
-      rows += '<td>' + escapeHtml(serviceName(r.serviceId)) + '</td>';
-      rows += '<td>' + escapeHtml(r.brigade || '—') + '</td>';
-      rows += '<td>' + escapeHtml(r.name || '') + '<br><small>' + escapeHtml(r.phone || '') + '</small></td>';
-      rows += '<td>' + escapeHtml(r.desc) + '</td>';
-      rows += '<td class="status-' + status + '">' + statusLabel(status) + '</td>';
-      rows += '<td style="font-size:12px;">' + historyText + '</td>';
-      rows += '</tr>';
+      if (r.events && r.events.length) for (var e = 0; e < r.events.length; e++) historyText += '<br>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')';
+      rows += '<tr><td>' + formatDate(r.createdAt) + '</td><td>' + escapeHtml(serviceName(r.serviceId)) + '</td><td>' + escapeHtml(r.brigade || '—') + '</td><td>' + escapeHtml(r.name || '') + '<br><small>' + escapeHtml(r.phone || '') + '</small></td><td>' + escapeHtml(r.desc) + '</td><td class="status-' + status + '">' + statusLabel(status) + '</td><td style="font-size:12px;">' + historyText + '</td></tr>';
     }
     document.getElementById('historyContent').innerHTML = '<table class="history-table"><thead><tr><th>Подана</th><th>Служба</th><th>Бригада</th><th>Мастер</th><th>Описание</th><th>Статус</th><th>Хронология</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
@@ -2180,33 +1645,15 @@
       return true;
     });
     filtered.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-    
-    var headers = ['Подана', 'Служба', 'Бригада', 'Имя', 'Телефон', 'Описание', 'Статус', 'Хронология событий'];
+    var headers = ['Подана', 'Служба', 'Бригада', 'Имя', 'Телефон', 'Описание', 'Статус', 'Хронология'];
     var lines = [headers.join(';')];
-    
     for (var i = 0; i < filtered.length; i++) {
-      var r = filtered[i]; var status = r.status || 'new';
-      
+      var r = filtered[i], status = r.status || 'new';
       var historyText = 'Подана: ' + formatDate(r.createdAt);
-      if (r.events && r.events.length) {
-        for (var e = 0; e < r.events.length; e++) {
-          historyText += ' | ' + r.events[e].text + ' (' + formatDate(r.events[e].time) + ')';
-        }
-      }
-
-      var row = [
-        formatDate(r.createdAt), 
-        serviceName(r.serviceId), 
-        r.brigade || '',
-        r.name || '', 
-        r.phone || '',
-        (r.desc || '').replace(/[\r\n;]+/g, ' '), 
-        statusLabel(status),
-        historyText.replace(/[\r\n;]+/g, ' ')
-      ];
+      if (r.events && r.events.length) for (var e = 0; e < r.events.length; e++) historyText += ' | ' + r.events[e].text + ' (' + formatDate(r.events[e].time) + ')';
+      var row = [formatDate(r.createdAt), serviceName(r.serviceId), r.brigade || '', r.name || '', r.phone || '', (r.desc || '').replace(/[\r\n;]+/g, ' '), statusLabel(status), historyText.replace(/[\r\n;]+/g, ' ')];
       lines.push(row.join(';'));
     }
-    
     var csv = '\uFEFF' + lines.join('\r\n');
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
@@ -2225,11 +1672,7 @@
     var data = snapshot.val();
     var prevIds = knownRequestIds;
     allRequests = [];
-    if (data) {
-      for (var key in data) {
-        allRequests.push({ id: key, ...data[key] });
-      }
-    }
+    if (data) for (var key in data) allRequests.push({ id: key, ...data[key] });
 
     if (prevIds === null) {
       knownRequestIds = {};
@@ -2237,86 +1680,54 @@
     } else {
       for (var j = 0; j < allRequests.length; j++) {
         var r = allRequests[j];
-        if (!knownRequestIds[r.id]) {
-          knownRequestIds[r.id] = true;
-          notifyNewRequest(r);
-        }
+        if (!knownRequestIds[r.id]) { knownRequestIds[r.id] = true; notifyNewRequest(r); }
       }
     }
-    
+
     if (loggedMaster.name && !masterWorkBlock.classList.contains('hidden')) {
       renderServicesGrid(masterServicesGrid, 'master');
-      if (!myRequestsBlock.classList.contains('hidden')) {
-        renderMyRequests();
-      }
+      if (!myRequestsBlock.classList.contains('hidden')) renderMyRequests();
     }
-    if (loggedService.name && !serviceWorkBlock.classList.contains('hidden')) {
-      renderServicesGrid(serviceServicesGrid, 'service');
-    }
-    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) {
-      renderAdminPanel();
-    }
-    if (currentDetailServiceId && !requestsDetailView.classList.contains('hidden')) {
-      renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
-    }
-    if (!historyView.classList.contains('hidden')) {
-      renderHistory();
-    }
+    if (loggedService.name && !serviceWorkBlock.classList.contains('hidden')) renderServicesGrid(serviceServicesGrid, 'service');
+    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) renderAdminPanel();
+    if (currentDetailServiceId && !requestsDetailView.classList.contains('hidden')) renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
+    if (!historyView.classList.contains('hidden')) renderHistory();
     renderServicePicker();
   });
 
   onValue(ref(db, 'settings'), (snapshot) => {
     var data = snapshot.val();
     if (data) {
-      if (data.isManuallyClosed !== undefined) {
-        settings.isManuallyClosed = data.isManuallyClosed;
-      }
-      if (data.intervals && Array.isArray(data.intervals)) {
-        settings.intervals = data.intervals;
-      }
+      if (data.isManuallyClosed !== undefined) settings.isManuallyClosed = data.isManuallyClosed;
+      if (data.intervals && Array.isArray(data.intervals)) settings.intervals = data.intervals;
     }
-    updateUIState();
-    updateScheduleTimer();
-    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) {
-      renderAdminPanel();
-    }
+    updateUIState(); updateScheduleTimer();
+    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) renderAdminPanel();
   });
 
   onValue(ref(db, 'users'), (snapshot) => {
     var data = snapshot.val();
     allUsers = [];
-    if (data) {
-      for (var key in data) {
-        allUsers.push({ id: key, ...data[key] });
-      }
-    }
+    if (data) for (var key in data) allUsers.push({ id: key, ...data[key] });
 
     if (loggedMaster.name) {
       var currentM = allUsers.find(function(u) { return u.phone === loggedMaster.phone; });
-      if (currentM) loggedMaster.status = currentM.status;
-      else loggedMaster.status = 'rejected';
+      loggedMaster.status = currentM ? currentM.status : 'rejected';
       updateUIState();
     }
-    
     if (loggedService.name) {
       var currentS = allUsers.find(function(u) { return u.phone === loggedService.phone; });
-      if (currentS) loggedService.status = currentS.status;
-      else loggedService.status = 'rejected';
+      loggedService.status = currentS ? currentS.status : 'rejected';
       updateUIState();
     }
-
-    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) {
-      renderAdminPanel();
-    }
+    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) renderAdminPanel();
   });
 
-  // Старт
   renderServicePicker();
   loadSavedCredentials();
   updateUIState();
   updateScheduleTimer();
   updateNotifyBtn();
-
 </script>
 </body>
 </html>
