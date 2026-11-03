@@ -84,9 +84,10 @@
   .header-bar .user-info { font-size: 14px; color: #6b7280; }
   .header-bar .user-info strong { color: #1e3a8a; }
 
-  .sub-tabs { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+  .sub-tabs { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; flex-wrap: wrap; }
   .sub-tab-btn { background: none; border: none; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; padding: 6px 12px; border-radius: 4px; }
   .sub-tab-btn.active { background: #e0e7ff; color: #1e3a8a; }
+  .sub-tab-btn.ce.active { background: #fee2e2; color: #991b1b; }
 
   .request { border-left: 4px solid #ef4444; background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
   .request.status-new { border-left-color: #ef4444; }
@@ -135,7 +136,7 @@
   .moderation-user.approved { border-left-color: #10b981; }
   .moderation-user.rejected { border-left-color: #ef4444; opacity: 0.6; }
   .moderation-user .info { flex: 1; min-width: 200px; }
-  .moderation-user .btns { display: flex; gap: 6px; }
+  .moderation-user .btns { display: flex; gap: 6px; flex-wrap: wrap; }
 
   .chat-window { display: flex; flex-direction: column; height: 400px; }
   .chat-messages { flex: 1; overflow-y: auto; background: #f8fafc; border-radius: 8px; padding: 10px; margin-bottom: 10px; border: 1px solid #e5e7eb; }
@@ -153,11 +154,14 @@
 
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
   .modal-overlay.hidden { display: none !important; }
-  .modal { background: #fff; border-radius: 10px; padding: 20px; max-width: 600px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+  .modal { background: #fff; border-radius: 10px; padding: 20px; max-width: 600px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,.3); max-height: 90vh; overflow-y: auto; }
   .modal h3 { font-size: 16px; margin-bottom: 6px; }
   .modal p { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
   .modal input, .modal textarea, .modal select { margin-bottom: 12px; }
   .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  .ce-banner { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; margin-bottom: 14px; color: #991b1b; font-weight: 600; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .ce-banner .lbl { display: flex; align-items: center; gap: 8px; }
 </style>
 </head>
 <body>
@@ -329,6 +333,7 @@
       <div class="sub-tabs" style="margin-bottom: 20px;">
         <button class="sub-tab-btn active" id="adminTabUsers">👥 Пользователи</button>
         <button class="sub-tab-btn" id="adminTabRequests">📝 Заявки</button>
+        <button class="sub-tab-btn ce" id="adminTabChiefEngineer">🔑 Главный инженер</button>
       </div>
 
       <div id="adminUsersBlock">
@@ -358,6 +363,67 @@
         <h2>Все заявки (полный доступ)</h2>
         <div id="adminRequestsList"></div>
       </div>
+
+      <!-- ВКЛАДКА ГЛАВНОГО ИНЖЕНЕРА (код 1104) -->
+      <div id="adminChiefEngineerBlock" class="hidden">
+
+        <div class="card" id="chiefEngineerGate" style="border-left: 4px solid #dc2626;">
+          <h2>Доступ Главного инженера</h2>
+          <p style="color:#6b7280; font-size:13px; margin-bottom:12px;">
+            Введите персональный код Главного инженера для доступа к расширенным действиям.
+          </p>
+          <div class="form-row" style="align-items:flex-end;">
+            <div style="flex:1; min-width:180px;">
+              <input type="password" id="chiefEngineerPanelCode" placeholder="Код доступа" autocomplete="off">
+            </div>
+            <button class="btn red" id="chiefEngineerPanelLoginBtn">Открыть доступ</button>
+          </div>
+        </div>
+
+        <div id="chiefEngineerPanel" class="hidden">
+
+          <div class="ce-banner">
+            <div class="lbl">🔑 Режим Главного инженера активен</div>
+            <button class="btn gray small" id="chiefEngineerPanelLockBtn">Заблокировать</button>
+          </div>
+
+          <div class="card" style="border-left: 4px solid #dc2626;">
+            <h2>Расширенное управление заявками</h2>
+            <p style="color:#6b7280; font-size:13px; margin-bottom:12px;">
+              Действия Главного инженера. Все изменения фиксируются в хронологии заявки.
+            </p>
+
+            <div class="admin-controls">
+              <div>
+                <label>Фильтр по службе</label>
+                <select id="ceFilterService"><option value="">Все службы</option></select>
+              </div>
+              <div>
+                <label>Фильтр по статусу</label>
+                <select id="ceFilterStatus">
+                  <option value="">Все статусы</option>
+                  <option value="new">Новые</option>
+                  <option value="in_progress">В работе</option>
+                  <option value="service_done">Ждут мастера</option>
+                  <option value="closed">Закрытые</option>
+                </select>
+              </div>
+              <div>
+                <label>Поиск (бригада / имя / текст)</label>
+                <input type="text" id="ceSearch" placeholder="Введите текст..." style="min-width:180px;">
+              </div>
+              <button class="btn small" id="ceRefreshBtn">Обновить</button>
+              <button class="btn green small" id="ceExportBtn">⬇ Выгрузить CSV</button>
+            </div>
+
+            <div id="ceStats" class="history-stats" style="margin-top:12px;"></div>
+          </div>
+
+          <h2>Все заявки (расширенный доступ)</h2>
+          <div id="ceRequestsList"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -466,6 +532,7 @@
   var SERVICE_PASSWORD = '1234';
   var ADMIN_CODE = 'admin2483';
   var CHIEF_ENGINEER_CODE = '2483';
+  var CHIEF_ENGINEER_PANEL_CODE = '1104';
 
   var SERVICES = [
     { id: 'energy', name: 'Энергетик' },
@@ -477,10 +544,9 @@
     { id: 'shift', name: 'Нач.смены (СПТ)' }
   ];
 
-  // Должности мастеров / ИТР
   var BRIGADES = [
-    'Главный инженер',        // единственный, требует код
-    'Старший мастер',         // подаёт как мастер, закрывает ЛЮБУЮ заявку
+    'Главный инженер',
+    'Старший мастер',
     'Главный энергетик',
     'Технолог',
     'Зам. исполнительного директора',
@@ -505,6 +571,7 @@
     ]
   };
   var isAdminLoggedIn = false;
+  var isChiefEngineerPanelUnlocked = false;
 
   var selectedServiceId = '';
   var pendingServiceDoneId = null;
@@ -513,7 +580,6 @@
   var pendingTransferId = null;
   var currentChatRequestId = null;
   var chatUnsubscribe = null;
-
   var pendingChiefEngineerReg = null;
 
   var loggedMaster = { name: '', phone: '', brigade: '', status: 'pending' };
@@ -528,26 +594,19 @@
   function isChiefEnergetic()      { return loggedMaster.name && loggedMaster.brigade === 'Главный энергетик'; }
   function isShiftChiefMaster()    { return loggedMaster.name && loggedMaster.brigade === 'Нач.смены'; }
 
-  // Подавать на все службы без выбора — только Главный инженер
-  function canSubmitToAllServices() {
-    return isChiefEngineerMaster();
-  }
-
-  // Кто может ЗАКРЫТЬ / ВЕРНУТЬ заявку
   function canMasterClose(req) {
-    if (isAdminLoggedIn) return true;            // Главный инженер (админ-панель) — все
-    if (isChiefEngineerMaster()) return true;    // Главный инженер — все
-    if (isSeniorMaster()) return true;           // ✅ Старший мастер — закрывает ЛЮБУЮ заявку
+    if (isAdminLoggedIn) return true;
+    if (isChiefEngineerMaster()) return true;
+    if (isSeniorMaster()) return true;
     if (isChiefEnergetic()) {
-      if (req.phone === loggedMaster.phone) return true;                     // свои
-      if (req.serviceId === 'energy' || req.serviceId === 'kip') return true; // energy/kip
+      if (req.phone === loggedMaster.phone) return true;
+      if (req.serviceId === 'energy' || req.serviceId === 'kip') return true;
     }
-    if (loggedMaster.brigade && loggedMaster.brigade === req.brigade) return true; // обычный мастер — своя бригада
+    if (loggedMaster.brigade && loggedMaster.brigade === req.brigade) return true;
     return false;
   }
   function canMasterReturn(req) { return canMasterClose(req); }
 
-  // Служба может действовать только в своей службе
   function canServiceActOn(req) {
     if (!loggedService.name) return false;
     if (loggedService.status !== 'approved') return false;
@@ -558,12 +617,14 @@
   }
 
   function getCurrentAuthor() {
-    if (isAdminLoggedIn) return 'Главный инженер';
+    if (isChiefEngineerPanelUnlocked) return 'Главный инженер';
+    if (isAdminLoggedIn) return 'Главный инженер (панель)';
     if (loggedMaster.name) return loggedMaster.name;
     if (loggedService.name) return loggedService.name;
     return 'Неизвестный';
   }
   function getCurrentPhone() {
+    if (isChiefEngineerPanelUnlocked) return 'chief-engineer-panel';
     if (isAdminLoggedIn) return 'admin';
     if (loggedMaster.phone) return loggedMaster.phone;
     if (loggedService.phone) return loggedService.phone;
@@ -619,13 +680,13 @@
     if (loggedMaster.phone && req.phone === loggedMaster.phone) return true;
     if (isChiefEnergetic() && (req.serviceId === 'energy' || req.serviceId === 'kip')) return true;
     if (isChiefEngineerMaster()) return true;
-    if (isSeniorMaster()) return true;   // уведомления по всем — он может закрывать любые
+    if (isSeniorMaster()) return true;
     if (loggedService.role && loggedService.status === 'approved') {
       for (var i = 0; i < SERVICES.length; i++) {
         if (SERVICES[i].name === loggedService.role && SERVICES[i].id === req.serviceId) return true;
       }
     }
-    if (isAdminLoggedIn) return true;
+    if (isAdminLoggedIn || isChiefEngineerPanelUnlocked) return true;
     return false;
   }
 
@@ -673,8 +734,10 @@
   var adminWorkBlock = document.getElementById('adminWorkBlock');
   var adminUsersBlock = document.getElementById('adminUsersBlock');
   var adminRequestsBlock = document.getElementById('adminRequestsBlock');
+  var adminChiefEngineerBlock = document.getElementById('adminChiefEngineerBlock');
   var adminTabUsers = document.getElementById('adminTabUsers');
   var adminTabRequests = document.getElementById('adminTabRequests');
+  var adminTabChiefEngineer = document.getElementById('adminTabChiefEngineer');
   var adminRequestsList = document.getElementById('adminRequestsList');
   var adminStatusText = document.getElementById('adminStatusText');
   var globalPendingAlert = document.getElementById('globalPendingAlert');
@@ -714,6 +777,18 @@
   var sendChatBtn = document.getElementById('sendChatBtn');
   var closeChatBtn = document.getElementById('closeChatBtn');
   var serviceQuickRequestBlock = document.getElementById('serviceQuickRequestBlock');
+
+  // CE panel elements
+  var chiefEngineerGate = document.getElementById('chiefEngineerGate');
+  var chiefEngineerPanel = document.getElementById('chiefEngineerPanel');
+  var chiefEngineerPanelCode = document.getElementById('chiefEngineerPanelCode');
+  var chiefEngineerPanelLoginBtn = document.getElementById('chiefEngineerPanelLoginBtn');
+  var chiefEngineerPanelLockBtn = document.getElementById('chiefEngineerPanelLockBtn');
+  var ceRequestsList = document.getElementById('ceRequestsList');
+  var ceStats = document.getElementById('ceStats');
+  var ceFilterService = document.getElementById('ceFilterService');
+  var ceFilterStatus = document.getElementById('ceFilterStatus');
+  var ceSearch = document.getElementById('ceSearch');
 
   var notifyBtn = document.getElementById('notifyBtn');
   if (notifyBtn) notifyBtn.addEventListener('click', requestNotifyPermission);
@@ -877,15 +952,41 @@
     newRequestBlock.classList.add('hidden'); myRequestsBlock.classList.remove('hidden');
     renderMyRequests();
   });
-  adminTabUsers.addEventListener('click', function() {
-    adminTabUsers.classList.add('active'); adminTabRequests.classList.remove('active');
-    adminUsersBlock.classList.remove('hidden'); adminRequestsBlock.classList.add('hidden');
-  });
-  adminTabRequests.addEventListener('click', function() {
-    adminTabRequests.classList.add('active'); adminTabUsers.classList.remove('active');
-    adminUsersBlock.classList.add('hidden'); adminRequestsBlock.classList.remove('hidden');
-    renderAdminRequests();
-  });
+
+  function setAdminSubTab(which) {
+    adminTabUsers.classList.remove('active');
+    adminTabRequests.classList.remove('active');
+    adminTabChiefEngineer.classList.remove('active');
+    adminUsersBlock.classList.add('hidden');
+    adminRequestsBlock.classList.add('hidden');
+    adminChiefEngineerBlock.classList.add('hidden');
+
+    if (which === 'users') {
+      adminTabUsers.classList.add('active');
+      adminUsersBlock.classList.remove('hidden');
+      renderAdminUsers();
+    } else if (which === 'requests') {
+      adminTabRequests.classList.add('active');
+      adminRequestsBlock.classList.remove('hidden');
+      renderAdminRequests();
+    } else if (which === 'ce') {
+      adminTabChiefEngineer.classList.add('active');
+      adminChiefEngineerBlock.classList.remove('hidden');
+      if (isChiefEngineerPanelUnlocked) {
+        chiefEngineerGate.classList.add('hidden');
+        chiefEngineerPanel.classList.remove('hidden');
+        renderChiefEngineerPanel();
+      } else {
+        chiefEngineerGate.classList.remove('hidden');
+        chiefEngineerPanel.classList.add('hidden');
+        chiefEngineerPanelCode.value = '';
+        setTimeout(function () { try { chiefEngineerPanelCode.focus(); } catch(e) {} }, 50);
+      }
+    }
+  }
+  adminTabUsers.addEventListener('click', function() { setAdminSubTab('users'); });
+  adminTabRequests.addEventListener('click', function() { setAdminSubTab('requests'); });
+  adminTabChiefEngineer.addEventListener('click', function() { setAdminSubTab('ce'); });
 
   // ====== СОХРАНЁННЫЕ ДАННЫЕ ======
   function loadSavedCredentials() {
@@ -1038,8 +1139,8 @@
         showToast('Ваш аккаунт отклонен. Обратитесь к администратору.', true); return;
       }
     } else {
-      var newRef = push(ref(db, 'users'));
-      await set(newRef, { name: name, phone: phone, role: role, brigade: 'Служба', status: 'pending', createdAt: Date.now(), dualRole: isShiftService });
+      var newRef2 = push(ref(db, 'users'));
+      await set(newRef2, { name: name, phone: phone, role: role, brigade: 'Служба', status: 'pending', createdAt: Date.now(), dualRole: isShiftService });
       loggedService = { name: name, phone: phone, role: role, status: 'pending' };
       showToast('Регистрация отправлена. Ожидайте подтверждения.');
     }
@@ -1095,12 +1196,12 @@
     if (code !== ADMIN_CODE) { showToast('Неверный код доступа', true); return; }
     isAdminLoggedIn = true;
     adminLoginBlock.classList.add('hidden'); adminWorkBlock.classList.remove('hidden');
-    adminTabUsers.classList.add('active'); adminTabRequests.classList.remove('active');
-    adminUsersBlock.classList.remove('hidden'); adminRequestsBlock.classList.add('hidden');
-    renderAdminUsers();
+    setAdminSubTab('users');
   });
   document.getElementById('logoutAdminBtn').addEventListener('click', function() {
     isAdminLoggedIn = false;
+    isChiefEngineerPanelUnlocked = false;
+    chiefEngineerPanelCode.value = '';
     adminLoginBlock.classList.remove('hidden'); adminWorkBlock.classList.add('hidden');
     document.getElementById('adminCodeInput').value = '';
   });
@@ -1221,6 +1322,7 @@
     if (!isAdminLoggedIn || adminWorkBlock.classList.contains('hidden')) return;
     if (!adminUsersBlock.classList.contains('hidden')) renderAdminUsers();
     if (!adminRequestsBlock.classList.contains('hidden')) renderAdminRequests();
+    if (!adminChiefEngineerBlock.classList.contains('hidden') && isChiefEngineerPanelUnlocked) renderChiefEngineerPanel();
   }
 
   async function handleAdminAction(action, id) {
@@ -1457,7 +1559,7 @@
   function openChat(requestId) {
     currentChatRequestId = requestId;
     var req = allRequests.find(function(r) { return r.id === requestId; });
-    if (req) chatTitle.textContent = 'Чат по заявке: ' + escapeHtml(serviceName(req.serviceId)) + ' (' + escapeHtml(req.brigade || '—') + ')';
+    if (req) chatTitle.textContent = 'Чат по заявке: ' + serviceName(req.serviceId) + ' (' + (req.brigade || '—') + ')';
     chatInput.value = '';
     chatModal.classList.remove('hidden');
     loadChatMessages(requestId);
@@ -1484,6 +1586,7 @@
       renderMyRequests();
       if (currentDetailServiceId) renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
       if (isAdminLoggedIn && !adminRequestsBlock.classList.contains('hidden')) renderAdminRequests();
+      if (isChiefEngineerPanelUnlocked && !adminChiefEngineerBlock.classList.contains('hidden')) renderChiefEngineerPanel();
     });
   }
 
@@ -1666,6 +1769,192 @@
   document.getElementById('filterService').addEventListener('change', renderHistory);
   document.getElementById('filterBrigade').addEventListener('change', renderHistory);
   document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+
+  // ====== ПАНЕЛЬ ГЛАВНОГО ИНЖЕНЕРА (код 1104) ======
+  chiefEngineerPanelLoginBtn.addEventListener('click', function() {
+    var code = (chiefEngineerPanelCode.value || '').trim();
+    if (code !== CHIEF_ENGINEER_PANEL_CODE) {
+      showToast('Неверный код Главного инженера', true);
+      chiefEngineerPanelCode.value = '';
+      chiefEngineerPanelCode.focus();
+      return;
+    }
+    isChiefEngineerPanelUnlocked = true;
+    chiefEngineerGate.classList.add('hidden');
+    chiefEngineerPanel.classList.remove('hidden');
+    renderChiefEngineerPanel();
+    showToast('Доступ Главного инженера открыт');
+  });
+  chiefEngineerPanelCode.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') chiefEngineerPanelLoginBtn.click();
+  });
+  chiefEngineerPanelLockBtn.addEventListener('click', function() {
+    isChiefEngineerPanelUnlocked = false;
+    chiefEngineerGate.classList.remove('hidden');
+    chiefEngineerPanel.classList.add('hidden');
+    chiefEngineerPanelCode.value = '';
+    showToast('Режим Главного инженера закрыт');
+  });
+
+  function fillCeServiceFilter() {
+    var cur = ceFilterService.value;
+    var opts = '<option value="">Все службы</option>';
+    for (var i = 0; i < SERVICES.length; i++) {
+      opts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
+    }
+    ceFilterService.innerHTML = opts;
+    ceFilterService.value = cur;
+  }
+
+  function getCeFilteredRequests() {
+    var fS = ceFilterService.value;
+    var fSt = ceFilterStatus.value;
+    var q = (ceSearch.value || '').toLowerCase().trim();
+    return allRequests.filter(function(r) {
+      var st = r.status || 'new';
+      if (fS && r.serviceId !== fS) return false;
+      if (fSt && st !== fSt) return false;
+      if (q) {
+        var hay = ((r.brigade || '') + ' ' + (r.name || '') + ' ' + (r.desc || '') + ' ' + (r.phone || '')).toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderChiefEngineerPanel() {
+    if (!isChiefEngineerPanelUnlocked) return;
+    fillCeServiceFilter();
+    var list = getCeFilteredRequests();
+    var nNew = 0, nProg = 0, nWait = 0, nClosed = 0;
+    for (var i = 0; i < list.length; i++) {
+      var st = list[i].status || 'new';
+      if (st === 'new') nNew++;
+      else if (st === 'in_progress') nProg++;
+      else if (st === 'service_done') nWait++;
+      else if (st === 'closed') nClosed++;
+    }
+    ceStats.innerHTML =
+      '<div class="stat"><div class="num">' + list.length + '</div><div class="lbl">Найдено</div></div>' +
+      '<div class="stat red"><div class="num">' + nNew + '</div><div class="lbl">Новых</div></div>' +
+      '<div class="stat progress"><div class="num">' + nProg + '</div><div class="lbl">В работе</div></div>' +
+      '<div class="stat wait"><div class="num">' + nWait + '</div><div class="lbl">Ждут мастера</div></div>' +
+      '<div class="stat ok"><div class="num">' + nClosed + '</div><div class="lbl">Закрытых</div></div>';
+
+    if (!list.length) {
+      ceRequestsList.innerHTML = '<p class="empty">Заявок по фильтру нет.</p>';
+      return;
+    }
+
+    list.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    var html = '';
+    for (var k = 0; k < list.length; k++) {
+      var r = list[k], status = r.status || 'new';
+      html += '<div class="request status-' + status + '">';
+      html += '<div style="font-size:14px; margin-bottom:4px;">' +
+        '<strong>Служба: ' + escapeHtml(serviceName(r.serviceId)) + '</strong> | ' +
+        '<strong>Бригада: ' + escapeHtml(r.brigade || '—') + '</strong> (' +
+        escapeHtml(r.name) + ', тел: ' + escapeHtml(r.phone) + ')<br>' +
+        escapeHtml(r.desc) + '</div>';
+      html += '<div class="event-log"><div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
+      if (r.events && r.events.length) {
+        for (var e = 0; e < r.events.length; e++) {
+          html += '<div>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')</div>';
+        }
+      }
+      html += '</div><div class="actions">';
+      html += '<button class="btn green small" data-ce-action="set_closed" data-id="' + r.id + '">Принудительно закрыть</button>';
+      html += '<button class="btn orange small" data-ce-action="set_new" data-id="' + r.id + '">Сбросить в «Новую»</button>';
+      html += '<button class="btn small" data-ce-action="set_in_progress" data-id="' + r.id + '">→ В работу</button>';
+      html += '<button class="btn red small" data-ce-action="delete" data-id="' + r.id + '">Удалить</button>';
+      html += '<button class="btn gray small chat-btn" data-ce-action="chat" data-id="' + r.id + '">💬 Чат</button>';
+      html += '</div></div>';
+    }
+    ceRequestsList.innerHTML = html;
+
+    var btns = ceRequestsList.querySelectorAll('[data-ce-action]');
+    for (var m = 0; m < btns.length; m++) {
+      btns[m].addEventListener('click', function() {
+        var action = this.getAttribute('data-ce-action');
+        var id = this.getAttribute('data-id');
+        handleChiefEngineerAction(action, id);
+      });
+    }
+  }
+
+  async function handleChiefEngineerAction(action, id) {
+    var req = allRequests.find(function(item) { return item.id === id; });
+    if (!req) return;
+    var currentEvents = req.events || [];
+
+    if (action === 'chat') { openChat(id); return; }
+
+    if (action === 'delete') {
+      if (!confirm('Удалить заявку безвозвратно?')) return;
+      await remove(ref(db, 'requests/' + id));
+      showToast('Заявка удалена Главным инженером');
+      return;
+    }
+
+    if (action === 'set_closed') {
+      var ev1 = { text: '🔒 Принудительно закрыта Главным инженером', time: Date.now() };
+      await update(ref(db, 'requests/' + id), {
+        status: 'closed', closedAt: Date.now(),
+        events: currentEvents.concat([ev1])
+      });
+      showToast('Заявка закрыта Главным инженером');
+    } else if (action === 'set_new') {
+      var ev2 = { text: '↺ Сброшена в «Новую» Главным инженером', time: Date.now() };
+      await update(ref(db, 'requests/' + id), {
+        status: 'new', inProgressAt: null, serviceDoneAt: null, closedAt: null,
+        events: currentEvents.concat([ev2])
+      });
+      showToast('Статус сброшен в «Новую»');
+    } else if (action === 'set_in_progress') {
+      var ev3 = { text: '⚙️ Переведена в работу Главным инженером', time: Date.now() };
+      await update(ref(db, 'requests/' + id), {
+        status: 'in_progress', inProgressAt: Date.now(), serviceDoneAt: null,
+        events: currentEvents.concat([ev3])
+      });
+      showToast('Заявка переведена в работу');
+    }
+    renderChiefEngineerPanel();
+  }
+
+  document.getElementById('ceRefreshBtn').addEventListener('click', renderChiefEngineerPanel);
+  ceFilterService.addEventListener('change', renderChiefEngineerPanel);
+  ceFilterStatus.addEventListener('change', renderChiefEngineerPanel);
+  ceSearch.addEventListener('input', renderChiefEngineerPanel);
+
+  document.getElementById('ceExportBtn').addEventListener('click', function() {
+    var list = getCeFilteredRequests();
+    list.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+    var headers = ['Подана', 'Служба', 'Бригада', 'Имя', 'Телефон', 'Описание', 'Статус'];
+    var lines = [headers.join(';')];
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i];
+      var row = [
+        formatDate(r.createdAt),
+        serviceName(r.serviceId),
+        r.brigade || '',
+        r.name || '',
+        r.phone || '',
+        (r.desc || '').replace(/[\r\n;]+/g, ' '),
+        statusLabel(r.status || 'new')
+      ];
+      lines.push(row.join(';'));
+    }
+    var csv = '\uFEFF' + lines.join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'Заявки_Главный_инженер.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Выгрузка Главного инженера готова.');
+  });
 
   // ====== СЛУШАТЕЛИ БАЗЫ ======
   onValue(ref(db, 'requests'), (snapshot) => {
