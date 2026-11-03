@@ -337,9 +337,24 @@
       </div>
 
       <div id="adminUsersBlock">
+        <div class="card" id="usersGate" style="border-left: 4px solid #dc2626;">
+          <h2>Подтверждение аккаунтов</h2>
+          <p style="color:#6b7280; font-size:13px; margin-bottom:12px;">
+            Для одобрения / отклонения / удаления аккаунтов введите код Главного инженера.
+          </p>
+          <div class="form-row" style="align-items:flex-end;">
+            <div style="flex:1; min-width:180px;">
+              <input type="password" id="usersGateCode" placeholder="Код доступа (1104)" autocomplete="off">
+            </div>
+            <button class="btn red" id="usersGateLoginBtn">Подтвердить код</button>
+          </div>
+        </div>
+
         <div class="card" style="border-left: 4px solid #f59e0b;">
           <h2>Реестр пользователей</h2>
-          <p style="color: #6b7280; font-size: 13px; margin-bottom: 12px;">Подтверждайте новых пользователей.</p>
+          <p style="color: #6b7280; font-size: 13px; margin-bottom: 12px;">
+            Просмотр доступен всем администраторам, действия — только после ввода кода <strong>1104</strong>.
+          </p>
           <div id="moderationList"></div>
         </div>
       </div>
@@ -572,6 +587,7 @@
   };
   var isAdminLoggedIn = false;
   var isChiefEngineerPanelUnlocked = false;
+  var isUsersModerationUnlocked = false;
 
   var selectedServiceId = '';
   var pendingServiceDoneId = null;
@@ -789,6 +805,11 @@
   var ceFilterService = document.getElementById('ceFilterService');
   var ceFilterStatus = document.getElementById('ceFilterStatus');
   var ceSearch = document.getElementById('ceSearch');
+
+  // Users moderation gate elements
+  var usersGate = document.getElementById('usersGate');
+  var usersGateCode = document.getElementById('usersGateCode');
+  var usersGateLoginBtn = document.getElementById('usersGateLoginBtn');
 
   var notifyBtn = document.getElementById('notifyBtn');
   if (notifyBtn) notifyBtn.addEventListener('click', requestNotifyPermission);
@@ -1201,7 +1222,9 @@
   document.getElementById('logoutAdminBtn').addEventListener('click', function() {
     isAdminLoggedIn = false;
     isChiefEngineerPanelUnlocked = false;
+    isUsersModerationUnlocked = false;
     chiefEngineerPanelCode.value = '';
+    usersGateCode.value = '';
     adminLoginBlock.classList.remove('hidden'); adminWorkBlock.classList.add('hidden');
     document.getElementById('adminCodeInput').value = '';
   });
@@ -1225,8 +1248,33 @@
     showToast(newState ? 'Прием заявок остановлен' : 'Прием заявок возобновлен');
   });
 
+  // ====== КОД 1104 ДЛЯ СОГЛАСОВАНИЯ АККАУНТОВ ======
+  usersGateLoginBtn.addEventListener('click', function() {
+    var code = (usersGateCode.value || '').trim();
+    if (code !== CHIEF_ENGINEER_PANEL_CODE) {
+      showToast('Неверный код. Согласование запрещено.', true);
+      usersGateCode.value = '';
+      usersGateCode.focus();
+      return;
+    }
+    isUsersModerationUnlocked = true;
+    usersGateCode.value = '';
+    usersGate.classList.add('hidden');
+    renderAdminUsers();
+    showToast('Согласование аккаунтов открыто');
+  });
+  usersGateCode.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') usersGateLoginBtn.click();
+  });
+
   // ====== АДМИН: ПОЛЬЗОВАТЕЛИ ======
   function renderAdminUsers() {
+    if (isUsersModerationUnlocked) {
+      usersGate.classList.add('hidden');
+    } else {
+      usersGate.classList.remove('hidden');
+    }
+
     var sortedUsers = allUsers.slice().sort(function(a,b) { return (b.createdAt || 0) - (a.createdAt || 0); });
     if (!sortedUsers.length) { moderationList.innerHTML = '<p class="empty">Пользователей пока нет.</p>'; return; }
     var usersHtml = '';
@@ -1237,20 +1285,30 @@
       var dualText = u.dualRole ? ' · <span style="color:#8b5cf6;font-weight:600;">двойная роль</span>' : '';
       var chiefMark = u.brigade === 'Главный инженер' ? ' · <span style="color:#dc2626;font-weight:700;">ГЛАВНЫЙ ИНЖЕНЕР</span>' : '';
       var seniorMark = u.brigade === 'Старший мастер' ? ' · <span style="color:#7c3aed;font-weight:700;">СТАРШИЙ МАСТЕР</span>' : '';
+
       usersHtml += '<div class="moderation-user ' + statusClass + '">';
       usersHtml += '<div class="info">';
       usersHtml += '<strong>' + escapeHtml(u.name) + '</strong> (' + escapeHtml(u.phone) + ')<br>';
       usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + dualText + chiefMark + seniorMark + '</span>';
       usersHtml += '</div><div class="btns">';
-      if (u.status !== 'approved') usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
-      if (u.status !== 'rejected') usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
-      usersHtml += '<button class="btn gray small" data-uid="' + u.id + '" data-action="delete_user" style="background:#dc2626;">Удалить</button>';
+
+      if (isUsersModerationUnlocked) {
+        if (u.status !== 'approved') usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
+        if (u.status !== 'rejected') usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
+        usersHtml += '<button class="btn gray small" data-uid="' + u.id + '" data-action="delete_user" style="background:#dc2626;">Удалить</button>';
+      } else {
+        usersHtml += '<span class="badge wait">🔒 Введите код 1104</span>';
+      }
+
       usersHtml += '</div></div>';
     }
     moderationList.innerHTML = usersHtml;
+
+    if (!isUsersModerationUnlocked) return;
     var modBtns = moderationList.querySelectorAll('[data-uid]');
     for (var j = 0; j < modBtns.length; j++) {
       modBtns[j].addEventListener('click', async function() {
+        if (!isUsersModerationUnlocked) { showToast('Сначала введите код 1104', true); return; }
         var uid = this.getAttribute('data-uid');
         var action = this.getAttribute('data-action');
         if (action === 'approve') { await update(ref(db, 'users/' + uid), { status: 'approved' }); showToast('Пользователь подтвержден'); }
