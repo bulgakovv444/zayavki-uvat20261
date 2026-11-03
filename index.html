@@ -337,23 +337,10 @@
       </div>
 
       <div id="adminUsersBlock">
-        <div class="card" id="usersGate" style="border-left: 4px solid #dc2626;">
-          <h2>Подтверждение аккаунтов</h2>
-          <p style="color:#6b7280; font-size:13px; margin-bottom:12px;">
-            Для одобрения / отклонения / удаления аккаунтов введите код Главного инженера.
-          </p>
-          <div class="form-row" style="align-items:flex-end;">
-            <div style="flex:1; min-width:180px;">
-              <input type="password" id="usersGateCode" placeholder="Код доступа (1104)" autocomplete="off">
-            </div>
-            <button class="btn red" id="usersGateLoginBtn">Подтвердить код</button>
-          </div>
-        </div>
-
         <div class="card" style="border-left: 4px solid #f59e0b;">
           <h2>Реестр пользователей</h2>
           <p style="color: #6b7280; font-size: 13px; margin-bottom: 12px;">
-            Просмотр доступен всем администраторам, действия — только после ввода кода <strong>1104</strong>.
+            Подтверждайте новых пользователей. Для действий потребуется код <strong>1104</strong>.
           </p>
           <div id="moderationList"></div>
         </div>
@@ -481,6 +468,19 @@
   </div>
 </div>
 
+<!-- МОДАЛКА ДЛЯ ВВОДА КОДА 1104 ПРИ ДЕЙСТВИЯХ С АККАУНТАМИ -->
+<div class="modal-overlay hidden" id="usersCodeModal">
+  <div class="modal">
+    <h3>Подтверждение действия</h3>
+    <p>Введите код Главного инженера (1104), чтобы одобрить, отклонить или удалить аккаунт.</p>
+    <input type="password" id="usersCodeInput" placeholder="Код доступа (1104)" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn gray small" id="cancelUsersCode">Отмена</button>
+      <button class="btn red small" id="confirmUsersCode">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="returnModal">
   <div class="modal">
     <h3>Возврат в работу</h3>
@@ -587,7 +587,6 @@
   };
   var isAdminLoggedIn = false;
   var isChiefEngineerPanelUnlocked = false;
-  var isUsersModerationUnlocked = false;
 
   var selectedServiceId = '';
   var pendingServiceDoneId = null;
@@ -597,6 +596,10 @@
   var currentChatRequestId = null;
   var chatUnsubscribe = null;
   var pendingChiefEngineerReg = null;
+  
+  // Переменные для модалки с кодом пользователей
+  var pendingUserActionUid = null;
+  var pendingUserActionType = null;
 
   var loggedMaster = { name: '', phone: '', brigade: '', status: 'pending' };
   var loggedService = { name: '', phone: '', role: '', status: 'pending' };
@@ -806,10 +809,11 @@
   var ceFilterStatus = document.getElementById('ceFilterStatus');
   var ceSearch = document.getElementById('ceSearch');
 
-  // Users moderation gate elements
-  var usersGate = document.getElementById('usersGate');
-  var usersGateCode = document.getElementById('usersGateCode');
-  var usersGateLoginBtn = document.getElementById('usersGateLoginBtn');
+  // Модалка для кода аккаунтов
+  var usersCodeModal = document.getElementById('usersCodeModal');
+  var usersCodeInput = document.getElementById('usersCodeInput');
+  var confirmUsersCodeBtn = document.getElementById('confirmUsersCode');
+  var cancelUsersCodeBtn = document.getElementById('cancelUsersCode');
 
   var notifyBtn = document.getElementById('notifyBtn');
   if (notifyBtn) notifyBtn.addEventListener('click', requestNotifyPermission);
@@ -1222,9 +1226,7 @@
   document.getElementById('logoutAdminBtn').addEventListener('click', function() {
     isAdminLoggedIn = false;
     isChiefEngineerPanelUnlocked = false;
-    isUsersModerationUnlocked = false;
     chiefEngineerPanelCode.value = '';
-    usersGateCode.value = '';
     adminLoginBlock.classList.remove('hidden'); adminWorkBlock.classList.add('hidden');
     document.getElementById('adminCodeInput').value = '';
   });
@@ -1248,33 +1250,8 @@
     showToast(newState ? 'Прием заявок остановлен' : 'Прием заявок возобновлен');
   });
 
-  // ====== КОД 1104 ДЛЯ СОГЛАСОВАНИЯ АККАУНТОВ ======
-  usersGateLoginBtn.addEventListener('click', function() {
-    var code = (usersGateCode.value || '').trim();
-    if (code !== CHIEF_ENGINEER_PANEL_CODE) {
-      showToast('Неверный код. Согласование запрещено.', true);
-      usersGateCode.value = '';
-      usersGateCode.focus();
-      return;
-    }
-    isUsersModerationUnlocked = true;
-    usersGateCode.value = '';
-    usersGate.classList.add('hidden');
-    renderAdminUsers();
-    showToast('Согласование аккаунтов открыто');
-  });
-  usersGateCode.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') usersGateLoginBtn.click();
-  });
-
   // ====== АДМИН: ПОЛЬЗОВАТЕЛИ ======
   function renderAdminUsers() {
-    if (isUsersModerationUnlocked) {
-      usersGate.classList.add('hidden');
-    } else {
-      usersGate.classList.remove('hidden');
-    }
-
     var sortedUsers = allUsers.slice().sort(function(a,b) { return (b.createdAt || 0) - (a.createdAt || 0); });
     if (!sortedUsers.length) { moderationList.innerHTML = '<p class="empty">Пользователей пока нет.</p>'; return; }
     var usersHtml = '';
@@ -1292,32 +1269,61 @@
       usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + dualText + chiefMark + seniorMark + '</span>';
       usersHtml += '</div><div class="btns">';
 
-      // Кнопки рисуем ТОЛЬКО если введен код 1104
-      if (isUsersModerationUnlocked) {
-        if (u.status !== 'approved') usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
-        if (u.status !== 'rejected') usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
-        usersHtml += '<button class="btn gray small" data-uid="' + u.id + '" data-action="delete_user" style="background:#dc2626;">Удалить</button>';
-      }
+      if (u.status !== 'approved') usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
+      if (u.status !== 'rejected') usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
+      usersHtml += '<button class="btn gray small" data-uid="' + u.id + '" data-action="delete_user" style="background:#dc2626;">Удалить</button>';
 
       usersHtml += '</div></div>';
     }
     moderationList.innerHTML = usersHtml;
 
-    if (!isUsersModerationUnlocked) return;
     var modBtns = moderationList.querySelectorAll('[data-uid]');
     for (var j = 0; j < modBtns.length; j++) {
-      modBtns[j].addEventListener('click', async function() {
-        if (!isUsersModerationUnlocked) { showToast('Сначала введите код 1104', true); return; }
+      modBtns[j].addEventListener('click', function() {
         var uid = this.getAttribute('data-uid');
         var action = this.getAttribute('data-action');
-        if (action === 'approve') { await update(ref(db, 'users/' + uid), { status: 'approved' }); showToast('Пользователь подтвержден'); }
-        else if (action === 'reject') { await update(ref(db, 'users/' + uid), { status: 'rejected' }); showToast('Пользователь отклонен'); }
-        else if (action === 'delete_user') {
-          if (confirm('Вы уверены, что хотите удалить аккаунт?')) { await remove(ref(db, 'users/' + uid)); showToast('Аккаунт удален'); }
-        }
+        
+        // Открываем модалку для ввода кода
+        pendingUserActionUid = uid;
+        pendingUserActionType = action;
+        usersCodeInput.value = '';
+        usersCodeModal.classList.remove('hidden');
+        usersCodeInput.focus();
       });
     }
   }
+
+  confirmUsersCodeBtn.addEventListener('click', async function() {
+    if (usersCodeInput.value.trim() !== CHIEF_ENGINEER_PANEL_CODE) {
+      showToast('Неверный код. Действие отменено.', true);
+      usersCodeInput.value = '';
+      usersCodeInput.focus();
+      return;
+    }
+    usersCodeModal.classList.add('hidden');
+    if (!pendingUserActionUid || !pendingUserActionType) return;
+    
+    var uid = pendingUserActionUid;
+    var action = pendingUserActionType;
+    pendingUserActionUid = null;
+    pendingUserActionType = null;
+
+    if (action === 'approve') { await update(ref(db, 'users/' + uid), { status: 'approved' }); showToast('Пользователь подтвержден'); }
+    else if (action === 'reject') { await update(ref(db, 'users/' + uid), { status: 'rejected' }); showToast('Пользователь отклонен'); }
+    else if (action === 'delete_user') {
+      if (confirm('Вы уверены, что хотите удалить аккаунт?')) { await remove(ref(db, 'users/' + uid)); showToast('Аккаунт удален'); }
+    }
+  });
+  
+  cancelUsersCodeBtn.addEventListener('click', function() {
+    usersCodeModal.classList.add('hidden');
+    pendingUserActionUid = null;
+    pendingUserActionType = null;
+  });
+  
+  usersCodeInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') confirmUsersCodeBtn.click();
+  });
 
   // ====== АДМИН: ЗАЯВКИ ======
   function renderAdminRequests() {
