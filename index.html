@@ -1292,12 +1292,11 @@
       usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + dualText + chiefMark + seniorMark + '</span>';
       usersHtml += '</div><div class="btns">';
 
+      // Кнопки рисуем ТОЛЬКО если введен код 1104
       if (isUsersModerationUnlocked) {
         if (u.status !== 'approved') usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
         if (u.status !== 'rejected') usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
         usersHtml += '<button class="btn gray small" data-uid="' + u.id + '" data-action="delete_user" style="background:#dc2626;">Удалить</button>';
-      } else {
-        usersHtml += '<span class="badge wait">🔒 Введите код 1104</span>';
       }
 
       usersHtml += '</div></div>';
