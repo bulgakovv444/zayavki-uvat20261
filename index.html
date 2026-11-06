@@ -162,6 +162,8 @@
 
   .ce-banner { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; margin-bottom: 14px; color: #991b1b; font-weight: 600; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
   .ce-banner .lbl { display: flex; align-items: center; gap: 8px; }
+
+  .brigade-note { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 500; }
 </style>
 </head>
 <body>
@@ -290,6 +292,7 @@
   <div id="requestsDetailView" class="hidden">
     <div class="back"><button class="btn gray" id="backFromDetail">← Назад</button></div>
     <h1 id="detailTitle"></h1>
+    <div id="detailBrigadeNote" class="brigade-note hidden"></div>
     <div id="detailRequestsList"></div>
   </div>
 
@@ -596,7 +599,7 @@
   var currentChatRequestId = null;
   var chatUnsubscribe = null;
   var pendingChiefEngineerReg = null;
-  
+
   // Переменные для модалки с кодом пользователей
   var pendingUserActionUid = null;
   var pendingUserActionType = null;
@@ -612,6 +615,28 @@
   function isSeniorMaster()        { return loggedMaster.name && loggedMaster.brigade === 'Старший мастер'; }
   function isChiefEnergetic()      { return loggedMaster.name && loggedMaster.brigade === 'Главный энергетик'; }
   function isShiftChiefMaster()    { return loggedMaster.name && loggedMaster.brigade === 'Нач.смены'; }
+
+  // Является ли бригада номерной (например, "Бригада 26")
+  function isNumberedBrigade(brigade) {
+    return /^Бригада\s+\d+$/.test(String(brigade || '').trim());
+  }
+
+  // Может ли текущий мастер видеть данную заявку в детальном экране службы
+  function canMasterSeeRequest(req) {
+    if (isAdminLoggedIn) return true;
+    if (isChiefEngineerPanelUnlocked) return true;
+    if (!loggedMaster.name) return true; // не мастер — не фильтруем
+    if (isChiefEngineerMaster()) return true;
+    if (isSeniorMaster()) return true;
+
+    // Номерная бригада: видим только заявки своей текущей бригады
+    if (isNumberedBrigade(loggedMaster.brigade)) {
+      return req.brigade === loggedMaster.brigade;
+    }
+
+    // Остальные должности — без изменений (видят всё)
+    return true;
+  }
 
   function canMasterClose(req) {
     if (isAdminLoggedIn) return true;
@@ -766,6 +791,7 @@
   var serviceServicesGrid = document.getElementById('serviceServicesGrid');
   var detailRequestsList = document.getElementById('detailRequestsList');
   var detailTitle = document.getElementById('detailTitle');
+  var detailBrigadeNote = document.getElementById('detailBrigadeNote');
   var servicePicker = document.getElementById('servicePicker');
   var reqDescEl = document.getElementById('reqDesc');
   var toastEl = document.getElementById('toast');
@@ -1282,7 +1308,7 @@
       modBtns[j].addEventListener('click', function() {
         var uid = this.getAttribute('data-uid');
         var action = this.getAttribute('data-action');
-        
+
         // Открываем модалку для ввода кода
         pendingUserActionUid = uid;
         pendingUserActionType = action;
@@ -1302,7 +1328,7 @@
     }
     usersCodeModal.classList.add('hidden');
     if (!pendingUserActionUid || !pendingUserActionType) return;
-    
+
     var uid = pendingUserActionUid;
     var action = pendingUserActionType;
     pendingUserActionUid = null;
@@ -1314,13 +1340,13 @@
       if (confirm('Вы уверены, что хотите удалить аккаунт?')) { await remove(ref(db, 'users/' + uid)); showToast('Аккаунт удален'); }
     }
   });
-  
+
   cancelUsersCodeBtn.addEventListener('click', function() {
     usersCodeModal.classList.add('hidden');
     pendingUserActionUid = null;
     pendingUserActionType = null;
   });
-  
+
   usersCodeInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') confirmUsersCodeBtn.click();
   });
@@ -1406,9 +1432,15 @@
     var html = '';
     for (var j = 0; j < SERVICES.length; j++) {
       var s = SERVICES[j];
-      var nNew = countByStatus(s.id, 'new');
-      var nProg = countByStatus(s.id, 'in_progress');
-      var nWait = countByStatus(s.id, 'service_done');
+      var nNew = 0, nProg = 0, nWait = 0;
+      for (var q = 0; q < allRequests.length; q++) {
+        var rq = allRequests[q];
+        if (rq.serviceId !== s.id) continue;
+        if (mode === 'master' && !canMasterSeeRequest(rq)) continue;
+        if (rq.status === 'new') nNew++;
+        else if (rq.status === 'in_progress') nProg++;
+        else if (rq.status === 'service_done') nWait++;
+      }
       var cardClass = 'service-card';
       if (nNew > 0) cardClass += ' has-new';
       else if (nProg > 0) cardClass += ' has-progress';
@@ -1486,8 +1518,23 @@
   }
 
   function renderDetailRequests(serviceId, mode) {
-    var list = allRequests.filter(function (r) { return r.serviceId === serviceId; });
+    var list = allRequests.filter(function (r) {
+      if (r.serviceId !== serviceId) return false;
+      // Для мастеров в режиме 'master' применяем ограничение по бригаде
+      if (mode === 'master' && !canMasterSeeRequest(r)) return false;
+      return true;
+    });
     list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    // Плашка-пояснение для номерных бригад
+    if (mode === 'master' && loggedMaster.name && isNumberedBrigade(loggedMaster.brigade)) {
+      detailBrigadeNote.classList.remove('hidden');
+      detailBrigadeNote.innerHTML = '👷 Показаны заявки вашей бригады: <strong>' + escapeHtml(loggedMaster.brigade) + '</strong> (включая заявки сменщика).';
+    } else {
+      detailBrigadeNote.classList.add('hidden');
+      detailBrigadeNote.innerHTML = '';
+    }
+
     if (!list.length) { detailRequestsList.innerHTML = '<p class="empty">Заявок нет.</p>'; return; }
     var html = '';
     for (var i = 0; i < list.length; i++) {
