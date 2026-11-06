@@ -273,15 +273,6 @@
       </div>
 
       <div id="serviceContentBlock">
-        <div id="serviceQuickRequestBlock" class="hidden" style="margin-bottom:16px;">
-          <div class="card" style="border-left:4px solid #8b5cf6;">
-            <h2 style="margin-top:0;">Подать заявку как мастер</h2>
-            <p style="color:#6b7280;font-size:13px;margin-bottom:10px;">
-              У вас есть права мастера. Можете подавать заявки.
-            </p>
-            <button class="btn purple small" id="quickOpenMasterTab">Перейти к форме заявки мастера →</button>
-          </div>
-        </div>
         <h2>Все службы (нажмите для просмотра)</h2>
         <div class="services" id="serviceServicesGrid"></div>
       </div>
@@ -557,9 +548,7 @@
     { id: 'kip', name: 'КИПиА' },
     { id: 'npo', name: 'НПО' },
     { id: 'vo', name: 'ВО' },
-    { id: 'bpo', name: 'БПО' },
-    { id: 'pipe', name: 'Трубная база' },
-    { id: 'shift', name: 'Нач.смены (СПТ)' }
+    { id: 'bpo', name: 'БПО' }
   ];
 
   var BRIGADES = [
@@ -614,7 +603,6 @@
   function isChiefEngineerMaster() { return loggedMaster.name && loggedMaster.brigade === 'Главный инженер'; }
   function isSeniorMaster()        { return loggedMaster.name && loggedMaster.brigade === 'Старший мастер'; }
   function isChiefEnergetic()      { return loggedMaster.name && loggedMaster.brigade === 'Главный энергетик'; }
-  function isShiftChiefMaster()    { return loggedMaster.name && loggedMaster.brigade === 'Нач.смены'; }
 
   // Является ли бригада номерной (например, "Бригада 26")
   function isNumberedBrigade(brigade) {
@@ -821,7 +809,6 @@
   var chatInput = document.getElementById('chatInput');
   var sendChatBtn = document.getElementById('sendChatBtn');
   var closeChatBtn = document.getElementById('closeChatBtn');
-  var serviceQuickRequestBlock = document.getElementById('serviceQuickRequestBlock');
 
   // CE panel elements
   var chiefEngineerGate = document.getElementById('chiefEngineerGate');
@@ -869,13 +856,6 @@
     return status;
   }
   function formatDate(ts) { return ts ? new Date(ts).toLocaleString('ru-RU') : ''; }
-  function countByStatus(serviceId, status) {
-    var n = 0;
-    for (var i = 0; i < allRequests.length; i++) {
-      if (allRequests[i].serviceId === serviceId && allRequests[i].status === status) n++;
-    }
-    return n;
-  }
   function isAcceptingNow() {
     if (settings.isManuallyClosed) return false;
     var h = new Date().getHours();
@@ -885,7 +865,6 @@
     }
     return false;
   }
-  function isShiftChiefService() { return loggedService.name && loggedService.role === 'Нач.смены (СПТ)'; }
 
   // ====== ТАЙМЕР ======
   function formatTime(ms) {
@@ -949,11 +928,7 @@
         servicePendingAlert.classList.add('hidden');
         serviceContentBlock.classList.remove('hidden');
       }
-      if (serviceQuickRequestBlock) {
-        if (isShiftChiefService() && loggedService.status === 'approved') serviceQuickRequestBlock.classList.remove('hidden');
-        else serviceQuickRequestBlock.classList.add('hidden');
-      }
-    } else if (serviceQuickRequestBlock) serviceQuickRequestBlock.classList.add('hidden');
+    }
     updateScheduleTimer();
   }
 
@@ -1096,12 +1071,11 @@
   });
 
   async function processMasterLogin(name, phone, brigade) {
-    var isShiftChief = (brigade === 'Нач.смены');
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
 
     if (existingUser) {
       if (existingUser.status === 'approved') {
-        await update(ref(db, 'users/' + existingUser.id), { name: name, brigade: brigade, role: 'master', dualRole: isShiftChief });
+        await update(ref(db, 'users/' + existingUser.id), { name: name, brigade: brigade, role: 'master', dualRole: false });
         loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'approved' };
         showToast('Вы успешно вошли (данные обновлены).');
       } else if (existingUser.status === 'pending') {
@@ -1112,7 +1086,7 @@
       }
     } else {
       var newRef = push(ref(db, 'users'));
-      await set(newRef, { name: name, phone: phone, brigade: brigade, role: 'master', status: 'pending', createdAt: Date.now(), dualRole: isShiftChief });
+      await set(newRef, { name: name, phone: phone, brigade: brigade, role: 'master', status: 'pending', createdAt: Date.now(), dualRole: false });
       loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'pending' };
       showToast('Регистрация отправлена. Ожидайте подтверждения.');
     }
@@ -1175,12 +1149,11 @@
     if (!phone) { showToast('Введите телефон', true); return; }
     if (!role) { showToast('Выберите службу', true); return; }
 
-    var isShiftService = (role === 'Нач.смены (СПТ)');
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
 
     if (existingUser) {
       if (existingUser.status === 'approved') {
-        await update(ref(db, 'users/' + existingUser.id), { name: name, role: role, brigade: 'Служба', dualRole: isShiftService });
+        await update(ref(db, 'users/' + existingUser.id), { name: name, role: role, brigade: 'Служба', dualRole: false });
         loggedService = { name: name, phone: phone, role: role, status: 'approved' };
         showToast('Вы успешно вошли (данные обновлены).');
       } else if (existingUser.status === 'pending') {
@@ -1191,7 +1164,7 @@
       }
     } else {
       var newRef2 = push(ref(db, 'users'));
-      await set(newRef2, { name: name, phone: phone, role: role, brigade: 'Служба', status: 'pending', createdAt: Date.now(), dualRole: isShiftService });
+      await set(newRef2, { name: name, phone: phone, role: role, brigade: 'Служба', status: 'pending', createdAt: Date.now(), dualRole: false });
       loggedService = { name: name, phone: phone, role: role, status: 'pending' };
       showToast('Регистрация отправлена. Ожидайте подтверждения.');
     }
@@ -1214,7 +1187,6 @@
     loggedService = { name: '', phone: '', role: '', status: 'pending' };
     serviceLoginBlock.classList.remove('hidden'); serviceWorkBlock.classList.add('hidden');
     servicePendingAlert.classList.add('hidden');
-    if (serviceQuickRequestBlock) serviceQuickRequestBlock.classList.add('hidden');
   });
 
   var loginRoleSelect = document.getElementById('loginServiceRole');
@@ -1225,21 +1197,6 @@
   var transferOpts = '';
   for (var i = 0; i < SERVICES.length; i++) transferOpts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
   transferServiceSelect.innerHTML = transferOpts;
-
-  var quickOpenMasterTabBtn = document.getElementById('quickOpenMasterTab');
-  if (quickOpenMasterTabBtn) {
-    quickOpenMasterTabBtn.addEventListener('click', function() {
-      if (!loggedMaster.name && loggedService.name) {
-        document.getElementById('loginMasterName').value = loggedService.name;
-        document.getElementById('loginMasterPhone').value = loggedService.phone;
-        var brigadeSel = document.getElementById('loginMasterBrigade');
-        for (var i = 0; i < brigadeSel.options.length; i++) {
-          if (brigadeSel.options[i].value === 'Нач.смены') { brigadeSel.selectedIndex = i; break; }
-        }
-      }
-      switchToTab('master');
-    });
-  }
 
   // ====== ВХОД АДМИНА ======
   document.getElementById('adminLoginBtn').addEventListener('click', function() {
@@ -1285,14 +1242,13 @@
       var u = sortedUsers[i];
       var statusClass = u.status === 'approved' ? 'approved' : (u.status === 'rejected' ? 'rejected' : '');
       var statusText = u.status === 'approved' ? 'Подтвержден' : (u.status === 'rejected' ? 'Отклонен' : 'На проверке');
-      var dualText = u.dualRole ? ' · <span style="color:#8b5cf6;font-weight:600;">двойная роль</span>' : '';
       var chiefMark = u.brigade === 'Главный инженер' ? ' · <span style="color:#dc2626;font-weight:700;">ГЛАВНЫЙ ИНЖЕНЕР</span>' : '';
       var seniorMark = u.brigade === 'Старший мастер' ? ' · <span style="color:#7c3aed;font-weight:700;">СТАРШИЙ МАСТЕР</span>' : '';
 
       usersHtml += '<div class="moderation-user ' + statusClass + '">';
       usersHtml += '<div class="info">';
       usersHtml += '<strong>' + escapeHtml(u.name) + '</strong> (' + escapeHtml(u.phone) + ')<br>';
-      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + dualText + chiefMark + seniorMark + '</span>';
+      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + chiefMark + seniorMark + '</span>';
       usersHtml += '</div><div class="btns">';
 
       if (u.status !== 'approved') usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
