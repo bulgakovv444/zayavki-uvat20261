@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Заявки Уватский проект</title>
+<title>Заявки — Уватский проект</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f4f6f9; color: #1f2933; padding: 15px; font-size: 14px; }
   h1 { font-size: 20px; margin-bottom: 12px; color: #1e3a8a; }
   h2 { font-size: 16px; margin: 16px 0 10px; }
+  h3 { font-size: 14px; margin: 0 0 8px; }
   .container { max-width: 1100px; margin: 0 auto; }
 
-  .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; flex-wrap: wrap; align-items: center; }
   .tab-btn { background: none; border: none; font-size: 16px; font-weight: 600; color: #6b7280; cursor: pointer; padding: 8px 12px; border-radius: 6px; transition: all .15s; }
   .tab-btn:hover { background: #e5e7eb; color: #1f2933; }
   .tab-btn.active { background: #2563eb; color: #fff; }
@@ -164,6 +165,23 @@
   .ce-banner .lbl { display: flex; align-items: center; gap: 8px; }
 
   .brigade-note { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 500; }
+
+  .builder-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .builder-card { background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-top: 4px solid #2563eb; }
+  .builder-card.services-card { border-top-color: #10b981; }
+  .builder-card.brigades-card { border-top-color: #f59e0b; }
+  .builder-card.roles-card { border-top-color: #8b5cf6; }
+  .builder-card h3 { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 15px; }
+  .builder-list { list-style: none; margin-bottom: 12px; }
+  .builder-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #f9fafb; border-radius: 6px; margin-bottom: 6px; font-size: 13px; gap: 8px; }
+  .builder-list li .name { flex: 1; font-weight: 600; }
+  .builder-list li .id { font-size: 11px; color: #9ca3af; font-family: monospace; }
+  .builder-add-row { display: flex; gap: 6px; }
+  .builder-add-row input { margin-bottom: 0; }
+  .builder-add-row .btn { white-space: nowrap; }
+  .builder-hint { font-size: 12px; color: #6b7280; margin-bottom: 10px; }
+
+  .project-badge { display: inline-block; background: #dbeafe; color: #1e40af; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px; margin-left: 8px; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -184,12 +202,15 @@
   <!-- ЭКРАН 1: МАСТЕР / ИТР -->
   <div id="masterView" class="hidden">
     <div id="masterLoginBlock" class="login-box">
-      <h2>Вход для мастера, ИТР</h2>
+      <h2>Вход для мастера, ИТР <span class="project-badge">Уватский</span></h2>
       <p>Введите ваши данные. При первом входе потребуется подтверждение Главного инженера.</p>
       <input type="text" id="loginMasterName" placeholder="Ваше имя" autocomplete="off">
       <input type="tel" id="loginMasterPhone" placeholder="Ваш номер телефона" autocomplete="off">
-      <select id="loginMasterBrigade">
-        <option value="">— выберите вашу должность / бригаду —</option>
+      <select id="loginMasterRole">
+        <option value="">— выберите вашу должность —</option>
+      </select>
+      <select id="loginMasterBrigade" class="hidden">
+        <option value="">— выберите вашу бригаду —</option>
       </select>
       <button class="btn block" id="loginMasterBtn">Войти в систему</button>
     </div>
@@ -197,7 +218,7 @@
     <div id="masterWorkBlock" class="hidden">
       <div class="header-bar">
         <div>
-          <h2>Рабочий стол</h2>
+          <h2>Рабочий стол <span class="project-badge">Уватский</span></h2>
           <div class="user-info">Вы вошли как: <strong id="loggedMasterBrigade"></strong> (<span id="loggedMasterName"></span>)</div>
         </div>
         <div style="display:flex; align-items:center; gap: 10px;">
@@ -249,7 +270,7 @@
   <!-- ЭКРАН 2: СЛУЖБА -->
   <div id="serviceView" class="hidden">
     <div id="serviceLoginBlock" class="login-box">
-      <h2>Вход для службы</h2>
+      <h2>Вход для службы <span class="project-badge">Уватский</span></h2>
       <p>Введите данные. При первом входе потребуется подтверждение Главного инженера.</p>
       <input type="text" id="loginServiceName" placeholder="Ваше имя (сотрудник)" autocomplete="off">
       <input type="tel" id="loginServicePhone" placeholder="Ваш номер телефона" autocomplete="off">
@@ -262,7 +283,7 @@
     <div id="serviceWorkBlock" class="hidden">
       <div class="header-bar">
         <div>
-          <h2>Рабочий стол службы</h2>
+          <h2>Рабочий стол службы <span class="project-badge">Уватский</span></h2>
           <div class="user-info">Вы вошли как: <strong id="loggedServiceName"></strong> (<span id="loggedServicePhone"></span>)</div>
         </div>
         <button class="btn gray small" id="logoutServiceBtn">Выйти</button>
@@ -289,7 +310,7 @@
 
   <!-- ЭКРАН 4: ИСТОРИЯ -->
   <div id="historyView" class="hidden">
-    <h1>📋 История заявок</h1>
+    <h1>📋 История заявок <span class="project-badge">Уватский</span></h1>
     <div class="history-stats" id="historyStats"></div>
     <div class="filters">
       <select id="filterStatus">
@@ -309,7 +330,7 @@
   <!-- ЭКРАН 5: АДМИН -->
   <div id="adminView" class="hidden">
     <div id="adminLoginBlock" class="login-box">
-      <h2>Панель Главного инженера</h2>
+      <h2>Панель Главного инженера <span class="project-badge">Уватский</span></h2>
       <p>Введите секретный код доступа.</p>
       <input type="password" id="adminCodeInput" placeholder="Секретный код" autocomplete="off">
       <button class="btn block red" id="adminLoginBtn">Войти</button>
@@ -318,7 +339,7 @@
     <div id="adminWorkBlock" class="hidden">
       <div class="header-bar" style="background: #fef2f2; border: 1px solid #fecaca;">
         <div>
-          <h2 style="color: #991b1b;">Панель Главного инженера</h2>
+          <h2 style="color: #991b1b;">Панель Главного инженера <span class="project-badge">Уватский</span></h2>
           <div class="user-info">Полный доступ к системе</div>
         </div>
         <button class="btn gray small" id="logoutAdminBtn">Выйти</button>
@@ -327,6 +348,7 @@
       <div class="sub-tabs" style="margin-bottom: 20px;">
         <button class="sub-tab-btn active" id="adminTabUsers">👥 Пользователи</button>
         <button class="sub-tab-btn" id="adminTabRequests">📝 Заявки</button>
+        <button class="sub-tab-btn" id="adminTabBuilder">🛠 Конструктор</button>
         <button class="sub-tab-btn ce" id="adminTabChiefEngineer">🔑 Главный инженер</button>
       </div>
 
@@ -358,6 +380,56 @@
         </div>
         <h2>Все заявки (полный доступ)</h2>
         <div id="adminRequestsList"></div>
+      </div>
+
+      <!-- КОНСТРУКТОР -->
+      <div id="adminBuilderBlock" class="hidden">
+        <div class="card" style="border-left: 4px solid #2563eb;">
+          <h2>🛠 Конструктор системы</h2>
+          <p class="builder-hint">Добавляйте и удаляйте службы, бригады и должности. Изменения сохраняются в базе данных проекта «Уватский».</p>
+        </div>
+
+        <div class="builder-grid">
+          <div class="builder-card services-card">
+            <h3>🟢 Службы</h3>
+            <p class="builder-hint">Каждая служба имеет внутренний ID (латиница, без пробелов).</p>
+            <ul class="builder-list" id="builderServicesList"></ul>
+            <div class="builder-add-row">
+              <input type="text" id="newServiceName" placeholder="Название службы" autocomplete="off">
+              <button class="btn green small" id="addServiceBtn">+ Добавить</button>
+            </div>
+            <div class="builder-add-row" style="margin-top:6px;">
+              <input type="text" id="newServiceId" placeholder="ID (латиница, напр. energy)" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="builder-card brigades-card">
+            <h3>🟠 Бригады</h3>
+            <p class="builder-hint">Номер или название бригады.</p>
+            <ul class="builder-list" id="builderBrigadesList"></ul>
+            <div class="builder-add-row">
+              <input type="text" id="newBrigadeName" placeholder="Например: Бригада 217" autocomplete="off">
+              <button class="btn orange small" id="addBrigadeBtn">+ Добавить</button>
+            </div>
+          </div>
+
+          <div class="builder-card roles-card">
+            <h3>🟣 Должности мастеров/ИТР</h3>
+            <p class="builder-hint">Если должность требует выбора бригады (мастер, бурильщик), поставьте галочку.</p>
+            <ul class="builder-list" id="builderRolesList"></ul>
+            <div class="builder-add-row">
+              <input type="text" id="newRoleName" placeholder="Название должности" autocomplete="off">
+            </div>
+            <div class="builder-add-row" style="margin-top:6px; align-items:center;">
+              <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#4b5563; cursor:pointer; margin:0;">
+                <input type="checkbox" id="newRoleNeedsBrigade" style="width:auto; margin:0;"> Требуется выбор бригады
+              </label>
+            </div>
+            <div class="builder-add-row" style="margin-top:6px;">
+              <button class="btn purple small" id="addRoleBtn" style="width:100%;">+ Добавить должность</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ВКЛАДКА ГЛАВНОГО ИНЖЕНЕРА (код 1104) -->
@@ -462,7 +534,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ДЛЯ ВВОДА КОДА 1104 ПРИ ДЕЙСТВИЯХ С АККАУНТАМИ -->
 <div class="modal-overlay hidden" id="usersCodeModal">
   <div class="modal">
     <h3>Подтверждение действия</h3>
@@ -522,6 +593,9 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, push, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
+  // ============================================================
+  //  УВАТСКИЙ ПРОЕКТ — своя Firebase база
+  // ============================================================
   const firebaseConfig = {
     apiKey: "AIzaSyAvZIkCpFbH199-U2B6GUok3xzllCOtoJI",
     authDomain: "zayavki-uvat.firebaseapp.com",
@@ -543,7 +617,7 @@
   var CHIEF_ENGINEER_CODE = '2483';
   var CHIEF_ENGINEER_PANEL_CODE = '1104';
 
-  var SERVICES = [
+  var DEFAULT_SERVICES = [
     { id: 'energy', name: 'Энергетик' },
     { id: 'kip', name: 'КИПиА' },
     { id: 'npo', name: 'НПО' },
@@ -551,22 +625,27 @@
     { id: 'bpo', name: 'БПО' }
   ];
 
-  var BRIGADES = [
-    'Главный инженер',
-    'Старший мастер',
-    'Главный энергетик',
-    'Технолог',
-    'Зам. исполнительного директора',
-    'Главный механик ВО',
-    'Главный механик НПО',
-    'Начальник БПО',
-    'Нач.смены',
-    'Начальник цеха',
-    'Ведущий инженер',
-    'Бригада 2', 'Бригада 26', 'Бригада 37', 'Бригада 38', 'Бригада 45',
-    'Бригада 53', 'Бригада 59', 'Бригада 61', 'Бригада 62', 'Бригада 63',
-    'Бригада 65', 'Бригада 69', 'Бригада 70', 'Бригада 129', 'Бригада 136'
+  var DEFAULT_BRIGADES = [5,21,34,64,66,77,79,92,93,103,130,143,167,172,175,214,216].map(n => 'Бригада ' + n);
+
+  var DEFAULT_ROLES = [
+    { id: 'master', name: 'Мастер', needsBrigade: true },
+    { id: 'driller', name: 'Бурильщик', needsBrigade: true },
+    { id: 'chief_engineer', name: 'Главный инженер', needsBrigade: false },
+    { id: 'senior_master', name: 'Старший мастер', needsBrigade: false },
+    { id: 'chief_energetic', name: 'Главный энергетик', needsBrigade: false },
+    { id: 'technologist', name: 'Технолог', needsBrigade: false },
+    { id: 'deputy_director', name: 'Зам. исполнительного директора', needsBrigade: false },
+    { id: 'chief_mechanic_vo', name: 'Главный механик ВО', needsBrigade: false },
+    { id: 'chief_mechanic_npo', name: 'Главный механик НПО', needsBrigade: false },
+    { id: 'head_bpo', name: 'Начальник БПО', needsBrigade: false },
+    { id: 'shift_supervisor', name: 'Нач.смены', needsBrigade: false },
+    { id: 'workshop_head', name: 'Начальник цеха', needsBrigade: false },
+    { id: 'lead_engineer', name: 'Ведущий инженер', needsBrigade: false }
   ];
+
+  var SERVICES = [];
+  var BRIGADES = [];
+  var MASTER_ROLES = [];
 
   var allRequests = [];
   var allUsers = [];
@@ -589,40 +668,33 @@
   var chatUnsubscribe = null;
   var pendingChiefEngineerReg = null;
 
-  // Переменные для модалки с кодом пользователей
   var pendingUserActionUid = null;
   var pendingUserActionType = null;
 
-  var loggedMaster = { name: '', phone: '', brigade: '', status: 'pending' };
+  var loggedMaster = { name: '', phone: '', brigade: '', role: '', roleName: '', status: 'pending' };
   var loggedService = { name: '', phone: '', role: '', status: 'pending' };
 
   var currentDetailServiceId = '';
   var currentDetailViewMode = 'master';
 
-  // ====== РОЛИ ======
-  function isChiefEngineerMaster() { return loggedMaster.name && loggedMaster.brigade === 'Главный инженер'; }
-  function isSeniorMaster()        { return loggedMaster.name && loggedMaster.brigade === 'Старший мастер'; }
-  function isChiefEnergetic()      { return loggedMaster.name && loggedMaster.brigade === 'Главный энергетик'; }
+  function isChiefEngineerMaster() { return loggedMaster.name && loggedMaster.roleName === 'Главный инженер'; }
+  function isSeniorMaster()        { return loggedMaster.name && loggedMaster.roleName === 'Старший мастер'; }
+  function isChiefEnergetic()      { return loggedMaster.name && loggedMaster.roleName === 'Главный энергетик'; }
 
-  // Является ли бригада номерной (например, "Бригада 26")
   function isNumberedBrigade(brigade) {
     return /^Бригада\s+\d+$/.test(String(brigade || '').trim());
   }
 
-  // Может ли текущий мастер видеть данную заявку в детальном экране службы
   function canMasterSeeRequest(req) {
     if (isAdminLoggedIn) return true;
     if (isChiefEngineerPanelUnlocked) return true;
-    if (!loggedMaster.name) return true; // не мастер — не фильтруем
+    if (!loggedMaster.name) return true;
     if (isChiefEngineerMaster()) return true;
     if (isSeniorMaster()) return true;
 
-    // Номерная бригада: видим только заявки своей текущей бригады
-    if (isNumberedBrigade(loggedMaster.brigade)) {
+    if (isNumberedBrigade(loggedMaster.brigade) || loggedMaster.roleName === 'Бурильщик') {
       return req.brigade === loggedMaster.brigade;
     }
-
-    // Остальные должности — без изменений (видят всё)
     return true;
   }
 
@@ -633,6 +705,9 @@
     if (isChiefEnergetic()) {
       if (req.phone === loggedMaster.phone) return true;
       if (req.serviceId === 'energy' || req.serviceId === 'kip') return true;
+    }
+    if (loggedMaster.roleName === 'Мастер' || loggedMaster.roleName === 'Бурильщик') {
+      return req.brigade === loggedMaster.brigade;
     }
     if (loggedMaster.brigade && loggedMaster.brigade === req.brigade) return true;
     return false;
@@ -663,7 +738,6 @@
     return '';
   }
 
-  // ====== УВЕДОМЛЕНИЯ ======
   var knownRequestIds = null;
   var audioCtx = null;
 
@@ -736,7 +810,6 @@
     showToast('🛢️ Новая заявка: ' + serviceName(req.serviceId));
   }
 
-  // ====== ЭЛЕМЕНТЫ ======
   var tabMaster = document.getElementById('tabMaster');
   var tabService = document.getElementById('tabService');
   var tabHistory = document.getElementById('tabHistory');
@@ -766,9 +839,11 @@
   var adminWorkBlock = document.getElementById('adminWorkBlock');
   var adminUsersBlock = document.getElementById('adminUsersBlock');
   var adminRequestsBlock = document.getElementById('adminRequestsBlock');
+  var adminBuilderBlock = document.getElementById('adminBuilderBlock');
   var adminChiefEngineerBlock = document.getElementById('adminChiefEngineerBlock');
   var adminTabUsers = document.getElementById('adminTabUsers');
   var adminTabRequests = document.getElementById('adminTabRequests');
+  var adminTabBuilder = document.getElementById('adminTabBuilder');
   var adminTabChiefEngineer = document.getElementById('adminTabChiefEngineer');
   var adminRequestsList = document.getElementById('adminRequestsList');
   var adminStatusText = document.getElementById('adminStatusText');
@@ -810,7 +885,6 @@
   var sendChatBtn = document.getElementById('sendChatBtn');
   var closeChatBtn = document.getElementById('closeChatBtn');
 
-  // CE panel elements
   var chiefEngineerGate = document.getElementById('chiefEngineerGate');
   var chiefEngineerPanel = document.getElementById('chiefEngineerPanel');
   var chiefEngineerPanelCode = document.getElementById('chiefEngineerPanelCode');
@@ -822,7 +896,6 @@
   var ceFilterStatus = document.getElementById('ceFilterStatus');
   var ceSearch = document.getElementById('ceSearch');
 
-  // Модалка для кода аккаунтов
   var usersCodeModal = document.getElementById('usersCodeModal');
   var usersCodeInput = document.getElementById('usersCodeInput');
   var confirmUsersCodeBtn = document.getElementById('confirmUsersCode');
@@ -866,7 +939,6 @@
     return false;
   }
 
-  // ====== ТАЙМЕР ======
   function formatTime(ms) {
     if (ms < 0) ms = 0;
     var totalSec = Math.floor(ms / 1000);
@@ -982,9 +1054,11 @@
   function setAdminSubTab(which) {
     adminTabUsers.classList.remove('active');
     adminTabRequests.classList.remove('active');
+    adminTabBuilder.classList.remove('active');
     adminTabChiefEngineer.classList.remove('active');
     adminUsersBlock.classList.add('hidden');
     adminRequestsBlock.classList.add('hidden');
+    adminBuilderBlock.classList.add('hidden');
     adminChiefEngineerBlock.classList.add('hidden');
 
     if (which === 'users') {
@@ -995,6 +1069,10 @@
       adminTabRequests.classList.add('active');
       adminRequestsBlock.classList.remove('hidden');
       renderAdminRequests();
+    } else if (which === 'builder') {
+      adminTabBuilder.classList.add('active');
+      adminBuilderBlock.classList.remove('hidden');
+      renderBuilder();
     } else if (which === 'ce') {
       adminTabChiefEngineer.classList.add('active');
       adminChiefEngineerBlock.classList.remove('hidden');
@@ -1012,31 +1090,206 @@
   }
   adminTabUsers.addEventListener('click', function() { setAdminSubTab('users'); });
   adminTabRequests.addEventListener('click', function() { setAdminSubTab('requests'); });
+  adminTabBuilder.addEventListener('click', function() { setAdminSubTab('builder'); });
   adminTabChiefEngineer.addEventListener('click', function() { setAdminSubTab('ce'); });
 
-  // ====== СОХРАНЁННЫЕ ДАННЫЕ ======
+  function saveConfig() {
+    return set(ref(db, 'config'), {
+      services: SERVICES,
+      brigades: BRIGADES,
+      roles: MASTER_ROLES
+    });
+  }
+
+  function renderBuilder() {
+    var sHtml = '';
+    for (var i = 0; i < SERVICES.length; i++) {
+      var s = SERVICES[i];
+      sHtml += '<li><span class="name">' + escapeHtml(s.name) + ' <span class="id">' + escapeHtml(s.id) + '</span></span>' +
+        '<button class="btn red small" data-del-service="' + escapeHtml(s.id) + '">✕</button></li>';
+    }
+    if (!SERVICES.length) sHtml = '<li class="empty">Нет служб</li>';
+    document.getElementById('builderServicesList').innerHTML = sHtml;
+
+    var bHtml = '';
+    for (var j = 0; j < BRIGADES.length; j++) {
+      bHtml += '<li><span class="name">' + escapeHtml(BRIGADES[j]) + '</span>' +
+        '<button class="btn red small" data-del-brigade="' + escapeHtml(BRIGADES[j]) + '">✕</button></li>';
+    }
+    if (!BRIGADES.length) bHtml = '<li class="empty">Нет бригад</li>';
+    document.getElementById('builderBrigadesList').innerHTML = bHtml;
+
+    var rHtml = '';
+    for (var k = 0; k < MASTER_ROLES.length; k++) {
+      var r = MASTER_ROLES[k];
+      var mark = r.needsBrigade ? ' <span class="badge" style="background:#f59e0b;">бригада</span>' : '';
+      rHtml += '<li><span class="name">' + escapeHtml(r.name) + mark + ' <span class="id">' + escapeHtml(r.id) + '</span></span>' +
+        '<button class="btn red small" data-del-role="' + escapeHtml(r.id) + '">✕</button></li>';
+    }
+    if (!MASTER_ROLES.length) rHtml = '<li class="empty">Нет должностей</li>';
+    document.getElementById('builderRolesList').innerHTML = rHtml;
+
+    var delS = document.querySelectorAll('[data-del-service]');
+    for (var a = 0; a < delS.length; a++) {
+      delS[a].addEventListener('click', async function() {
+        var id = this.getAttribute('data-del-service');
+        if (!confirm('Удалить службу "' + id + '"?')) return;
+        SERVICES = SERVICES.filter(function(x) { return x.id !== id; });
+        await saveConfig();
+        renderBuilder();
+        refreshAllForms();
+        showToast('Служба удалена');
+      });
+    }
+    var delB = document.querySelectorAll('[data-del-brigade]');
+    for (var b = 0; b < delB.length; b++) {
+      delB[b].addEventListener('click', async function() {
+        var name = this.getAttribute('data-del-brigade');
+        if (!confirm('Удалить бригаду "' + name + '"?')) return;
+        BRIGADES = BRIGADES.filter(function(x) { return x !== name; });
+        await saveConfig();
+        renderBuilder();
+        refreshAllForms();
+        showToast('Бригада удалена');
+      });
+    }
+    var delR = document.querySelectorAll('[data-del-role]');
+    for (var c = 0; c < delR.length; c++) {
+      delR[c].addEventListener('click', async function() {
+        var id = this.getAttribute('data-del-role');
+        if (!confirm('Удалить должность "' + id + '"?')) return;
+        MASTER_ROLES = MASTER_ROLES.filter(function(x) { return x.id !== id; });
+        await saveConfig();
+        renderBuilder();
+        refreshAllForms();
+        showToast('Должность удалена');
+      });
+    }
+  }
+
+  document.getElementById('addServiceBtn').addEventListener('click', async function() {
+    var name = document.getElementById('newServiceName').value.trim();
+    var id = document.getElementById('newServiceId').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+    if (!name) { showToast('Введите название службы', true); return; }
+    if (!id) { showToast('Введите ID службы', true); return; }
+    if (SERVICES.find(function(s) { return s.id === id; })) { showToast('Служба с таким ID уже существует', true); return; }
+    SERVICES.push({ id: id, name: name });
+    await saveConfig();
+    document.getElementById('newServiceName').value = '';
+    document.getElementById('newServiceId').value = '';
+    renderBuilder();
+    refreshAllForms();
+    showToast('Служба добавлена');
+  });
+
+  document.getElementById('addBrigadeBtn').addEventListener('click', async function() {
+    var name = document.getElementById('newBrigadeName').value.trim();
+    if (!name) { showToast('Введите название бригады', true); return; }
+    if (BRIGADES.indexOf(name) !== -1) { showToast('Такая бригада уже существует', true); return; }
+    BRIGADES.push(name);
+    await saveConfig();
+    document.getElementById('newBrigadeName').value = '';
+    renderBuilder();
+    refreshAllForms();
+    showToast('Бригада добавлена');
+  });
+
+  document.getElementById('addRoleBtn').addEventListener('click', async function() {
+    var name = document.getElementById('newRoleName').value.trim();
+    var needsBrigade = document.getElementById('newRoleNeedsBrigade').checked;
+    if (!name) { showToast('Введите название должности', true); return; }
+    if (MASTER_ROLES.find(function(r) { return r.name.toLowerCase() === name.toLowerCase(); })) { showToast('Такая должность уже существует', true); return; }
+    MASTER_ROLES.push({ id: 'role_' + Date.now(), name: name, needsBrigade: needsBrigade });
+    await saveConfig();
+    document.getElementById('newRoleName').value = '';
+    document.getElementById('newRoleNeedsBrigade').checked = false;
+    renderBuilder();
+    refreshAllForms();
+    showToast('Должность добавлена');
+  });
+
+  function refreshAllForms() {
+    var roleSel = document.getElementById('loginMasterRole');
+    var curRole = roleSel.value;
+    var html = '<option value="">— выберите вашу должность —</option>';
+    for (var i = 0; i < MASTER_ROLES.length; i++) html += '<option value="' + MASTER_ROLES[i].id + '">' + escapeHtml(MASTER_ROLES[i].name) + '</option>';
+    roleSel.innerHTML = html;
+    roleSel.value = curRole;
+
+    var briSel = document.getElementById('loginMasterBrigade');
+    var curBri = briSel.value;
+    var bhtml = '<option value="">— выберите вашу бригаду —</option>';
+    for (var j = 0; j < BRIGADES.length; j++) bhtml += '<option value="' + escapeHtml(BRIGADES[j]) + '">' + escapeHtml(BRIGADES[j]) + '</option>';
+    briSel.innerHTML = bhtml;
+    briSel.value = curBri;
+
+    var srvSel = document.getElementById('loginServiceRole');
+    var curSrv = srvSel.value;
+    var shtml = '<option value="">— выберите вашу службу —</option>';
+    for (var k = 0; k < SERVICES.length; k++) shtml += '<option value="' + escapeHtml(SERVICES[k].name) + '">' + escapeHtml(SERVICES[k].name) + '</option>';
+    srvSel.innerHTML = shtml;
+    srvSel.value = curSrv;
+
+    var trSel = document.getElementById('transferServiceSelect');
+    var trHtml = '';
+    for (var m = 0; m < SERVICES.length; m++) trHtml += '<option value="' + escapeHtml(SERVICES[m].id) + '">' + escapeHtml(SERVICES[m].name) + '</option>';
+    trSel.innerHTML = trHtml;
+
+    renderServicePicker();
+
+    if (loggedMaster.name && !masterWorkBlock.classList.contains('hidden')) renderServicesGrid(masterServicesGrid, 'master');
+    if (loggedService.name && !serviceWorkBlock.classList.contains('hidden')) renderServicesGrid(serviceServicesGrid, 'service');
+
+    fillHistoryFilters();
+    if (isChiefEngineerPanelUnlocked) fillCeServiceFilter();
+
+    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) renderAdminPanel();
+  }
+
+  function fillHistoryFilters() {
+    var fs = document.getElementById('filterService');
+    var fb = document.getElementById('filterBrigade');
+    var fsVal = fs.value, fbVal = fb.value;
+    var sopts = '<option value="">Все службы</option>';
+    for (var i = 0; i < SERVICES.length; i++) sopts += '<option value="' + escapeHtml(SERVICES[i].id) + '">' + escapeHtml(SERVICES[i].name) + '</option>';
+    fs.innerHTML = sopts; fs.value = fsVal;
+    var bopts = '<option value="">Все бригады</option>';
+    for (var b = 0; b < BRIGADES.length; b++) bopts += '<option value="' + escapeHtml(BRIGADES[b]) + '">' + escapeHtml(BRIGADES[b]) + '</option>';
+    fb.innerHTML = bopts; fb.value = fbVal;
+  }
+
   function loadSavedCredentials() {
-    var mName = localStorage.getItem('save_m_name');
-    var mPhone = localStorage.getItem('save_m_phone');
-    var mBrigade = localStorage.getItem('save_m_brigade');
+    var mName = localStorage.getItem('uvat_save_m_name');
+    var mPhone = localStorage.getItem('uvat_save_m_phone');
+    var mRoleId = localStorage.getItem('uvat_save_m_role_id');
+    var mBrigade = localStorage.getItem('uvat_save_m_brigade');
     if (mName) document.getElementById('loginMasterName').value = mName;
     if (mPhone) document.getElementById('loginMasterPhone').value = mPhone;
-    if (mBrigade) document.getElementById('loginMasterBrigade').value = mBrigade;
+    if (mRoleId) document.getElementById('loginMasterRole').value = mRoleId;
+    if (mRoleId) {
+      var role = MASTER_ROLES.find(r => r.id === mRoleId);
+      if (role && role.needsBrigade) {
+        document.getElementById('loginMasterBrigade').classList.remove('hidden');
+        if (mBrigade) document.getElementById('loginMasterBrigade').value = mBrigade;
+      }
+    }
 
-    var sName = localStorage.getItem('save_s_name');
-    var sPhone = localStorage.getItem('save_s_phone');
-    var sRole = localStorage.getItem('save_s_role');
+    var sName = localStorage.getItem('uvat_save_s_name');
+    var sPhone = localStorage.getItem('uvat_save_s_phone');
+    var sRole = localStorage.getItem('uvat_save_s_role');
     if (sName) document.getElementById('loginServiceName').value = sName;
     if (sPhone) document.getElementById('loginServicePhone').value = sPhone;
     if (sRole) document.getElementById('loginServiceRole').value = sRole;
 
-    var savedMasterActive = localStorage.getItem('logged_master_active');
-    var savedServiceActive = localStorage.getItem('logged_service_active');
+    var savedMasterActive = localStorage.getItem('uvat_logged_master_active');
+    var savedServiceActive = localStorage.getItem('uvat_logged_service_active');
 
-    if (savedMasterActive === 'true' && mName && mPhone && mBrigade) {
-      loggedMaster = { name: mName, phone: mPhone, brigade: mBrigade, status: 'pending' };
+    if (savedMasterActive === 'true' && mName && mPhone && mRoleId) {
+      var roleObj = MASTER_ROLES.find(r => r.id === mRoleId);
+      var roleName = roleObj ? roleObj.name : '';
+      loggedMaster = { name: mName, phone: mPhone, brigade: mBrigade || '', role: mRoleId, roleName: roleName, status: 'pending' };
       masterLoginBlock.classList.add('hidden'); masterWorkBlock.classList.remove('hidden');
-      loggedMasterBrigade.textContent = mBrigade;
+      loggedMasterBrigade.textContent = mBrigade || roleName;
       loggedMasterName.textContent = mName + ', ' + mPhone;
       renderServicesGrid(masterServicesGrid, 'master'); updateUIState(); switchToTab('master');
     } else if (savedServiceActive === 'true' && sName && sPhone && sRole) {
@@ -1050,55 +1303,81 @@
     }
   }
 
-  // ====== ВХОД МАСТЕРА ======
+  function fillBrigadeSelect(selectEl) {
+    var html = '<option value="">— выберите вашу бригаду —</option>';
+    for (var i = 0; i < BRIGADES.length; i++) html += '<option value="' + escapeHtml(BRIGADES[i]) + '">' + escapeHtml(BRIGADES[i]) + '</option>';
+    selectEl.innerHTML = html;
+  }
+
+  document.getElementById('loginMasterRole').addEventListener('change', function() {
+    var roleId = this.value;
+    var role = MASTER_ROLES.find(r => r.id === roleId);
+    var brigadeSelect = document.getElementById('loginMasterBrigade');
+    if (role && role.needsBrigade) {
+      brigadeSelect.classList.remove('hidden');
+      fillBrigadeSelect(brigadeSelect);
+    } else {
+      brigadeSelect.classList.add('hidden');
+      brigadeSelect.value = '';
+    }
+  });
+
   document.getElementById('loginMasterBtn').addEventListener('click', async function() {
     var name = document.getElementById('loginMasterName').value.trim();
     var phone = document.getElementById('loginMasterPhone').value.trim();
+    var roleId = document.getElementById('loginMasterRole').value;
     var brigade = document.getElementById('loginMasterBrigade').value;
 
     if (!name) { showToast('Введите ваше имя', true); return; }
     if (!phone) { showToast('Введите телефон', true); return; }
-    if (!brigade) { showToast('Выберите бригаду', true); return; }
+    if (!roleId) { showToast('Выберите должность', true); return; }
 
-    if (brigade === 'Главный инженер') {
-      pendingChiefEngineerReg = { name: name, phone: phone, brigade: brigade };
+    var roleObj = MASTER_ROLES.find(r => r.id === roleId);
+    if (!roleObj) { showToast('Неизвестная должность', true); return; }
+    if (roleObj.needsBrigade && !brigade) { showToast('Выберите номер бригады', true); return; }
+
+    var roleName = roleObj.name;
+
+    if (roleName === 'Главный инженер') {
+      pendingChiefEngineerReg = { name: name, phone: phone, role: roleId, roleName: roleName, brigade: '' };
       chiefEngineerCodeInput.value = '';
       chiefEngineerCodeModal.classList.remove('hidden');
       chiefEngineerCodeInput.focus();
       return;
     }
-    await processMasterLogin(name, phone, brigade);
+    await processMasterLogin(name, phone, roleId, roleName, brigade);
   });
 
-  async function processMasterLogin(name, phone, brigade) {
+  async function processMasterLogin(name, phone, roleId, roleName, brigade) {
     var existingUser = allUsers.find(function(u) { return u.phone === phone; });
 
     if (existingUser) {
       if (existingUser.status === 'approved') {
-        await update(ref(db, 'users/' + existingUser.id), { name: name, brigade: brigade, role: 'master', dualRole: false });
-        loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'approved' };
+        await update(ref(db, 'users/' + existingUser.id), { name: name, roleId: roleId, roleName: roleName, brigade: brigade, role: 'master', dualRole: false });
+        loggedMaster = { name: name, phone: phone, brigade: brigade, role: roleId, roleName: roleName, status: 'approved' };
         showToast('Вы успешно вошли (данные обновлены).');
       } else if (existingUser.status === 'pending') {
-        loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'pending' };
+        loggedMaster = { name: name, phone: phone, brigade: brigade, role: roleId, roleName: roleName, status: 'pending' };
         showToast('Ваш аккаунт уже на проверке.', true);
       } else {
         showToast('Ваш аккаунт отклонен. Обратитесь к администратору.', true); return;
       }
     } else {
       var newRef = push(ref(db, 'users'));
-      await set(newRef, { name: name, phone: phone, brigade: brigade, role: 'master', status: 'pending', createdAt: Date.now(), dualRole: false });
-      loggedMaster = { name: name, phone: phone, brigade: brigade, status: 'pending' };
+      await set(newRef, { name: name, phone: phone, roleId: roleId, roleName: roleName, brigade: brigade, role: 'master', status: 'pending', createdAt: Date.now(), dualRole: false });
+      loggedMaster = { name: name, phone: phone, brigade: brigade, role: roleId, roleName: roleName, status: 'pending' };
       showToast('Регистрация отправлена. Ожидайте подтверждения.');
     }
 
-    localStorage.setItem('save_m_name', name);
-    localStorage.setItem('save_m_phone', phone);
-    localStorage.setItem('save_m_brigade', brigade);
-    localStorage.setItem('logged_master_active', 'true');
-    localStorage.removeItem('logged_service_active');
+    localStorage.setItem('uvat_save_m_name', name);
+    localStorage.setItem('uvat_save_m_phone', phone);
+    localStorage.setItem('uvat_save_m_role_id', roleId);
+    localStorage.setItem('uvat_save_m_brigade', brigade);
+    localStorage.setItem('uvat_logged_master_active', 'true');
+    localStorage.removeItem('uvat_logged_service_active');
 
     masterLoginBlock.classList.add('hidden'); masterWorkBlock.classList.remove('hidden');
-    loggedMasterBrigade.textContent = brigade;
+    loggedMasterBrigade.textContent = brigade || roleName;
     loggedMasterName.textContent = name + ', ' + phone;
     renderServicesGrid(masterServicesGrid, 'master');
     updateUIState();
@@ -1111,7 +1390,7 @@
       chiefEngineerCodeInput.value = ''; chiefEngineerCodeInput.focus(); return;
     }
     var existingChief = allUsers.find(function(u) {
-      return u.brigade === 'Главный инженер' && u.phone !== pendingChiefEngineerReg.phone && u.status !== 'rejected';
+      return u.roleName === 'Главный инженер' && u.phone !== pendingChiefEngineerReg.phone && u.status !== 'rejected';
     });
     if (existingChief) {
       showToast('Главный инженер уже зарегистрирован (' + existingChief.name + ').', true);
@@ -1121,7 +1400,7 @@
     }
     chiefEngineerCodeModal.classList.add('hidden');
     var reg = pendingChiefEngineerReg; pendingChiefEngineerReg = null;
-    await processMasterLogin(reg.name, reg.phone, reg.brigade);
+    await processMasterLogin(reg.name, reg.phone, reg.role, reg.roleName, '');
   });
   cancelChiefEngineerCodeBtn.addEventListener('click', function() {
     chiefEngineerCodeModal.classList.add('hidden');
@@ -1129,18 +1408,12 @@
   });
 
   document.getElementById('logoutMasterBtn').addEventListener('click', function() {
-    localStorage.removeItem('logged_master_active');
-    loggedMaster = { name: '', phone: '', brigade: '', status: 'pending' };
+    localStorage.removeItem('uvat_logged_master_active');
+    loggedMaster = { name: '', phone: '', brigade: '', role: '', roleName: '', status: 'pending' };
     masterLoginBlock.classList.remove('hidden'); masterWorkBlock.classList.add('hidden');
     globalPendingAlert.classList.add('hidden');
   });
 
-  var loginMasterBrigadeSelect = document.getElementById('loginMasterBrigade');
-  var bopts = '<option value="">— выберите вашу бригаду —</option>';
-  for (var i = 0; i < BRIGADES.length; i++) bopts += '<option value="' + BRIGADES[i] + '">' + BRIGADES[i] + '</option>';
-  loginMasterBrigadeSelect.innerHTML = bopts;
-
-  // ====== ВХОД СЛУЖБЫ ======
   document.getElementById('loginServiceBtn').addEventListener('click', async function() {
     var name = document.getElementById('loginServiceName').value.trim();
     var phone = document.getElementById('loginServicePhone').value.trim();
@@ -1169,11 +1442,11 @@
       showToast('Регистрация отправлена. Ожидайте подтверждения.');
     }
 
-    localStorage.setItem('save_s_name', name);
-    localStorage.setItem('save_s_phone', phone);
-    localStorage.setItem('save_s_role', role);
-    localStorage.setItem('logged_service_active', 'true');
-    localStorage.removeItem('logged_master_active');
+    localStorage.setItem('uvat_save_s_name', name);
+    localStorage.setItem('uvat_save_s_phone', phone);
+    localStorage.setItem('uvat_save_s_role', role);
+    localStorage.setItem('uvat_logged_service_active', 'true');
+    localStorage.removeItem('uvat_logged_master_active');
 
     serviceLoginBlock.classList.add('hidden'); serviceWorkBlock.classList.remove('hidden');
     loggedServiceName.textContent = role;
@@ -1183,22 +1456,12 @@
   });
 
   document.getElementById('logoutServiceBtn').addEventListener('click', function() {
-    localStorage.removeItem('logged_service_active');
+    localStorage.removeItem('uvat_logged_service_active');
     loggedService = { name: '', phone: '', role: '', status: 'pending' };
     serviceLoginBlock.classList.remove('hidden'); serviceWorkBlock.classList.add('hidden');
     servicePendingAlert.classList.add('hidden');
   });
 
-  var loginRoleSelect = document.getElementById('loginServiceRole');
-  var roleOpts = '<option value="">— выберите вашу службу —</option>';
-  for (var i = 0; i < SERVICES.length; i++) roleOpts += '<option value="' + SERVICES[i].name + '">' + SERVICES[i].name + '</option>';
-  loginRoleSelect.innerHTML = roleOpts;
-
-  var transferOpts = '';
-  for (var i = 0; i < SERVICES.length; i++) transferOpts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
-  transferServiceSelect.innerHTML = transferOpts;
-
-  // ====== ВХОД АДМИНА ======
   document.getElementById('adminLoginBtn').addEventListener('click', function() {
     var code = document.getElementById('adminCodeInput').value;
     if (code !== ADMIN_CODE) { showToast('Неверный код доступа', true); return; }
@@ -1233,7 +1496,6 @@
     showToast(newState ? 'Прием заявок остановлен' : 'Прием заявок возобновлен');
   });
 
-  // ====== АДМИН: ПОЛЬЗОВАТЕЛИ ======
   function renderAdminUsers() {
     var sortedUsers = allUsers.slice().sort(function(a,b) { return (b.createdAt || 0) - (a.createdAt || 0); });
     if (!sortedUsers.length) { moderationList.innerHTML = '<p class="empty">Пользователей пока нет.</p>'; return; }
@@ -1242,13 +1504,14 @@
       var u = sortedUsers[i];
       var statusClass = u.status === 'approved' ? 'approved' : (u.status === 'rejected' ? 'rejected' : '');
       var statusText = u.status === 'approved' ? 'Подтвержден' : (u.status === 'rejected' ? 'Отклонен' : 'На проверке');
-      var chiefMark = u.brigade === 'Главный инженер' ? ' · <span style="color:#dc2626;font-weight:700;">ГЛАВНЫЙ ИНЖЕНЕР</span>' : '';
-      var seniorMark = u.brigade === 'Старший мастер' ? ' · <span style="color:#7c3aed;font-weight:700;">СТАРШИЙ МАСТЕР</span>' : '';
+      var chiefMark = u.roleName === 'Главный инженер' ? ' · <span style="color:#dc2626;font-weight:700;">ГЛАВНЫЙ ИНЖЕНЕР</span>' : '';
+      var seniorMark = u.roleName === 'Старший мастер' ? ' · <span style="color:#7c3aed;font-weight:700;">СТАРШИЙ МАСТЕР</span>' : '';
+      var drillerMark = u.roleName === 'Бурильщик' ? ' · <span style="color:#2563eb;font-weight:700;">БУРИЛЬЩИК</span>' : '';
 
       usersHtml += '<div class="moderation-user ' + statusClass + '">';
       usersHtml += '<div class="info">';
       usersHtml += '<strong>' + escapeHtml(u.name) + '</strong> (' + escapeHtml(u.phone) + ')<br>';
-      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.brigade || '—') + ' | ' + statusText + chiefMark + seniorMark + '</span>';
+      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.roleName || u.brigade || '—') + ' | ' + statusText + chiefMark + seniorMark + drillerMark + '</span>';
       usersHtml += '</div><div class="btns">';
 
       if (u.status !== 'approved') usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
@@ -1262,12 +1525,8 @@
     var modBtns = moderationList.querySelectorAll('[data-uid]');
     for (var j = 0; j < modBtns.length; j++) {
       modBtns[j].addEventListener('click', function() {
-        var uid = this.getAttribute('data-uid');
-        var action = this.getAttribute('data-action');
-
-        // Открываем модалку для ввода кода
-        pendingUserActionUid = uid;
-        pendingUserActionType = action;
+        pendingUserActionUid = this.getAttribute('data-uid');
+        pendingUserActionType = this.getAttribute('data-action');
         usersCodeInput.value = '';
         usersCodeModal.classList.remove('hidden');
         usersCodeInput.focus();
@@ -1307,7 +1566,6 @@
     if (e.key === 'Enter') confirmUsersCodeBtn.click();
   });
 
-  // ====== АДМИН: ЗАЯВКИ ======
   function renderAdminRequests() {
     var activeEl = document.activeElement;
     var safeFocus = activeEl && activeEl.closest && activeEl.closest('#adminRequestsBlock');
@@ -1367,6 +1625,7 @@
     if (!isAdminLoggedIn || adminWorkBlock.classList.contains('hidden')) return;
     if (!adminUsersBlock.classList.contains('hidden')) renderAdminUsers();
     if (!adminRequestsBlock.classList.contains('hidden')) renderAdminRequests();
+    if (!adminBuilderBlock.classList.contains('hidden')) renderBuilder();
     if (!adminChiefEngineerBlock.classList.contains('hidden') && isChiefEngineerPanelUnlocked) renderChiefEngineerPanel();
   }
 
@@ -1383,7 +1642,6 @@
     }
   }
 
-  // ====== СЕТКА СЛУЖБ ======
   function renderServicesGrid(container, mode) {
     var html = '';
     for (var j = 0; j < SERVICES.length; j++) {
@@ -1401,9 +1659,9 @@
       if (nNew > 0) cardClass += ' has-new';
       else if (nProg > 0) cardClass += ' has-progress';
       else if (nWait > 0) cardClass += ' has-wait';
-      html += '<div class="' + cardClass + '" data-id="' + s.id + '">';
+      html += '<div class="' + cardClass + '" data-id="' + escapeHtml(s.id) + '">';
       if (nNew > 0) html += '<span class="dot"></span>';
-      html += '<h3>' + s.name + '</h3><div class="badges-wrap">';
+      html += '<h3>' + escapeHtml(s.name) + '</h3><div class="badges-wrap">';
       if (nNew > 0) html += '<span class="badge">' + nNew + ' новых</span>';
       if (nProg > 0) html += '<span class="badge progress">' + nProg + ' в работе</span>';
       if (nWait > 0) html += '<span class="badge wait">' + nWait + ' ждут мастера</span>';
@@ -1417,9 +1675,8 @@
     }
   }
 
-  // ====== "МОИ ЗАЯВКИ" ======
   function hasUnreadChat(r, myPhone) {
-    var lastRead = localStorage.getItem('last_read_chat_' + r.id) || 0;
+    var lastRead = localStorage.getItem('uvat_last_read_chat_' + r.id) || 0;
     var lastMsgTime = 0, lastMsgPhone = '';
     if (r.messages) for (var mKey in r.messages) if (r.messages[mKey].time > lastMsgTime) { lastMsgTime = r.messages[mKey].time; lastMsgPhone = r.messages[mKey].phone; }
     return (lastMsgTime > Number(lastRead)) && (lastMsgPhone !== myPhone);
@@ -1464,7 +1721,6 @@
     }
   }
 
-  // ====== ДЕТАЛИ ======
   function openServiceDetail(serviceId, mode) {
     currentDetailServiceId = serviceId; currentDetailViewMode = mode;
     detailTitle.textContent = serviceName(serviceId);
@@ -1476,14 +1732,12 @@
   function renderDetailRequests(serviceId, mode) {
     var list = allRequests.filter(function (r) {
       if (r.serviceId !== serviceId) return false;
-      // Для мастеров в режиме 'master' применяем ограничение по бригаде
       if (mode === 'master' && !canMasterSeeRequest(r)) return false;
       return true;
     });
     list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
 
-    // Плашка-пояснение для номерных бригад
-    if (mode === 'master' && loggedMaster.name && isNumberedBrigade(loggedMaster.brigade)) {
+    if (mode === 'master' && loggedMaster.name && (isNumberedBrigade(loggedMaster.brigade) || loggedMaster.roleName === 'Бурильщик')) {
       detailBrigadeNote.classList.remove('hidden');
       detailBrigadeNote.innerHTML = '👷 Показаны заявки вашей бригады: <strong>' + escapeHtml(loggedMaster.brigade) + '</strong> (включая заявки сменщика).';
     } else {
@@ -1546,7 +1800,6 @@
     else { masterView.classList.remove('hidden'); renderServicesGrid(masterServicesGrid, 'master'); }
   });
 
-  // ====== ДЕЙСТВИЯ ======
   async function handleAction(action, id) {
     var req = allRequests.find(function(item) { return item.id === id; });
     if (!req) return;
@@ -1567,7 +1820,7 @@
     } else if (action === 'closed') {
       if (!canMasterClose(req)) { showToast('Нет прав закрыть эту заявку', true); return; }
       var currentEvents2 = req.events || [];
-      var newEvent2 = { text: '🔒 Мастер подтвердил (Бригада: ' + (loggedMaster.brigade || '—') + ', Мастер: ' + (loggedMaster.name || '—') + ', Тел: ' + (loggedMaster.phone || '—') + ')', time: Date.now() };
+      var newEvent2 = { text: '🔒 Мастер подтвердил (Бригада: ' + (loggedMaster.brigade || '—') + ', Должность: ' + (loggedMaster.roleName || '—') + ', Мастер: ' + (loggedMaster.name || '—') + ', Тел: ' + (loggedMaster.phone || '—') + ')', time: Date.now() };
       await update(ref(db, 'requests/' + id), { status: 'closed', closedAt: Date.now(), events: currentEvents2.concat([newEvent2]) });
       showToast('Мастер подтвердил. Заявка закрыта.');
     } else if (action === 'transfer') {
@@ -1621,7 +1874,6 @@
   });
   cancelTransferBtn.addEventListener('click', function() { transferModal.classList.add('hidden'); pendingTransferId = null; });
 
-  // ====== ЧАТ ======
   function openChat(requestId) {
     currentChatRequestId = requestId;
     var req = allRequests.find(function(r) { return r.id === requestId; });
@@ -1648,7 +1900,7 @@
         chatMessages.innerHTML += '<div class="' + (isMine ? 'chat-msg right' : 'chat-msg') + '"><div class="meta">' + escapeHtml(m.author) + ' · ' + formatDate(m.time) + '</div><div class="bubble">' + escapeHtml(m.text) + '</div></div>';
       }
       chatMessages.scrollTop = chatMessages.scrollHeight;
-      localStorage.setItem('last_read_chat_' + requestId, Date.now());
+      localStorage.setItem('uvat_last_read_chat_' + requestId, Date.now());
       renderMyRequests();
       if (currentDetailServiceId) renderDetailRequests(currentDetailServiceId, currentDetailViewMode);
       if (isAdminLoggedIn && !adminRequestsBlock.classList.contains('hidden')) renderAdminRequests();
@@ -1681,13 +1933,12 @@
     }
   });
 
-  // ====== ВЫБОР СЛУЖБЫ ======
   function renderServicePicker() {
     var html = '';
     for (var i = 0; i < SERVICES.length; i++) {
       var s = SERVICES[i];
       var active = (s.id === selectedServiceId) ? ' active' : '';
-      html += '<button type="button" class="service-pick-btn' + active + '" data-id="' + s.id + '">' + s.name + '</button>';
+      html += '<button type="button" class="service-pick-btn' + active + '" data-id="' + escapeHtml(s.id) + '">' + escapeHtml(s.name) + '</button>';
     }
     servicePicker.innerHTML = html;
     var btns = servicePicker.querySelectorAll('.service-pick-btn');
@@ -1700,7 +1951,6 @@
     }
   }
 
-  // ====== ОТПРАВКА ЗАЯВКИ ======
   document.getElementById('requestForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!loggedMaster.name) { showToast('Сначала войдите в систему', true); return; }
@@ -1711,8 +1961,8 @@
     var desc = reqDescEl.value.trim();
     if (!serviceId) { showToast('Шаг 1: Выберите службу', true); return; }
     if (!desc) { showToast('Шаг 2: Введите описание', true); return; }
-    pendingNewRequest = { serviceId: serviceId, brigade: loggedMaster.brigade, name: loggedMaster.name, phone: loggedMaster.phone, desc: desc };
-    if (loggedMaster.brigade === 'Главный энергетик') {
+    pendingNewRequest = { serviceId: serviceId, brigade: loggedMaster.brigade, name: loggedMaster.name, phone: loggedMaster.phone, desc: desc, roleName: loggedMaster.roleName };
+    if (loggedMaster.roleName === 'Главный энергетик') {
       chiefCodeInput.value = ''; chiefCodeModal.classList.remove('hidden'); chiefCodeInput.focus();
     } else {
       submitPendingRequest();
@@ -1728,7 +1978,7 @@
       await set(newRef, {
         serviceId: data.serviceId, brigade: data.brigade, name: data.name, phone: data.phone, desc: data.desc,
         createdAt: Date.now(), status: 'new',
-        events: [{ text: '📝 Заявка создана (Бригада: ' + data.brigade + ', ' + data.name + ', Тел: ' + data.phone + ')', time: Date.now() }]
+        events: [{ text: '📝 Заявка создана (Бригада: ' + (data.brigade || '—') + ', Должность: ' + (data.roleName || '—') + ', ' + data.name + ', Тел: ' + data.phone + ')', time: Date.now() }]
       });
       reqDescEl.value = ''; selectedServiceId = ''; renderServicePicker();
       showToast('Заявка отправлена!');
@@ -1761,17 +2011,8 @@
     return snapshot.val() === phone;
   }
 
-  // ====== ИСТОРИЯ ======
   function renderHistory() {
-    var fs = document.getElementById('filterService');
-    var fb = document.getElementById('filterBrigade');
-    var fsVal = fs.value, fbVal = fb.value;
-    var sopts = '<option value="">Все службы</option>';
-    for (var i = 0; i < SERVICES.length; i++) sopts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
-    fs.innerHTML = sopts; fs.value = fsVal;
-    var bopts = '<option value="">Все бригады</option>';
-    for (var b = 0; b < BRIGADES.length; b++) bopts += '<option value="' + BRIGADES[b] + '">' + BRIGADES[b] + '</option>';
-    fb.innerHTML = bopts; fb.value = fbVal;
+    fillHistoryFilters();
 
     var total = allRequests.length, nNew = 0, nProg = 0, nWait = 0, nClosed = 0;
     for (var s = 0; s < allRequests.length; s++) {
@@ -1785,7 +2026,7 @@
       '<div class="stat wait"><div class="num">' + nWait + '</div><div class="lbl">Ждут мастера</div></div>' +
       '<div class="stat ok"><div class="num">' + nClosed + '</div><div class="lbl">Закрытых</div></div>';
 
-    var fStatus = document.getElementById('filterStatus').value, fService = fs.value, fBrigade = fb.value;
+    var fStatus = document.getElementById('filterStatus').value, fService = document.getElementById('filterService').value, fBrigade = document.getElementById('filterBrigade').value;
     var filtered = allRequests.filter(function (r) {
       if (fStatus && (r.status || 'new') !== fStatus) return false;
       if (fService && r.serviceId !== fService) return false;
@@ -1826,7 +2067,7 @@
     var csv = '\uFEFF' + lines.join('\r\n');
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
-    var a = document.createElement('a'); a.href = url; a.download = 'Заявки_Уватский_проект.csv';
+    var a = document.createElement('a'); a.href = url; a.download = 'Заявки_Уватский.csv';
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     showToast('История выгружена в Excel (CSV).');
   }
@@ -1836,7 +2077,6 @@
   document.getElementById('filterBrigade').addEventListener('change', renderHistory);
   document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
 
-  // ====== ПАНЕЛЬ ГЛАВНОГО ИНЖЕНЕРА (код 1104) ======
   chiefEngineerPanelLoginBtn.addEventListener('click', function() {
     var code = (chiefEngineerPanelCode.value || '').trim();
     if (code !== CHIEF_ENGINEER_PANEL_CODE) {
@@ -1866,7 +2106,7 @@
     var cur = ceFilterService.value;
     var opts = '<option value="">Все службы</option>';
     for (var i = 0; i < SERVICES.length; i++) {
-      opts += '<option value="' + SERVICES[i].id + '">' + SERVICES[i].name + '</option>';
+      opts += '<option value="' + escapeHtml(SERVICES[i].id) + '">' + escapeHtml(SERVICES[i].name) + '</option>';
     }
     ceFilterService.innerHTML = opts;
     ceFilterService.value = cur;
@@ -2016,13 +2256,25 @@
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'Заявки_Главный_инженер.csv';
+    a.download = 'Заявки_Главный_инженер_Уватский.csv';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast('Выгрузка Главного инженера готова.');
   });
 
-  // ====== СЛУШАТЕЛИ БАЗЫ ======
+  onValue(ref(db, 'config'), (snapshot) => {
+    var data = snapshot.val();
+    if (data && data.services && Array.isArray(data.services) && data.services.length) SERVICES = data.services;
+    else SERVICES = DEFAULT_SERVICES.slice();
+    if (data && data.brigades && Array.isArray(data.brigades) && data.brigades.length) BRIGADES = data.brigades;
+    else BRIGADES = DEFAULT_BRIGADES.slice();
+    if (data && data.roles && Array.isArray(data.roles) && data.roles.length) MASTER_ROLES = data.roles;
+    else MASTER_ROLES = DEFAULT_ROLES.slice();
+
+    refreshAllForms();
+    if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden') && !adminBuilderBlock.classList.contains('hidden')) renderBuilder();
+  });
+
   onValue(ref(db, 'requests'), (snapshot) => {
     var data = snapshot.val();
     var prevIds = knownRequestIds;
@@ -2078,7 +2330,10 @@
     if (isAdminLoggedIn && !adminWorkBlock.classList.contains('hidden')) renderAdminPanel();
   });
 
-  renderServicePicker();
+  SERVICES = DEFAULT_SERVICES.slice();
+  BRIGADES = DEFAULT_BRIGADES.slice();
+  MASTER_ROLES = DEFAULT_ROLES.slice();
+  refreshAllForms();
   loadSavedCredentials();
   updateUIState();
   updateScheduleTimer();
