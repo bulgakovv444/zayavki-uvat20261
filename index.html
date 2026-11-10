@@ -55,6 +55,7 @@
   .badge.wait { background: #94a3b8; }
   .badge.dual { background: #8b5cf6; }
   .badge.task { background: #8b5cf6; }
+  .badge.overdue { background: #dc2626; }
 
   .dot { position: absolute; top: 10px; right: 10px; width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.2); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(239,68,68,.2); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,.05); } }
@@ -100,18 +101,21 @@
   .request.status-closed { border-left-color: #10b981; opacity: .75; }
   .request .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 
-  /* ====== КАРТОЧКА ЗАДАНИЯ ====== */
   .task-card { border-left: 4px solid #8b5cf6; background: #fff; padding: 14px; border-radius: 6px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.05); position: relative; }
   .task-card.status-new { border-left-color: #8b5cf6; }
-  .task-card.status-accepted { border-left-color: #f59e0b; }
   .task-card.status-done { border-left-color: #10b981; opacity: .8; }
   .task-card.status-partial { border-left-color: #f59e0b; }
+  .task-card.status-closed { border-left-color: #6b7280; opacity: .7; }
+  .task-card.status-overdue { border-left-color: #dc2626; background: #fef2f2; }
   .task-card .task-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
   .task-card .task-title { font-size: 15px; font-weight: 700; color: #4c1d95; }
   .task-card .task-from { font-size: 12px; color: #6b7280; font-weight: 600; }
   .task-card .task-desc { font-size: 13px; color: #374151; margin-bottom: 8px; line-height: 1.5; }
   .task-card .task-meta { font-size: 11px; color: #9ca3af; }
   .task-card .task-actions { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .task-overdue-alert { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .task-deadline-alert { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 8px; }
 
   .task-progress { margin-top: 10px; }
   .task-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #4b5563; margin-bottom: 4px; }
@@ -122,38 +126,25 @@
   .task-brigade-list .row:last-child { border-bottom: none; }
   .task-brigade-list .status-done { color: #059669; font-weight: 600; }
   .task-brigade-list .status-pending { color: #9ca3af; }
+  .task-brigade-list .status-overdue { color: #dc2626; font-weight: 700; }
 
-  /* Фиолетовый бейдж у мастера в шапке */
-  .master-task-badge {
-    display: none;
-    background: #8b5cf6;
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(139,92,246,.4);
-    align-items: center;
-    gap: 8px;
-    transition: all .2s;
-  }
+  /* Множественный выбор бригад */
+  .brigade-checkbox-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; max-height: 220px; overflow-y: auto; padding: 8px; background: #f9fafb; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e5e7eb; }
+  .brigade-checkbox-list label { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 6px 8px; background: #fff; border-radius: 4px; cursor: pointer; border: 1px solid #e5e7eb; }
+  .brigade-checkbox-list label:hover { background: #f3f4f6; }
+  .brigade-checkbox-list input { width: auto; margin: 0; }
+
+  .master-task-badge { display: none; background: #8b5cf6; color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(139,92,246,.4); align-items: center; gap: 8px; transition: all .2s; }
   .master-task-badge.show { display: inline-flex; }
-  .master-task-badge:hover { background: #7c3aed; transform: translateY(-1px); }
+  .master-task-badge.overdue { background: #dc2626; box-shadow: 0 2px 6px rgba(220,38,38,.4); animation: pulse-red 1.5s infinite; }
+  .master-task-badge:hover { transform: translateY(-1px); }
   .master-task-badge .badge-count { background: #fff; color: #8b5cf6; border-radius: 99px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+  .master-task-badge.overdue .badge-count { color: #dc2626; }
+  @keyframes pulse-red { 0%,100% { box-shadow: 0 2px 6px rgba(220,38,38,.4); } 50% { box-shadow: 0 2px 12px rgba(220,38,38,.8); } }
 
-  .sub-tab-badge {
-    display: inline-block;
-    background: #8b5cf6;
-    color: #fff;
-    border-radius: 99px;
-    padding: 1px 7px;
-    font-size: 11px;
-    font-weight: 700;
-    margin-left: 4px;
-    vertical-align: middle;
-  }
+  .sub-tab-badge { display: inline-block; background: #8b5cf6; color: #fff; border-radius: 99px; padding: 1px 7px; font-size: 11px; font-weight: 700; margin-left: 4px; vertical-align: middle; }
   .sub-tab-badge.hidden { display: none; }
+  .sub-tab-badge.overdue { background: #dc2626; animation: pulse-red 1.5s infinite; }
 
   .chat-btn { position: relative; }
   .chat-btn.unread { background: #ef4444 !important; color: #fff; border-color: #dc2626 !important; }
@@ -285,7 +276,7 @@
         </div>
         <div style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
           <div id="masterTaskBadge" class="master-task-badge" title="Задания от служб">
-            🎯 Задание от <span id="masterTaskBadgeService">службы</span>
+            <span id="masterTaskBadgeIcon">🎯</span> Задание от <span id="masterTaskBadgeService">службы</span>
             <span class="badge-count" id="masterTaskBadgeCount">0</span>
           </div>
           <div id="masterScheduleInfo" class="header-timer open">Загрузка...</div>
@@ -378,18 +369,34 @@
 
         <div id="serviceTasksBlock" class="hidden">
           <div class="card" style="border-left: 4px solid #8b5cf6;">
-            <h2>🎯 Создать задание бригаде</h2>
-            <p style="color:#6b7280; font-size:13px; margin-bottom:12px;">Выберите, кому адресовано задание, заполните данные и отправьте.</p>
+            <h2>🎯 Создать задание бригадам</h2>
+            <p style="color:#6b7280; font-size:13px; margin-bottom:12px;">Выберите, кому адресовано задание, укажите срок (необязательно) и отправьте.</p>
 
             <div class="task-target-toggle">
-              <button type="button" class="task-target-btn active" data-target="single">Одной бригаде</button>
-              <button type="button" class="task-target-btn" data-target="all">Всем бригадам</button>
+              <button type="button" class="task-target-btn active" data-target="all">Все бригады</button>
+              <button type="button" class="task-target-btn" data-target="custom">Выборочно</button>
             </div>
 
-            <select id="taskTargetBrigade" style="margin-bottom:12px;"></select>
+            <div id="brigadeCheckboxWrap" class="hidden">
+              <div style="font-size:12px;color:#6b7280;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+                <span>Отметьте бригады:</span>
+                <span>
+                  <button type="button" class="btn gray small" id="checkAllBrigadesBtn">Все</button>
+                  <button type="button" class="btn gray small" id="uncheckAllBrigadesBtn">Снять все</button>
+                </span>
+              </div>
+              <div class="brigade-checkbox-list" id="brigadeCheckboxList"></div>
+            </div>
 
             <input type="text" id="taskTitle" placeholder="Краткое название задачи (например: Замена датчика)" style="margin-bottom:12px;">
             <textarea id="taskDesc" placeholder="Подробное описание задания..." style="margin-bottom:12px;"></textarea>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+              <div style="flex:1;min-width:180px;">
+                <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:4px;">Срок выполнения (необязательно)</label>
+                <input type="datetime-local" id="taskDeadline">
+              </div>
+            </div>
 
             <button class="btn purple block" id="createTaskBtn">Отправить задание</button>
           </div>
@@ -659,6 +666,18 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="closeTaskModal">
+  <div class="modal">
+    <h3>Закрыть задание принудительно?</h3>
+    <p>Задание будет закрыто службой и больше не будет отображаться у мастеров. Укажите комментарий (необязательно).</p>
+    <textarea id="closeTaskComment" placeholder="Например: Задание выполнено по телефону..."></textarea>
+    <div class="modal-actions">
+      <button class="btn gray small" id="cancelCloseTask">Отмена</button>
+      <button class="btn red small" id="confirmCloseTask">Закрыть задание</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="chatModal">
   <div class="modal" style="max-width: 500px;">
     <h3 id="chatTitle">Чат по заявке</h3>
@@ -756,6 +775,7 @@
 
   var pendingUserActionUid = null;
   var pendingUserActionType = null;
+  var pendingCloseTaskId = null;
 
   var loggedMaster = { name: '', phone: '', brigade: '', role: '', roleName: '', status: 'pending' };
   var loggedService = { name: '', phone: '', role: '', status: 'pending' };
@@ -763,7 +783,8 @@
   var currentDetailServiceId = '';
   var currentDetailViewMode = 'master';
 
-  var taskTargetType = 'single';
+  var taskTargetType = 'all';
+  var selectedBrigadesForTask = {};
 
   function isChiefEngineerMaster() { return loggedMaster.name && loggedMaster.roleName === 'Главный инженер'; }
   function isSeniorMaster()        { return loggedMaster.name && loggedMaster.roleName === 'Старший мастер'; }
@@ -900,24 +921,38 @@
   }
 
   // ====== ЗАДАНИЯ: проверка, кому адресовано ======
+  function taskBrigadesList(t) {
+    if (t.targetType === 'all') return BRIGADES.slice();
+    return (t.targetBrigades || []).slice();
+  }
+
   function isTaskForMe(task) {
     if (!loggedMaster.name) return false;
+    if (task.status === 'closed') return false;
     if (task.targetType === 'all') return true;
     if (task.targetBrigades && task.targetBrigades.indexOf(loggedMaster.brigade) !== -1) return true;
     return false;
   }
 
-  // Задание "активно" для мастера, если он ещё не выполнил его (нет его отметки о выполнении)
   function isTaskActiveForMe(task) {
     if (!isTaskForMe(task)) return false;
-    // для заданий "всем" — отметки хранятся в completions
     if (task.targetType === 'all') {
       var c = (task.completions || {})[loggedMaster.brigade];
       return !c || !c.done;
     } else {
-      // для "одной бригаде"
       return task.status !== 'done';
     }
+  }
+
+  function isTaskOverdue(task) {
+    if (!task.deadline) return false;
+    if (task.status === 'done' || task.status === 'closed') return false;
+    return Date.now() > task.deadline;
+  }
+
+  function isTaskOverdueForMe(task) {
+    if (!isTaskActiveForMe(task)) return false;
+    return isTaskOverdue(task);
   }
 
   function notifyNewTask(task) {
@@ -925,9 +960,8 @@
     playDing();
     if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
       try {
-        var target = task.targetType === 'all' ? 'Всем бригадам' : (task.targetBrigades || []).join(', ');
         var n = new Notification('🎯 Новое задание от службы', {
-          body: 'Кому: ' + target + '\n' + (task.title || task.desc || '').substring(0, 120),
+          body: (task.title || task.desc || '').substring(0, 120),
           tag: 'task-' + task.id
         });
         n.onclick = function() { window.focus(); n.close(); };
@@ -957,6 +991,7 @@
   var masterTaskBadge = document.getElementById('masterTaskBadge');
   var masterTaskBadgeService = document.getElementById('masterTaskBadgeService');
   var masterTaskBadgeCount = document.getElementById('masterTaskBadgeCount');
+  var masterTaskBadgeIcon = document.getElementById('masterTaskBadgeIcon');
   var newRequestBlock = document.getElementById('newRequestBlock');
   var myRequestsBlock = document.getElementById('myRequestsBlock');
   var myTasksBlock = document.getElementById('myTasksBlock');
@@ -972,11 +1007,13 @@
   var subTabServiceTasks = document.getElementById('subTabServiceTasks');
   var serviceRequestsBlock = document.getElementById('serviceRequestsBlock');
   var serviceTasksBlock = document.getElementById('serviceTasksBlock');
-  var taskTargetBrigade = document.getElementById('taskTargetBrigade');
   var taskTitle = document.getElementById('taskTitle');
   var taskDesc = document.getElementById('taskDesc');
+  var taskDeadline = document.getElementById('taskDeadline');
   var createTaskBtn = document.getElementById('createTaskBtn');
   var myTasksServiceList = document.getElementById('myTasksServiceList');
+  var brigadeCheckboxWrap = document.getElementById('brigadeCheckboxWrap');
+  var brigadeCheckboxList = document.getElementById('brigadeCheckboxList');
   var adminLoginBlock = document.getElementById('adminLoginBlock');
   var adminWorkBlock = document.getElementById('adminWorkBlock');
   var adminUsersBlock = document.getElementById('adminUsersBlock');
@@ -1023,6 +1060,10 @@
   var transferServiceSelect = document.getElementById('transferServiceSelect');
   var confirmTransferBtn = document.getElementById('confirmTransfer');
   var cancelTransferBtn = document.getElementById('cancelTransfer');
+  var closeTaskModal = document.getElementById('closeTaskModal');
+  var closeTaskComment = document.getElementById('closeTaskComment');
+  var confirmCloseTaskBtn = document.getElementById('confirmCloseTask');
+  var cancelCloseTaskBtn = document.getElementById('cancelCloseTask');
   var chatModal = document.getElementById('chatModal');
   var chatTitle = document.getElementById('chatTitle');
   var chatMessages = document.getElementById('chatMessages');
@@ -1074,6 +1115,12 @@
     return status;
   }
   function formatDate(ts) { return ts ? new Date(ts).toLocaleString('ru-RU') : ''; }
+  function formatDateTimeLocal(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    var pad = function(n) { return n < 10 ? '0' + n : n; };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
   function isAcceptingNow() {
     if (settings.isManuallyClosed) return false;
     var h = new Date().getHours();
@@ -1118,6 +1165,9 @@
     }
   }
   setInterval(updateScheduleTimer, 1000);
+  setInterval(function() {
+    if (loggedMaster.name) updateMasterTasksBadge();
+  }, 30000);
 
   function updateUIState() {
     if (loggedMaster.name) {
@@ -1154,6 +1204,7 @@
     if (!loggedMaster.name) {
       masterTasksBadge.classList.add('hidden');
       masterTaskBadge.classList.remove('show');
+      masterTaskBadge.classList.remove('overdue');
       return;
     }
     var myActive = allTasks.filter(isTaskActiveForMe);
@@ -1161,15 +1212,26 @@
     if (count > 0) {
       masterTasksBadge.textContent = count;
       masterTasksBadge.classList.remove('hidden');
-      // фиолетовый бейдж в шапке
       masterTaskBadge.classList.add('show');
       masterTaskBadgeCount.textContent = count;
-      // первая служба в списке
       var firstService = myActive[0].serviceId;
       masterTaskBadgeService.textContent = serviceName(firstService);
+      // просрочено?
+      var hasOverdue = myActive.some(isTaskOverdue);
+      if (hasOverdue) {
+        masterTaskBadge.classList.add('overdue');
+        masterTaskBadgeIcon.textContent = '⚠';
+        masterTasksBadge.classList.add('overdue');
+      } else {
+        masterTaskBadge.classList.remove('overdue');
+        masterTaskBadgeIcon.textContent = '🎯';
+        masterTasksBadge.classList.remove('overdue');
+      }
     } else {
       masterTasksBadge.classList.add('hidden');
+      masterTasksBadge.classList.remove('overdue');
       masterTaskBadge.classList.remove('show');
+      masterTaskBadge.classList.remove('overdue');
     }
   }
 
@@ -1226,10 +1288,7 @@
     renderMyTasksList();
   });
 
-  // клик по фиолетовому бейджу в шапке → переход во вкладку заданий
-  masterTaskBadge.addEventListener('click', function() {
-    subTabMyTasks.click();
-  });
+  masterTaskBadge.addEventListener('click', function() { subTabMyTasks.click(); });
 
   subTabServiceRequests.addEventListener('click', function() {
     subTabServiceRequests.classList.add('active'); subTabServiceTasks.classList.remove('active');
@@ -1239,7 +1298,7 @@
     subTabServiceTasks.classList.add('active'); subTabServiceRequests.classList.remove('active');
     serviceRequestsBlock.classList.add('hidden'); serviceTasksBlock.classList.remove('hidden');
     renderServiceTasksList();
-    fillTaskTargetBrigadeSelect();
+    renderBrigadeCheckboxes();
   });
 
   document.querySelectorAll('.task-target-btn').forEach(function(btn) {
@@ -1247,7 +1306,7 @@
       document.querySelectorAll('.task-target-btn').forEach(function(b) { b.classList.remove('active'); });
       this.classList.add('active');
       taskTargetType = this.getAttribute('data-target');
-      taskTargetBrigade.classList.toggle('hidden', taskTargetType === 'all');
+      brigadeCheckboxWrap.classList.toggle('hidden', taskTargetType !== 'custom');
     });
   });
 
@@ -1263,23 +1322,14 @@
     adminBuilderBlock.classList.add('hidden');
     adminChiefEngineerBlock.classList.add('hidden');
 
-    if (which === 'users') {
-      adminTabUsers.classList.add('active'); adminUsersBlock.classList.remove('hidden'); renderAdminUsers();
-    } else if (which === 'requests') {
-      adminTabRequests.classList.add('active'); adminRequestsBlock.classList.remove('hidden'); renderAdminRequests();
-    } else if (which === 'tasks') {
-      adminTabTasks.classList.add('active'); adminTasksBlock.classList.remove('hidden'); renderAdminTasksList();
-    } else if (which === 'builder') {
-      adminTabBuilder.classList.add('active'); adminBuilderBlock.classList.remove('hidden'); renderBuilder();
-    } else if (which === 'ce') {
+    if (which === 'users') { adminTabUsers.classList.add('active'); adminUsersBlock.classList.remove('hidden'); renderAdminUsers(); }
+    else if (which === 'requests') { adminTabRequests.classList.add('active'); adminRequestsBlock.classList.remove('hidden'); renderAdminRequests(); }
+    else if (which === 'tasks') { adminTabTasks.classList.add('active'); adminTasksBlock.classList.remove('hidden'); renderAdminTasksList(); }
+    else if (which === 'builder') { adminTabBuilder.classList.add('active'); adminBuilderBlock.classList.remove('hidden'); renderBuilder(); }
+    else if (which === 'ce') {
       adminTabChiefEngineer.classList.add('active'); adminChiefEngineerBlock.classList.remove('hidden');
-      if (isChiefEngineerPanelUnlocked) {
-        chiefEngineerGate.classList.add('hidden'); chiefEngineerPanel.classList.remove('hidden'); renderChiefEngineerPanel();
-      } else {
-        chiefEngineerGate.classList.remove('hidden'); chiefEngineerPanel.classList.add('hidden');
-        chiefEngineerPanelCode.value = '';
-        setTimeout(function () { try { chiefEngineerPanelCode.focus(); } catch(e) {} }, 50);
-      }
+      if (isChiefEngineerPanelUnlocked) { chiefEngineerGate.classList.add('hidden'); chiefEngineerPanel.classList.remove('hidden'); renderChiefEngineerPanel(); }
+      else { chiefEngineerGate.classList.remove('hidden'); chiefEngineerPanel.classList.add('hidden'); chiefEngineerPanelCode.value = ''; setTimeout(function () { try { chiefEngineerPanelCode.focus(); } catch(e) {} }, 50); }
     }
   }
   adminTabUsers.addEventListener('click', function() { setAdminSubTab('users'); });
@@ -1378,13 +1428,32 @@
     renderBuilder(); refreshAllForms(); showToast('Должность добавлена');
   });
 
-  function fillTaskTargetBrigadeSelect() {
-    var cur = taskTargetBrigade.value;
-    var html = '<option value="">— выберите бригаду —</option>';
-    for (var i = 0; i < BRIGADES.length; i++) html += '<option value="' + escapeHtml(BRIGADES[i]) + '">' + escapeHtml(BRIGADES[i]) + '</option>';
-    taskTargetBrigade.innerHTML = html;
-    taskTargetBrigade.value = cur;
+  function renderBrigadeCheckboxes() {
+    var cur = selectedBrigadesForTask;
+    var html = '';
+    for (var i = 0; i < BRIGADES.length; i++) {
+      var b = BRIGADES[i];
+      var checked = cur[b] ? ' checked' : '';
+      html += '<label><input type="checkbox" data-brigade="' + escapeHtml(b) + '"' + checked + '> ' + escapeHtml(b) + '</label>';
+    }
+    brigadeCheckboxList.innerHTML = html;
+    brigadeCheckboxList.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var b = this.getAttribute('data-brigade');
+        if (this.checked) selectedBrigadesForTask[b] = true;
+        else delete selectedBrigadesForTask[b];
+      });
+    });
   }
+
+  document.getElementById('checkAllBrigadesBtn').addEventListener('click', function() {
+    for (var i = 0; i < BRIGADES.length; i++) selectedBrigadesForTask[BRIGADES[i]] = true;
+    renderBrigadeCheckboxes();
+  });
+  document.getElementById('uncheckAllBrigadesBtn').addEventListener('click', function() {
+    selectedBrigadesForTask = {};
+    renderBrigadeCheckboxes();
+  });
 
   function refreshAllForms() {
     var roleSel = document.getElementById('loginMasterRole');
@@ -1410,7 +1479,7 @@
     for (var m = 0; m < SERVICES.length; m++) trHtml += '<option value="' + escapeHtml(SERVICES[m].id) + '">' + escapeHtml(SERVICES[m].name) + '</option>';
     trSel.innerHTML = trHtml;
 
-    fillTaskTargetBrigadeSelect();
+    renderBrigadeCheckboxes();
     renderServicePicker();
 
     if (loggedMaster.name && !masterWorkBlock.classList.contains('hidden')) {
@@ -1455,7 +1524,6 @@
         if (mBrigade) document.getElementById('loginMasterBrigade').value = mBrigade;
       }
     }
-
     var sName = localStorage.getItem('uvat_save_s_name');
     var sPhone = localStorage.getItem('uvat_save_s_phone');
     var sRole = localStorage.getItem('uvat_save_s_role');
@@ -1802,10 +1870,16 @@
     var html = '';
     for (var i = 0; i < list.length; i++) {
       var t = list[i];
+      var overdue = isTaskOverdue(t);
       var target = t.targetType === 'all' ? 'Все бригады' : (t.targetBrigades || []).join(', ');
-      html += '<div class="task-card status-' + (t.status || 'new') + '">';
+      html += '<div class="task-card status-' + (t.status || 'new') + (overdue ? ' status-overdue' : '') + '">';
       html += '<div class="task-header"><div><div class="task-title">' + escapeHtml(t.title || 'Без названия') + '</div>';
-      html += '<div class="task-from">От службы: ' + escapeHtml(serviceName(t.serviceId)) + ' → ' + escapeHtml(target) + '</div></div></div>';
+      html += '<div class="task-from">От службы: ' + escapeHtml(serviceName(t.serviceId)) + ' → ' + escapeHtml(target) + '</div></div>';
+      if (overdue) html += '<span class="badge overdue">⚠ ПРОСРОЧЕНО</span>';
+      else if (t.status === 'closed') html += '<span class="badge" style="background:#6b7280;">Закрыто службой</span>';
+      else if (t.status === 'done') html += '<span class="badge ok">✔ Выполнено</span>';
+      html += '</div>';
+      if (t.deadline) html += '<div class="task-deadline-alert">📅 Срок: ' + formatDate(t.deadline) + '</div>';
       html += '<div class="task-desc">' + escapeHtml(t.desc || '') + '</div>';
       html += '<div class="task-meta">🕒 Создано: ' + formatDate(t.createdAt) + '</div>';
       html += '<div class="task-actions"><button class="btn red small" data-tid="' + t.id + '">Удалить</button></div></div>';
@@ -1827,30 +1901,40 @@
     var desc = taskDesc.value.trim();
     var title = taskTitle.value.trim();
     if (!desc) { showToast('Введите описание задания', true); return; }
+
     var targetBrigades = [];
-    if (taskTargetType === 'single') {
-      var b = taskTargetBrigade.value;
-      if (!b) { showToast('Выберите бригаду', true); return; }
-      targetBrigades = [b];
+    if (taskTargetType === 'custom') {
+      for (var b in selectedBrigadesForTask) if (selectedBrigadesForTask[b]) targetBrigades.push(b);
+      if (!targetBrigades.length) { showToast('Отметьте хотя бы одну бригаду', true); return; }
+    }
+
+    var deadlineTs = null;
+    if (taskDeadline.value) {
+      var d = new Date(taskDeadline.value);
+      if (!isNaN(d.getTime())) deadlineTs = d.getTime();
     }
 
     var taskData = {
       serviceId: loggedService.role,
       authorName: loggedService.name,
       authorPhone: loggedService.phone,
-      targetType: taskTargetType,
+      targetType: taskTargetType === 'all' ? 'all' : 'custom',
       targetBrigades: targetBrigades,
       title: title,
       desc: desc,
+      deadline: deadlineTs,
       createdAt: Date.now(),
       status: 'new',
       completions: {},
-      events: [{ text: '🎯 Задание создано (Автор: ' + loggedService.name + ', ' + loggedService.role + ')', time: Date.now() }]
+      events: [{ text: '🎯 Задание создано (Автор: ' + loggedService.name + ', ' + loggedService.role + ')' + (deadlineTs ? ' · Срок: ' + formatDate(deadlineTs) : ''), time: Date.now() }]
     };
     try {
       await push(ref(db, 'tasks'), taskData);
       taskTitle.value = '';
       taskDesc.value = '';
+      taskDeadline.value = '';
+      selectedBrigadesForTask = {};
+      renderBrigadeCheckboxes();
       showToast('Задание отправлено!');
     } catch (e) {
       showToast('Ошибка отправки задания', true);
@@ -1865,37 +1949,48 @@
     var html = '';
     for (var i = 0; i < my.length; i++) {
       var t = my[i];
-      var targetBrs = t.targetType === 'all' ? BRIGADES.slice() : (t.targetBrigades || []).slice();
+      var targetBrs = taskBrigadesList(t);
       var completions = t.completions || {};
-      var doneCount = 0;
+      var doneCount = 0, overdueCount = 0;
       for (var b = 0; b < targetBrs.length; b++) {
         if (completions[targetBrs[b]] && completions[targetBrs[b]].done) doneCount++;
+        else if (isTaskOverdue(t)) overdueCount++;
       }
       var totalCount = targetBrs.length;
       var progressPct = totalCount ? Math.round(doneCount / totalCount * 100) : 0;
       var target = t.targetType === 'all' ? 'Все бригады (' + totalCount + ')' : (t.targetBrigades || []).join(', ');
 
       var cardStatus = 'new';
-      if (doneCount === totalCount && totalCount > 0) cardStatus = 'done';
+      if (t.status === 'closed') cardStatus = 'closed';
+      else if (doneCount === totalCount && totalCount > 0) cardStatus = 'done';
       else if (doneCount > 0) cardStatus = 'partial';
+      if (isTaskOverdue(t) && cardStatus !== 'done' && cardStatus !== 'closed') cardStatus = 'overdue';
 
       html += '<div class="task-card status-' + cardStatus + '">';
       html += '<div class="task-header"><div>';
       html += '<div class="task-title">' + escapeHtml(t.title || 'Без названия') + '</div>';
       html += '<div class="task-from">Кому: ' + escapeHtml(target) + '</div></div>';
-      html += '<span class="badge ' + (cardStatus === 'done' ? 'ok' : (cardStatus === 'partial' ? 'progress' : 'task')) + '">' +
-        (cardStatus === 'done' ? '✔ Выполнено' : (cardStatus === 'partial' ? 'Выполняется' : 'Новое')) + '</span>';
+
+      if (t.status === 'closed') html += '<span class="badge" style="background:#6b7280;">Закрыто службой</span>';
+      else if (isTaskOverdue(t) && cardStatus !== 'done') html += '<span class="badge overdue">⚠ ПРОСРОЧЕНО</span>';
+      else if (cardStatus === 'done') html += '<span class="badge ok">✔ Выполнено</span>';
+      else if (cardStatus === 'partial') html += '<span class="badge progress">Выполняется</span>';
+      else html += '<span class="badge task">Новое</span>';
       html += '</div>';
+
+      if (t.deadline) {
+        var overdue = isTaskOverdue(t);
+        html += '<div class="task-deadline-alert" style="' + (overdue ? 'background:#fef2f2;border-color:#fecaca;color:#991b1b;font-weight:700;' : '') + '">📅 Срок: ' + formatDate(t.deadline) + (overdue ? ' · ПРОСРОЧЕНО' : '') + '</div>';
+      }
+
       html += '<div class="task-desc">' + escapeHtml(t.desc || '') + '</div>';
       html += '<div class="task-meta">🕒 Создано: ' + formatDate(t.createdAt) + '</div>';
 
-      // прогресс-бар
       html += '<div class="task-progress">';
-      html += '<div class="task-progress-label"><span>Выполнено ' + doneCount + ' из ' + totalCount + ' бригад</span><span>' + progressPct + '%</span></div>';
+      html += '<div class="task-progress-label"><span>Выполнено ' + doneCount + ' из ' + totalCount + ' бригад' + (overdueCount > 0 ? ' · ⚠ просрочено: ' + overdueCount : '') + '</span><span>' + progressPct + '%</span></div>';
       html += '<div class="task-progress-bar"><div style="width:' + progressPct + '%"></div></div>';
       html += '</div>';
 
-      // список бригад с отметками
       html += '<div class="task-brigade-list">';
       for (var bb = 0; bb < targetBrs.length; bb++) {
         var br = targetBrs[bb];
@@ -1905,6 +2000,9 @@
         if (c && c.done) {
           rowStatus = 'status-done';
           rowText = '✅ ' + escapeHtml(br) + ' — выполнил ' + escapeHtml(c.name || '') + ' (' + formatDate(c.doneAt) + ')';
+        } else if (isTaskOverdue(t)) {
+          rowStatus = 'status-overdue';
+          rowText = '⚠ ' + escapeHtml(br) + ' — НЕ ВЫПОЛНЕНО (просрочено)';
         } else {
           rowStatus = 'status-pending';
           rowText = '⏳ ' + escapeHtml(br) + ' — не выполнено';
@@ -1913,10 +2011,44 @@
       }
       html += '</div>';
 
+      if (t.status !== 'closed') {
+        html += '<div class="task-actions">';
+        html += '<button class="btn red small" data-task-close="' + t.id + '">Закрыть принудительно</button>';
+        html += '</div>';
+      }
+
       html += '</div>';
     }
     myTasksServiceList.innerHTML = html;
+    myTasksServiceList.querySelectorAll('[data-task-close]').forEach(function(b) {
+      b.addEventListener('click', function() {
+        pendingCloseTaskId = this.getAttribute('data-task-close');
+        closeTaskComment.value = '';
+        closeTaskModal.classList.remove('hidden');
+        closeTaskComment.focus();
+      });
+    });
   }
+
+  confirmCloseTaskBtn.addEventListener('click', async function() {
+    if (!pendingCloseTaskId) return;
+    var t = allTasks.find(function(x) { return x.id === pendingCloseTaskId; });
+    if (!t) return;
+    var comment = closeTaskComment.value.trim();
+    var ce = t.events || [];
+    var ev = { text: '🔒 Закрыто службой' + (comment ? '. Комментарий: ' + comment : ''), time: Date.now() };
+    await update(ref(db, 'tasks/' + pendingCloseTaskId), {
+      status: 'closed',
+      closedAt: Date.now(),
+      closedBy: { name: loggedService.name, phone: loggedService.phone, comment: comment },
+      events: ce.concat([ev])
+    });
+    closeTaskModal.classList.add('hidden');
+    pendingCloseTaskId = null;
+    showToast('Задание закрыто');
+    renderServiceTasksList();
+  });
+  cancelCloseTaskBtn.addEventListener('click', function() { closeTaskModal.classList.add('hidden'); pendingCloseTaskId = null; });
 
   // ====== МАСТЕР: задания от служб ======
   function renderMyTasksList() {
@@ -1928,13 +2060,18 @@
     for (var i = 0; i < my.length; i++) {
       var t = my[i];
       var target = t.targetType === 'all' ? 'Всем бригадам' : (t.targetBrigades || []).join(', ');
-      var status = t.targetType === 'all' ? 'new' : (t.status || 'new');
-      html += '<div class="task-card status-' + status + '">';
+      var overdue = isTaskOverdueForMe(t);
+      html += '<div class="task-card status-' + (overdue ? 'overdue' : 'new') + '">';
       html += '<div class="task-header"><div>';
       html += '<div class="task-title">' + escapeHtml(t.title || 'Задание') + '</div>';
       html += '<div class="task-from">От службы: ' + escapeHtml(serviceName(t.serviceId)) + '</div></div>';
-      html += '<span class="badge task">Новое</span>';
+      if (overdue) html += '<span class="badge overdue">⚠ ПРОСРОЧЕНО</span>';
+      else html += '<span class="badge task">Новое</span>';
       html += '</div>';
+
+      if (overdue) html += '<div class="task-overdue-alert">⚠ СРОК ИСТЁК — выполните задание как можно скорее!</div>';
+      if (t.deadline) html += '<div class="task-deadline-alert" style="' + (overdue ? 'background:#fef2f2;border-color:#fecaca;color:#991b1b;font-weight:700;' : '') + '">📅 Срок: ' + formatDate(t.deadline) + '</div>';
+
       html += '<div class="task-desc">' + escapeHtml(t.desc || '') + '</div>';
       html += '<div class="task-meta">🕒 Создано: ' + formatDate(t.createdAt) + ' · Кому: ' + escapeHtml(target) + '</div>';
       html += '<div class="task-actions">';
@@ -1957,14 +2094,12 @@
     var now = Date.now();
 
     if (t.targetType === 'all') {
-      // отмечаем выполнение только для СВОЕЙ бригады
       var completion = {};
       completion[loggedMaster.brigade] = { done: true, doneAt: now, name: loggedMaster.name, phone: loggedMaster.phone };
       var newCompletions = Object.assign({}, t.completions || {}, completion);
       var ev = { text: '✅ ' + loggedMaster.brigade + ' выполнила (' + loggedMaster.name + ')', time: now };
       await update(ref(db, 'tasks/' + id), { completions: newCompletions, events: ce.concat([ev]) });
     } else {
-      // одна бригада
       var ev2 = { text: '✅ Выполнено (' + loggedMaster.name + ', ' + loggedMaster.brigade + ')', time: now };
       var comp2 = {};
       comp2[loggedMaster.brigade] = { done: true, doneAt: now, name: loggedMaster.name, phone: loggedMaster.phone };
