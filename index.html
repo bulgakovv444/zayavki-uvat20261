@@ -93,7 +93,6 @@
   .sub-tab-btn.active.task-tab { background: #ede9fe; color: #5b21b6; }
   .sub-tab-btn.ce.active { background: #fee2e2; color: #991b1b; }
 
-  /* Бейджи служб с заданиями — под вкладками */
   .service-task-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
   .service-task-badge {
     display: inline-flex;
@@ -298,7 +297,6 @@
         <button class="sub-tab-btn" id="subTabMyRequests">Мои заявки</button>
       </div>
 
-      <!-- Бейджи служб с заданиями -->
       <div class="service-task-badges" id="serviceTaskBadges"></div>
 
       <div id="newRequestBlock">
@@ -334,7 +332,6 @@
         <div id="myRequestsList"></div>
       </div>
 
-      <!-- Экран заданий конкретной службы (открывается по клику на бейдж) -->
       <div id="myTasksForServiceBlock" class="hidden">
         <div class="tasks-service-header">
           <h2 id="tasksServiceTitle">Задания от службы</h2>
@@ -802,7 +799,6 @@
   var taskTargetType = 'all';
   var selectedBrigadesForTask = {};
 
-  // для экрана заданий конкретной службы
   var currentTasksServiceId = '';
 
   function isChiefEngineerMaster() { return loggedMaster.name && loggedMaster.roleName === 'Главный инженер'; }
@@ -939,7 +935,6 @@
     showToast('🛢️ Новая заявка: ' + serviceName(req.serviceId));
   }
 
-  // ====== ЗАДАНИЯ ======
   function taskBrigadesList(t) {
     if (t.targetType === 'all') return BRIGADES.slice();
     return (t.targetBrigades || []).slice();
@@ -1210,7 +1205,6 @@
     updateServiceTaskBadges();
   }
 
-  // ====== БЕЙДЖИ СЛУЖБ С ЗАДАНИЯМИ ======
   function updateServiceTaskBadges() {
     if (!loggedMaster.name) {
       serviceTaskBadges.innerHTML = '';
@@ -1244,11 +1238,9 @@
     });
   }
 
-  // ====== ЭКРАН "ЗАДАНИЯ ОТ КОНКРЕТНОЙ СЛУЖБЫ" ======
   function openTasksForService(serviceId) {
     currentTasksServiceId = serviceId;
     tasksServiceTitle.textContent = 'Задания от службы «' + serviceName(serviceId) + '»';
-    // скрываем другие блоки
     newRequestBlock.classList.add('hidden');
     myRequestsBlock.classList.add('hidden');
     myTasksForServiceBlock.classList.remove('hidden');
@@ -1311,7 +1303,6 @@
       if (loggedMaster.name) {
         masterLoginBlock.classList.add('hidden'); masterWorkBlock.classList.remove('hidden');
         renderServicesGrid(masterServicesGrid, 'master');
-        // если открыт экран заданий конкретной службы — оставить его
         if (currentTasksServiceId) {
           newRequestBlock.classList.add('hidden');
           myRequestsBlock.classList.add('hidden');
@@ -1968,7 +1959,6 @@
     });
   }
 
-  // ====== СЛУЖБА: создание заданий ======
   createTaskBtn.addEventListener('click', async function() {
     if (!loggedService.name) { showToast('Сначала войдите как служба', true); return; }
     if (loggedService.status !== 'approved') { showToast('Аккаунт службы не подтвержден', true); return; }
@@ -2124,7 +2114,6 @@
   });
   cancelCloseTaskBtn.addEventListener('click', function() { closeTaskModal.classList.add('hidden'); pendingCloseTaskId = null; });
 
-  // ====== МАСТЕР: отметить выполненным ======
   async function handleTaskDone(id) {
     var t = allTasks.find(function(x) { return x.id === id; });
     if (!t) return;
@@ -2150,11 +2139,9 @@
     }
     showToast('Задание отмечено как выполненное');
 
-    // обновляем текущий экран
     if (currentTasksServiceId) {
       var remaining = allTasks.filter(function(x) { return x.serviceId === currentTasksServiceId && isTaskActiveForMe(x); });
       if (!remaining.length) {
-        // если заданий от этой службы больше нет — вернуться на главный экран
         backToMasterMain();
       } else {
         renderTasksForService(currentTasksServiceId);
@@ -2163,7 +2150,6 @@
     updateServiceTaskBadges();
   }
 
-  // ====== СЕТКА СЛУЖБ ======
   function renderServicesGrid(container, mode) {
     var html = '';
     for (var j = 0; j < SERVICES.length; j++) {
@@ -2245,24 +2231,26 @@
     renderDetailRequests(serviceId, mode);
   }
 
-  var STATUS_ORDER = { 'new': 0, 'in_progress': 1, 'service_done': 2, 'closed': 3 };
-
+  // ====== СОРТИРОВКА: новые сверху, закрытые внизу (внутри — новые первыми) ======
   function renderDetailRequests(serviceId, mode) {
     var list = allRequests.filter(function (r) {
       if (r.serviceId !== serviceId) return false;
       if (mode === 'master' && !canMasterSeeRequest(r)) return false;
       return true;
     });
+
     list.sort(function (a, b) {
-      var sa = STATUS_ORDER[a.status || 'new'] !== undefined ? STATUS_ORDER[a.status || 'new'] : 99;
-      var sb = STATUS_ORDER[b.status || 'new'] !== undefined ? STATUS_ORDER[b.status || 'new'] : 99;
-      if (sa !== sb) return sa - sb;
-      return (a.createdAt || 0) - (b.createdAt || 0);
+      var aClosed = (a.status === 'closed') ? 1 : 0;
+      var bClosed = (b.status === 'closed') ? 1 : 0;
+      if (aClosed !== bClosed) return aClosed - bClosed;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
+
     if (mode === 'master' && loggedMaster.name && (isNumberedBrigade(loggedMaster.brigade) || loggedMaster.roleName === 'Бурильщик')) {
       detailBrigadeNote.classList.remove('hidden');
       detailBrigadeNote.innerHTML = '👷 Показаны заявки вашей бригады: <strong>' + escapeHtml(loggedMaster.brigade) + '</strong> (включая заявки сменщика).';
     } else { detailBrigadeNote.classList.add('hidden'); detailBrigadeNote.innerHTML = ''; }
+
     if (!list.length) { detailRequestsList.innerHTML = '<p class="empty">Заявок нет.</p>'; return; }
     var html = '';
     for (var i = 0; i < list.length; i++) {
