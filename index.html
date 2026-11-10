@@ -199,7 +199,6 @@
     <button class="notify-btn" id="notifyBtn">🔔 Включить уведомления</button>
   </div>
 
-  <!-- ЭКРАН 1: МАСТЕР / ИТР -->
   <div id="masterView" class="hidden">
     <div id="masterLoginBlock" class="login-box">
       <h2>Вход для мастера, ИТР <span class="project-badge">Уватский</span></h2>
@@ -267,7 +266,6 @@
     </div>
   </div>
 
-  <!-- ЭКРАН 2: СЛУЖБА -->
   <div id="serviceView" class="hidden">
     <div id="serviceLoginBlock" class="login-box">
       <h2>Вход для службы <span class="project-badge">Уватский</span></h2>
@@ -300,7 +298,6 @@
     </div>
   </div>
 
-  <!-- ЭКРАН 3: ДЕТАЛИ -->
   <div id="requestsDetailView" class="hidden">
     <div class="back"><button class="btn gray" id="backFromDetail">← Назад</button></div>
     <h1 id="detailTitle"></h1>
@@ -308,7 +305,6 @@
     <div id="detailRequestsList"></div>
   </div>
 
-  <!-- ЭКРАН 4: ИСТОРИЯ -->
   <div id="historyView" class="hidden">
     <h1>📋 История заявок <span class="project-badge">Уватский</span></h1>
     <div class="history-stats" id="historyStats"></div>
@@ -327,7 +323,6 @@
     <div id="historyContent"></div>
   </div>
 
-  <!-- ЭКРАН 5: АДМИН -->
   <div id="adminView" class="hidden">
     <div id="adminLoginBlock" class="login-box">
       <h2>Панель Главного инженера <span class="project-badge">Уватский</span></h2>
@@ -382,7 +377,6 @@
         <div id="adminRequestsList"></div>
       </div>
 
-      <!-- КОНСТРУКТОР -->
       <div id="adminBuilderBlock" class="hidden">
         <div class="card" style="border-left: 4px solid #2563eb;">
           <h2>🛠 Конструктор системы</h2>
@@ -432,7 +426,6 @@
         </div>
       </div>
 
-      <!-- ВКЛАДКА ГЛАВНОГО ИНЖЕНЕРА (код 1104) -->
       <div id="adminChiefEngineerBlock" class="hidden">
 
         <div class="card" id="chiefEngineerGate" style="border-left: 4px solid #dc2626;">
@@ -497,7 +490,6 @@
 
 </div>
 
-<!-- Модалки -->
 <div class="modal-overlay hidden" id="serviceCodeModal">
   <div class="modal">
     <h3>Подтверждение службы</h3>
@@ -593,9 +585,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, push, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-  // ============================================================
-  //  УВАТСКИЙ ПРОЕКТ — своя Firebase база
-  // ============================================================
   const firebaseConfig = {
     apiKey: "AIzaSyAvZIkCpFbH199-U2B6GUok3xzllCOtoJI",
     authDomain: "zayavki-uvat.firebaseapp.com",
@@ -610,7 +599,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // ====== НАСТРОЙКИ ======
   var CHIEF_CODE = '7642';
   var SERVICE_PASSWORD = '1234';
   var ADMIN_CODE = 'admin2483';
@@ -625,7 +613,7 @@
     { id: 'bpo', name: 'БПО' }
   ];
 
-  var DEFAULT_BRIGADES = [5,21,34,64,66,77,79,92,93,103,130,143,167,172,175,214,216].map(n => 'Бригада ' + n);
+  var DEFAULT_BRIGADES = [2, 26, 37, 45, 53, 59, 61, 62, 63, 65, 69, 70, 129, 136, 38].map(n => 'Бригада ' + n);
 
   var DEFAULT_ROLES = [
     { id: 'master', name: 'Мастер', needsBrigade: true },
@@ -1729,13 +1717,22 @@
     renderDetailRequests(serviceId, mode);
   }
 
+  // ====== СОРТИРОВКА: новые → в работе → ждут мастера → закрытые (внутри по времени подачи) ======
+  var STATUS_ORDER = { 'new': 0, 'in_progress': 1, 'service_done': 2, 'closed': 3 };
+
   function renderDetailRequests(serviceId, mode) {
     var list = allRequests.filter(function (r) {
       if (r.serviceId !== serviceId) return false;
       if (mode === 'master' && !canMasterSeeRequest(r)) return false;
       return true;
     });
-    list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    list.sort(function (a, b) {
+      var sa = STATUS_ORDER[a.status || 'new'] !== undefined ? STATUS_ORDER[a.status || 'new'] : 99;
+      var sb = STATUS_ORDER[b.status || 'new'] !== undefined ? STATUS_ORDER[b.status || 'new'] : 99;
+      if (sa !== sb) return sa - sb;
+      return (a.createdAt || 0) - (b.createdAt || 0);
+    });
 
     if (mode === 'master' && loggedMaster.name && (isNumberedBrigade(loggedMaster.brigade) || loggedMaster.roleName === 'Бурильщик')) {
       detailBrigadeNote.classList.remove('hidden');
