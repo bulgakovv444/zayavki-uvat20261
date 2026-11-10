@@ -922,14 +922,14 @@
     return false;
   }
 
-  // FIX: универсальное имя службы с фолбэком на сохранённое в заявке
+  // Универсальное имя службы с фолбэком на сохранённое в заявке
   function requestServiceName(r) {
     if (!r) return '—';
     var n = serviceName(r.serviceId);
     if (n === r.serviceId && r.serviceName) return r.serviceName;
     return n;
   }
-  // FIX: безопасное отображение бригады
+  // Безопасное отображение бригады
   function requestBrigadeLabel(r) {
     if (!r) return '— не указана —';
     var b = r.brigade;
@@ -1844,9 +1844,16 @@
       var seniorMark = u.roleName === 'Старший мастер' ? ' · <span style="color:#7c3aed;font-weight:700;">СТАРШИЙ МАСТЕР</span>' : '';
       var drillerMark = u.roleName === 'Бурильщик' ? ' · <span style="color:#2563eb;font-weight:700;">БУРИЛЬЩИК</span>' : '';
 
+      // Формируем отображение должности и бригады
+      var displayRole = escapeHtml(u.roleName || '—');
+      var displayBrigade = '';
+      if (u.role === 'master' && u.brigade && u.brigade !== 'Служба') {
+        displayBrigade = ' | <strong style="color:#1e3a8a;">' + escapeHtml(u.brigade) + '</strong>';
+      }
+
       usersHtml += '<div class="moderation-user ' + statusClass + '">';
       usersHtml += '<div class="info"><strong>' + escapeHtml(u.name) + '</strong> (' + escapeHtml(u.phone) + ')<br>';
-      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + escapeHtml(u.roleName || u.brigade || '—') + ' | ' + statusText + chiefMark + seniorMark + drillerMark + '</span></div>';
+      usersHtml += '<span style="font-size:12px; color:#6b7280;">Роль: ' + (u.role === 'master' ? 'Мастер/ИТР' : 'Служба') + ' | ' + displayRole + displayBrigade + ' | ' + statusText + chiefMark + seniorMark + drillerMark + '</span></div>';
       usersHtml += '<div class="btns">';
       if (u.status !== 'approved') usersHtml += '<button class="btn green small" data-uid="' + u.id + '" data-action="approve">Одобрить</button>';
       if (u.status !== 'rejected') usersHtml += '<button class="btn red small" data-uid="' + u.id + '" data-action="reject">Отклонить</button>';
@@ -1880,7 +1887,7 @@
   cancelUsersCodeBtn.addEventListener('click', function() { usersCodeModal.classList.add('hidden'); pendingUserActionUid = null; pendingUserActionType = null; });
   usersCodeInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmUsersCodeBtn.click(); });
 
-  // FIX: рендер админских заявок с requestServiceName и безопасной бригадой
+  // Рендер админских заявок с requestServiceName и безопасной бригадой
   function renderAdminRequests() {
     var activeEl = document.activeElement;
     var safeFocus = activeEl && activeEl.closest && activeEl.closest('#adminRequestsBlock');
@@ -2214,7 +2221,6 @@
     return (lastMsgTime > Number(lastRead)) && (lastMsgPhone !== myPhone);
   }
 
-  // FIX: в «Моих заявках» используем requestServiceName
   function renderMyRequests() {
     if (!loggedMaster.name) { myRequestsList.innerHTML = '<p class="empty">Вы не авторизованы.</p>'; return; }
     var myList = allRequests.filter(function(r) { return r.phone === loggedMaster.phone; });
@@ -2262,7 +2268,6 @@
     renderDetailRequests(serviceId, mode);
   }
 
-  // FIX: рендер деталей с requestServiceName и безопасной бригадой
   function renderDetailRequests(serviceId, mode) {
     var list = allRequests.filter(function (r) {
       if (r.serviceId !== serviceId) return false;
@@ -2405,7 +2410,6 @@
   });
   cancelTransferBtn.addEventListener('click', function() { transferModal.classList.add('hidden'); pendingTransferId = null; });
 
-  // FIX: чат — заголовок с корректным именем службы и бригадой
   function openChat(requestId) {
     currentChatRequestId = requestId;
     var req = allRequests.find(function(r) { return r.id === requestId; });
@@ -2480,7 +2484,6 @@
     }
   });
 
-  // FIX: сохраняем serviceName в заявке при создании
   async function submitPendingRequest() {
     if (!pendingNewRequest) return;
     var data = pendingNewRequest;
@@ -2523,7 +2526,6 @@
     return snapshot.val() === phone;
   }
 
-  // FIX: история — используем requestServiceName
   function renderHistory() {
     fillHistoryFilters();
     var total = allRequests.length, nNew = 0, nProg = 0, nWait = 0, nClosed = 0;
@@ -2556,7 +2558,6 @@
     document.getElementById('historyContent').innerHTML = '<table class="history-table"><thead><tr><th>Подана</th><th>Служба</th><th>Бригада</th><th>Мастер</th><th>Описание</th><th>Статус</th><th>Хронология</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 
-  // FIX: экспорт — используем requestServiceName
   function exportCsv() {
     var fStatus = document.getElementById('filterStatus').value, fService = document.getElementById('filterService').value, fBrigade = document.getElementById('filterBrigade').value;
     var filtered = allRequests.filter(function (r) {
@@ -2618,7 +2619,6 @@
     });
   }
 
-  // FIX: панель CE — используем requestServiceName и requestBrigadeLabel
   function renderChiefEngineerPanel() {
     if (!isChiefEngineerPanelUnlocked) return;
     fillCeServiceFilter();
