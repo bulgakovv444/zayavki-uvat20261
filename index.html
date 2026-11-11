@@ -117,12 +117,29 @@
   .service-task-badge.overdue .badge-count { color: #dc2626; }
   @keyframes pulse-red { 0%,100% { box-shadow: 0 2px 6px rgba(220,38,38,.4); } 50% { box-shadow: 0 2px 14px rgba(220,38,38,.9); } }
 
-  .request { border-left: 4px solid #ef4444; background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+  /* ===== КАРТОЧКА ЗАЯВКИ — КРУПНЫЙ ТЕКСТ ===== */
+  .request { border-left: 4px solid #ef4444; background: #fff; padding: 14px 16px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05); font-size: 16px; line-height: 1.55; }
   .request.status-new { border-left-color: #ef4444; }
   .request.status-in_progress { border-left-color: #f59e0b; }
   .request.status-service_done { border-left-color: #94a3b8; }
   .request.status-closed { border-left-color: #10b981; opacity: .75; }
-  .request .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .request .actions { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .request .req-desc {
+    font-size: 17px;
+    font-weight: 500;
+    color: #111827;
+    line-height: 1.6;
+    margin: 6px 0 10px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border-left: 3px solid #cbd5e1;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .request .req-meta { font-size: 14px; color: #374151; font-weight: 600; margin-bottom: 2px; }
+  .request .req-submeta { font-size: 13px; color: #6b7280; font-weight: 500; }
 
   .task-card { border-left: 4px solid #8b5cf6; background: #fff; padding: 14px; border-radius: 6px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.05); position: relative; }
   .task-card.status-new { border-left-color: #8b5cf6; }
@@ -133,7 +150,7 @@
   .task-card .task-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
   .task-card .task-title { font-size: 15px; font-weight: 700; color: #4c1d95; }
   .task-card .task-from { font-size: 12px; color: #6b7280; font-weight: 600; }
-  .task-card .task-desc { font-size: 13px; color: #374151; margin-bottom: 8px; line-height: 1.5; }
+  .task-card .task-desc { font-size: 14px; color: #374151; margin-bottom: 8px; line-height: 1.5; }
   .task-card .task-meta { font-size: 11px; color: #9ca3af; }
   .task-card .task-actions { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -1887,7 +1904,7 @@
   cancelUsersCodeBtn.addEventListener('click', function() { usersCodeModal.classList.add('hidden'); pendingUserActionUid = null; pendingUserActionType = null; });
   usersCodeInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmUsersCodeBtn.click(); });
 
-  // Рендер админских заявок с requestServiceName и безопасной бригадой
+  // ===== РЕНДЕР ЗАЯВОК В ПАНЕЛИ АДМИНА (крупный текст) =====
   function renderAdminRequests() {
     var activeEl = document.activeElement;
     var safeFocus = activeEl && activeEl.closest && activeEl.closest('#adminRequestsBlock');
@@ -1917,11 +1934,10 @@
       var r = list[k], status = r.status || 'new';
       var sName = requestServiceName(r);
       var bName = requestBrigadeLabel(r);
-      html += '<div class="request status-' + status + '"><div style="font-size:14px; margin-bottom: 4px;">' +
-              '<strong>Служба: ' + escapeHtml(sName) + '</strong> | ' +
-              '<strong>Бригада: ' + escapeHtml(bName) + '</strong> ' +
-              '(' + escapeHtml(r.name || '—') + ', тел: ' + escapeHtml(r.phone || '—') + ')<br>' +
-              escapeHtml(r.desc || '') + '</div>';
+      html += '<div class="request status-' + status + '">' +
+              '<div class="req-desc">' + escapeHtml(r.desc || '') + '</div>' +
+              '<div class="req-meta">Служба: ' + escapeHtml(sName) + ' | Бригада: ' + escapeHtml(bName) + '</div>' +
+              '<div class="req-submeta">' + escapeHtml(r.name || '—') + ' · тел: ' + escapeHtml(r.phone || '—') + '</div>';
       html += '<div class="event-log"><div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
       if (r.events && r.events.length) for (var e = 0; e < r.events.length; e++) html += '<div>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')</div>';
       html += '</div><div class="actions">';
@@ -2221,6 +2237,7 @@
     return (lastMsgTime > Number(lastRead)) && (lastMsgPhone !== myPhone);
   }
 
+  // ===== МОИ ЗАЯВКИ (крупный текст) =====
   function renderMyRequests() {
     if (!loggedMaster.name) { myRequestsList.innerHTML = '<p class="empty">Вы не авторизованы.</p>'; return; }
     var myList = allRequests.filter(function(r) { return r.phone === loggedMaster.phone; });
@@ -2231,10 +2248,10 @@
       var r = myList[i], status = r.status || 'new';
       var sName = requestServiceName(r);
       var bName = requestBrigadeLabel(r);
-      html += '<div class="request status-' + status + '"><div style="font-size:14px; margin-bottom: 4px;">' +
-              '<strong>Служба: ' + escapeHtml(sName) + '</strong>' +
-              (bName && bName !== '— не указана —' ? '<br><span style="font-size:12px;color:#6b7280;">Бригада: ' + escapeHtml(bName) + '</span>' : '') +
-              '<br>' + escapeHtml(r.desc || '') + '</div>';
+      html += '<div class="request status-' + status + '">' +
+              '<div class="req-meta">Служба: ' + escapeHtml(sName) + '</div>' +
+              (bName && bName !== '— не указана —' ? '<div class="req-submeta">Бригада: ' + escapeHtml(bName) + '</div>' : '') +
+              '<div class="req-desc">' + escapeHtml(r.desc || '') + '</div>';
       html += '<div class="event-log"><div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
       if (r.events && r.events.length) for (var e = 0; e < r.events.length; e++) html += '<div>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')</div>';
       html += '</div><div class="actions">';
@@ -2268,6 +2285,7 @@
     renderDetailRequests(serviceId, mode);
   }
 
+  // ===== ДЕТАЛИ ЗАЯВОК (крупный текст) =====
   function renderDetailRequests(serviceId, mode) {
     var list = allRequests.filter(function (r) {
       if (r.serviceId !== serviceId) return false;
@@ -2293,11 +2311,10 @@
       var r = list[i], status = r.status || 'new';
       var sName = requestServiceName(r);
       var bName = requestBrigadeLabel(r);
-      html += '<div class="request status-' + status + '"><div style="font-size:14px; margin-bottom: 4px;">' +
-              '<strong>Служба: ' + escapeHtml(sName) + '</strong> | ' +
-              '<strong>Бригада: ' + escapeHtml(bName) + '</strong> ' +
-              '(' + escapeHtml(r.name || '—') + ', тел: ' + escapeHtml(r.phone || '—') + ')<br>' +
-              escapeHtml(r.desc || '') + '</div>';
+      html += '<div class="request status-' + status + '">' +
+              '<div class="req-desc">' + escapeHtml(r.desc || '') + '</div>' +
+              '<div class="req-meta">Служба: ' + escapeHtml(sName) + ' | Бригада: ' + escapeHtml(bName) + '</div>' +
+              '<div class="req-submeta">' + escapeHtml(r.name || '—') + ' · тел: ' + escapeHtml(r.phone || '—') + '</div>';
       html += '<div class="event-log"><div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
       if (r.events && r.events.length) for (var e = 0; e < r.events.length; e++) html += '<div>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')</div>';
       html += '</div><div class="actions">';
@@ -2619,6 +2636,7 @@
     });
   }
 
+  // ===== ПАНЕЛЬ ГЛАВНОГО ИНЖЕНЕРА (крупный текст) =====
   function renderChiefEngineerPanel() {
     if (!isChiefEngineerPanelUnlocked) return;
     fillCeServiceFilter();
@@ -2640,11 +2658,10 @@
       var r = list[k], status = r.status || 'new';
       var sName = requestServiceName(r);
       var bName = requestBrigadeLabel(r);
-      html += '<div class="request status-' + status + '"><div style="font-size:14px; margin-bottom:4px;">' +
-              '<strong>Служба: ' + escapeHtml(sName) + '</strong> | ' +
-              '<strong>Бригада: ' + escapeHtml(bName) + '</strong> ' +
-              '(' + escapeHtml(r.name || '—') + ', тел: ' + escapeHtml(r.phone || '—') + ')<br>' +
-              escapeHtml(r.desc || '') + '</div>';
+      html += '<div class="request status-' + status + '">' +
+              '<div class="req-desc">' + escapeHtml(r.desc || '') + '</div>' +
+              '<div class="req-meta">Служба: ' + escapeHtml(sName) + ' | Бригада: ' + escapeHtml(bName) + '</div>' +
+              '<div class="req-submeta">' + escapeHtml(r.name || '—') + ' · тел: ' + escapeHtml(r.phone || '—') + '</div>';
       html += '<div class="event-log"><div>🕒 Подана: ' + formatDate(r.createdAt) + '</div>';
       if (r.events && r.events.length) for (var e = 0; e < r.events.length; e++) html += '<div>' + escapeHtml(r.events[e].text) + ' (' + formatDate(r.events[e].time) + ')</div>';
       html += '</div><div class="actions">';
