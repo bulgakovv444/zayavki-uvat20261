@@ -117,7 +117,6 @@
   .service-task-badge.overdue .badge-count { color: #dc2626; }
   @keyframes pulse-red { 0%,100% { box-shadow: 0 2px 6px rgba(220,38,38,.4); } 50% { box-shadow: 0 2px 14px rgba(220,38,38,.9); } }
 
-  /* ===== КАРТОЧКА ЗАЯВКИ — КРУПНЫЙ ТЕКСТ ===== */
   .request { border-left: 4px solid #ef4444; background: #fff; padding: 14px 16px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05); font-size: 16px; line-height: 1.55; }
   .request.status-new { border-left-color: #ef4444; }
   .request.status-in_progress { border-left-color: #f59e0b; }
@@ -265,6 +264,7 @@
   .task-target-toggle { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
   .task-target-btn { flex: 1; min-width: 140px; padding: 10px; border: 2px solid #d1d5db; background: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; color: #374151; transition: all .15s; }
   .task-target-btn.active { border-color: #8b5cf6; background: #f5f3ff; color: #5b21b6; }
+  .task-target-btn[data-audience="itr"].active { border-color: #0891b2; background: #ecfeff; color: #155e75; }
 </style>
 </head>
 <body>
@@ -390,7 +390,7 @@
       <div id="serviceContentBlock">
         <div class="sub-tabs">
           <button class="sub-tab-btn active" id="subTabServiceRequests">📝 Заявки от мастеров</button>
-          <button class="sub-tab-btn" id="subTabServiceTasks">🎯 Задания бригадам</button>
+          <button class="sub-tab-btn" id="subTabServiceTasks">🎯 Задания</button>
         </div>
 
         <div id="serviceRequestsBlock">
@@ -400,14 +400,21 @@
 
         <div id="serviceTasksBlock" class="hidden">
           <div class="card" style="border-left: 4px solid #8b5cf6;">
-            <h2>🎯 Создать задание бригадам</h2>
-            <p style="color:#6b7280; font-size:13px; margin-bottom:12px;">Выберите, кому адресовано задание, укажите срок (необязательно) и отправьте.</p>
+            <h2>🎯 Создать задание</h2>
+            <p style="color:#6b7280; font-size:13px; margin-bottom:12px;">Выберите, кому адресовано задание (бригадам или ИТР), укажите срок (необязательно) и отправьте.</p>
+
+            <!-- НОВЫЙ ТУМБЛЕР: аудитория -->
+            <div class="task-target-toggle" id="taskAudienceToggle" style="margin-bottom:12px;">
+              <button type="button" class="task-target-btn active" data-audience="brigade">👷 Бригадам</button>
+              <button type="button" class="task-target-btn" data-audience="itr">🧑‍💼 ИТР</button>
+            </div>
 
             <div class="task-target-toggle">
               <button type="button" class="task-target-btn active" data-target="all">Все бригады</button>
               <button type="button" class="task-target-btn" data-target="custom">Выборочно</button>
             </div>
 
+            <!-- Чек-лист бригад -->
             <div id="brigadeCheckboxWrap" class="hidden">
               <div style="font-size:12px;color:#6b7280;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
                 <span>Отметьте бригады:</span>
@@ -417,6 +424,18 @@
                 </span>
               </div>
               <div class="brigade-checkbox-list" id="brigadeCheckboxList"></div>
+            </div>
+
+            <!-- Чек-лист должностей ИТР -->
+            <div id="roleCheckboxWrap" class="hidden">
+              <div style="font-size:12px;color:#6b7280;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+                <span>Отметьте должности ИТР:</span>
+                <span>
+                  <button type="button" class="btn gray small" id="checkAllRolesBtn">Все</button>
+                  <button type="button" class="btn gray small" id="uncheckAllRolesBtn">Снять все</button>
+                </span>
+              </div>
+              <div class="brigade-checkbox-list" id="roleCheckboxList"></div>
             </div>
 
             <input type="text" id="taskTitle" placeholder="Краткое название задачи (например: Замена датчика)" style="margin-bottom:12px;">
@@ -519,7 +538,7 @@
       </div>
 
       <div id="adminTasksBlock" class="hidden">
-        <h2>Все задания служб бригадам</h2>
+        <h2>Все задания служб</h2>
         <div id="adminTasksList"></div>
       </div>
 
@@ -814,8 +833,11 @@
   var currentDetailServiceId = '';
   var currentDetailViewMode = 'master';
 
-  var taskTargetType = 'all';
+  // Новое состояние формы задания
+  var taskAudience = 'brigade';        // 'brigade' | 'itr'
+  var taskTargetType = 'all';          // 'all' | 'custom'
   var selectedBrigadesForTask = {};
+  var selectedRolesForTask = {};
 
   var currentTasksServiceId = '';
 
@@ -825,6 +847,31 @@
 
   function isNumberedBrigade(brigade) {
     return /^Бригада\s+\d+$/.test(String(brigade || '').trim());
+  }
+
+  // ===== ХЕЛПЕРЫ ДЛЯ РАЗДЕЛЕНИЯ БРИГАД / ИТР =====
+  function masterHasBrigade() {
+    if (!loggedMaster.name) return false;
+    if (!loggedMaster.brigade) return false;
+    var b = String(loggedMaster.brigade).trim();
+    if (!b) return false;
+    if (b === 'Служба') return false;
+    return BRIGADES.indexOf(b) !== -1;
+  }
+
+  // ИТР — должность из MASTER_ROLES с needsBrigade=false, кроме «Бурильщик»
+  function isITRRole(roleName) {
+    if (!roleName) return false;
+    if (roleName === 'Бурильщик') return false;
+    var r = MASTER_ROLES.find(function(x) { return x.name === roleName; });
+    if (!r) return false;
+    if (r.needsBrigade) return false;
+    return true;
+  }
+
+  function isITRUser() {
+    if (!loggedMaster.name) return false;
+    return isITRRole(loggedMaster.roleName);
   }
 
   function canMasterSeeRequest(req) {
@@ -939,14 +986,12 @@
     return false;
   }
 
-  // Универсальное имя службы с фолбэком на сохранённое в заявке
   function requestServiceName(r) {
     if (!r) return '—';
     var n = serviceName(r.serviceId);
     if (n === r.serviceId && r.serviceName) return r.serviceName;
     return n;
   }
-  // Безопасное отображение бригады
   function requestBrigadeLabel(r) {
     if (!r) return '— не указана —';
     var b = r.brigade;
@@ -975,22 +1020,39 @@
     return (t.targetBrigades || []).slice();
   }
 
+  // ===== КЛЮЧЕВАЯ ЛОГИКА РАЗДЕЛЕНИЯ ЗАДАНИЙ =====
   function isTaskForMe(task) {
     if (!loggedMaster.name) return false;
     if (task.status === 'closed') return false;
+
+    // ---- Ветка БРИГАД ----
+    if (task.audience !== 'itr') {
+      if (loggedMaster.roleName === 'Бурильщик') return false;      // бурильщик не получает заданий бригадам
+      if (task.targetType === 'all') {
+        if (!masterHasBrigade()) return false;
+        return BRIGADES.indexOf(loggedMaster.brigade) !== -1;
+      }
+      if (!task.targetBrigades || task.targetBrigades.indexOf(loggedMaster.brigade) === -1) return false;
+      if (!masterHasBrigade()) return false;
+      return true;
+    }
+
+    // ---- Ветка ИТР ----
+    if (!isITRUser()) return false;
     if (task.targetType === 'all') return true;
-    if (task.targetBrigades && task.targetBrigades.indexOf(loggedMaster.brigade) !== -1) return true;
-    return false;
+    return (task.targetRoles || []).indexOf(loggedMaster.roleName) !== -1;
   }
 
   function isTaskActiveForMe(task) {
     if (!isTaskForMe(task)) return false;
+    if (task.audience === 'itr') {
+      return task.status !== 'done' && task.status !== 'closed';
+    }
     if (task.targetType === 'all') {
       var c = (task.completions || {})[loggedMaster.brigade];
       return !c || !c.done;
-    } else {
-      return task.status !== 'done';
     }
+    return task.status !== 'done';
   }
 
   function isTaskOverdue(task) {
@@ -1060,6 +1122,8 @@
   var myTasksServiceList = document.getElementById('myTasksServiceList');
   var brigadeCheckboxWrap = document.getElementById('brigadeCheckboxWrap');
   var brigadeCheckboxList = document.getElementById('brigadeCheckboxList');
+  var roleCheckboxWrap = document.getElementById('roleCheckboxWrap');
+  var roleCheckboxList = document.getElementById('roleCheckboxList');
   var adminLoginBlock = document.getElementById('adminLoginBlock');
   var adminWorkBlock = document.getElementById('adminWorkBlock');
   var adminUsersBlock = document.getElementById('adminUsersBlock');
@@ -1303,7 +1367,12 @@
     var html = '';
     for (var i = 0; i < my.length; i++) {
       var t = my[i];
-      var target = t.targetType === 'all' ? 'Всем бригадам' : (t.targetBrigades || []).join(', ');
+      var target;
+      if (t.audience === 'itr') {
+        target = (t.targetType === 'all') ? 'Всем ИТР' : (t.targetRoles || []).join(', ');
+      } else {
+        target = (t.targetType === 'all') ? 'Всем бригадам' : (t.targetBrigades || []).join(', ');
+      }
       var overdue = isTaskOverdueForMe(t);
       html += '<div class="task-card status-' + (overdue ? 'overdue' : 'new') + '" data-task-service="' + escapeHtml(t.serviceId) + '">';
       html += '<div class="task-header"><div>';
@@ -1397,14 +1466,47 @@
     serviceRequestsBlock.classList.add('hidden'); serviceTasksBlock.classList.remove('hidden');
     renderServiceTasksList();
     renderBrigadeCheckboxes();
+    renderRoleCheckboxes();
   });
 
-  document.querySelectorAll('.task-target-btn').forEach(function(btn) {
+  // ===== ПЕРЕКЛЮЧАТЕЛЬ БРИГАДЫ / ИТР =====
+  document.querySelectorAll('#taskAudienceToggle .task-target-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      document.querySelectorAll('.task-target-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('#taskAudienceToggle .task-target-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      taskAudience = this.getAttribute('data-audience');
+
+      // Меняем подписи кнопок «Все ... / Выборочно»
+      var allBtn = document.querySelector('.task-target-btn[data-target="all"]');
+      var customBtn = document.querySelector('.task-target-btn[data-target="custom"]');
+      if (taskAudience === 'brigade') {
+        allBtn.textContent = 'Все бригады';
+        customBtn.textContent = 'Выборочно';
+        brigadeCheckboxWrap.classList.toggle('hidden', taskTargetType !== 'custom');
+        roleCheckboxWrap.classList.add('hidden');
+      } else {
+        allBtn.textContent = 'Все ИТР';
+        customBtn.textContent = 'Выборочно';
+        roleCheckboxWrap.classList.toggle('hidden', taskTargetType !== 'custom');
+        brigadeCheckboxWrap.classList.add('hidden');
+        renderRoleCheckboxes();
+      }
+    });
+  });
+
+  // Переключение «Все / Выборочно»
+  document.querySelectorAll('.task-target-btn[data-target]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.task-target-btn[data-target]').forEach(function(b) { b.classList.remove('active'); });
       this.classList.add('active');
       taskTargetType = this.getAttribute('data-target');
-      brigadeCheckboxWrap.classList.toggle('hidden', taskTargetType !== 'custom');
+      if (taskAudience === 'brigade') {
+        brigadeCheckboxWrap.classList.toggle('hidden', taskTargetType !== 'custom');
+        roleCheckboxWrap.classList.add('hidden');
+      } else {
+        roleCheckboxWrap.classList.toggle('hidden', taskTargetType !== 'custom');
+        brigadeCheckboxWrap.classList.add('hidden');
+      }
     });
   });
 
@@ -1526,6 +1628,7 @@
     renderBuilder(); refreshAllForms(); showToast('Должность добавлена');
   });
 
+  // ===== ЧЕК-ЛИСТ БРИГАД =====
   function renderBrigadeCheckboxes() {
     var cur = selectedBrigadesForTask;
     var html = '';
@@ -1544,6 +1647,27 @@
     });
   }
 
+  // ===== ЧЕК-ЛИСТ ДОЛЖНОСТЕЙ ИТР =====
+  function renderRoleCheckboxes() {
+    var itrRoles = MASTER_ROLES.filter(function(r) {
+      return r.name !== 'Бурильщик' && !r.needsBrigade;
+    });
+    var html = '';
+    for (var i = 0; i < itrRoles.length; i++) {
+      var r = itrRoles[i];
+      var checked = selectedRolesForTask[r.name] ? ' checked' : '';
+      html += '<label><input type="checkbox" data-role="' + escapeHtml(r.name) + '"' + checked + '> ' + escapeHtml(r.name) + '</label>';
+    }
+    roleCheckboxList.innerHTML = html;
+    roleCheckboxList.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var nm = this.getAttribute('data-role');
+        if (this.checked) selectedRolesForTask[nm] = true;
+        else delete selectedRolesForTask[nm];
+      });
+    });
+  }
+
   document.getElementById('checkAllBrigadesBtn').addEventListener('click', function() {
     for (var i = 0; i < BRIGADES.length; i++) selectedBrigadesForTask[BRIGADES[i]] = true;
     renderBrigadeCheckboxes();
@@ -1551,6 +1675,15 @@
   document.getElementById('uncheckAllBrigadesBtn').addEventListener('click', function() {
     selectedBrigadesForTask = {};
     renderBrigadeCheckboxes();
+  });
+  document.getElementById('checkAllRolesBtn').addEventListener('click', function() {
+    var itrRoles = MASTER_ROLES.filter(function(r) { return r.name !== 'Бурильщик' && !r.needsBrigade; });
+    for (var i = 0; i < itrRoles.length; i++) selectedRolesForTask[itrRoles[i].name] = true;
+    renderRoleCheckboxes();
+  });
+  document.getElementById('uncheckAllRolesBtn').addEventListener('click', function() {
+    selectedRolesForTask = {};
+    renderRoleCheckboxes();
   });
 
   function refreshAllForms() {
@@ -1578,6 +1711,7 @@
     trSel.innerHTML = trHtml;
 
     renderBrigadeCheckboxes();
+    renderRoleCheckboxes();
     renderServicePicker();
 
     if (loggedMaster.name && !masterWorkBlock.classList.contains('hidden')) {
@@ -1861,7 +1995,6 @@
       var seniorMark = u.roleName === 'Старший мастер' ? ' · <span style="color:#7c3aed;font-weight:700;">СТАРШИЙ МАСТЕР</span>' : '';
       var drillerMark = u.roleName === 'Бурильщик' ? ' · <span style="color:#2563eb;font-weight:700;">БУРИЛЬЩИК</span>' : '';
 
-      // Формируем отображение должности и бригады
       var displayRole = escapeHtml(u.roleName || '—');
       var displayBrigade = '';
       if (u.role === 'master' && u.brigade && u.brigade !== 'Служба') {
@@ -1904,7 +2037,6 @@
   cancelUsersCodeBtn.addEventListener('click', function() { usersCodeModal.classList.add('hidden'); pendingUserActionUid = null; pendingUserActionType = null; });
   usersCodeInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmUsersCodeBtn.click(); });
 
-  // ===== РЕНДЕР ЗАЯВОК В ПАНЕЛИ АДМИНА (крупный текст) =====
   function renderAdminRequests() {
     var activeEl = document.activeElement;
     var safeFocus = activeEl && activeEl.closest && activeEl.closest('#adminRequestsBlock');
@@ -1977,6 +2109,7 @@
     }
   }
 
+  // ===== СПИСОК ЗАДАНИЙ В ПАНЕЛИ АДМИНА =====
   function renderAdminTasksList() {
     if (!allTasks.length) { adminTasksList.innerHTML = '<p class="empty">Заданий нет.</p>'; return; }
     var list = allTasks.slice().sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
@@ -1984,10 +2117,15 @@
     for (var i = 0; i < list.length; i++) {
       var t = list[i];
       var overdue = isTaskOverdue(t);
-      var target = t.targetType === 'all' ? 'Все бригады' : (t.targetBrigades || []).join(', ');
+      var target = (t.audience === 'itr')
+        ? (t.targetType === 'all' ? 'Все ИТР' : (t.targetRoles || []).join(', '))
+        : (t.targetType === 'all' ? 'Все бригады' : (t.targetBrigades || []).join(', '));
+      var audLabel = t.audience === 'itr'
+        ? '<span class="badge" style="background:#0891b2;">ИТР</span>'
+        : '<span class="badge brigade">Бригады</span>';
       html += '<div class="task-card status-' + (t.status || 'new') + (overdue ? ' status-overdue' : '') + '">';
       html += '<div class="task-header"><div><div class="task-title">' + escapeHtml(t.title || 'Без названия') + '</div>';
-      html += '<div class="task-from">От службы: ' + escapeHtml(serviceName(t.serviceId)) + ' → ' + escapeHtml(target) + '</div></div>';
+      html += '<div class="task-from">' + audLabel + ' От службы: ' + escapeHtml(serviceName(t.serviceId)) + ' → ' + escapeHtml(target) + '</div></div>';
       if (overdue) html += '<span class="badge overdue">⚠ ПРОСРОЧЕНО</span>';
       else if (t.status === 'closed') html += '<span class="badge" style="background:#6b7280;">Закрыто службой</span>';
       else if (t.status === 'done') html += '<span class="badge ok">✔ Выполнено</span>';
@@ -2007,6 +2145,7 @@
     });
   }
 
+  // ===== СОЗДАНИЕ ЗАДАНИЯ (с аудиторией) =====
   createTaskBtn.addEventListener('click', async function() {
     if (!loggedService.name) { showToast('Сначала войдите как служба', true); return; }
     if (loggedService.status !== 'approved') { showToast('Аккаунт службы не подтвержден', true); return; }
@@ -2015,9 +2154,18 @@
     if (!desc) { showToast('Введите описание задания', true); return; }
 
     var targetBrigades = [];
-    if (taskTargetType === 'custom') {
-      for (var b in selectedBrigadesForTask) if (selectedBrigadesForTask[b]) targetBrigades.push(b);
-      if (!targetBrigades.length) { showToast('Отметьте хотя бы одну бригаду', true); return; }
+    var targetRoles = [];
+
+    if (taskAudience === 'brigade') {
+      if (taskTargetType === 'custom') {
+        for (var b in selectedBrigadesForTask) if (selectedBrigadesForTask[b]) targetBrigades.push(b);
+        if (!targetBrigades.length) { showToast('Отметьте хотя бы одну бригаду', true); return; }
+      }
+    } else {
+      if (taskTargetType === 'custom') {
+        for (var r in selectedRolesForTask) if (selectedRolesForTask[r]) targetRoles.push(r);
+        if (!targetRoles.length) { showToast('Отметьте хотя бы одну должность ИТР', true); return; }
+      }
     }
 
     var deadlineTs = null;
@@ -2030,15 +2178,17 @@
       serviceId: loggedService.role,
       authorName: loggedService.name,
       authorPhone: loggedService.phone,
+      audience: taskAudience,
       targetType: taskTargetType === 'all' ? 'all' : 'custom',
-      targetBrigades: targetBrigades,
+      targetBrigades: taskAudience === 'brigade' ? targetBrigades : [],
+      targetRoles: taskAudience === 'itr' ? targetRoles : [],
       title: title,
       desc: desc,
       deadline: deadlineTs,
       createdAt: Date.now(),
       status: 'new',
       completions: {},
-      events: [{ text: '🎯 Задание создано (Автор: ' + loggedService.name + ', ' + loggedService.role + ')' + (deadlineTs ? ' · Срок: ' + formatDate(deadlineTs) : ''), time: Date.now() }]
+      events: [{ text: '🎯 Задание создано (Автор: ' + loggedService.name + ', ' + loggedService.role + ', аудитория: ' + (taskAudience === 'itr' ? 'ИТР' : 'бригады') + ')' + (deadlineTs ? ' · Срок: ' + formatDate(deadlineTs) : ''), time: Date.now() }]
     };
     try {
       await push(ref(db, 'tasks'), taskData);
@@ -2046,13 +2196,16 @@
       taskDesc.value = '';
       taskDeadline.value = '';
       selectedBrigadesForTask = {};
+      selectedRolesForTask = {};
       renderBrigadeCheckboxes();
+      renderRoleCheckboxes();
       showToast('Задание отправлено!');
     } catch (e) {
       showToast('Ошибка отправки задания', true);
     }
   });
 
+  // ===== СПИСОК «МОИ ЗАДАНИЯ» У СЛУЖБЫ =====
   function renderServiceTasksList() {
     if (!loggedService.name) { myTasksServiceList.innerHTML = '<p class="empty">Войдите как служба.</p>'; return; }
     var my = allTasks.filter(function(t) { return t.serviceId === loggedService.role; });
@@ -2061,6 +2214,46 @@
     var html = '';
     for (var i = 0; i < my.length; i++) {
       var t = my[i];
+      var overdue = isTaskOverdue(t);
+
+      // ----- ИТР-задание -----
+      if (t.audience === 'itr') {
+        var targetItr = (t.targetType === 'all') ? 'Все ИТР' : (t.targetRoles || []).join(', ');
+        var cardStatus = 'new';
+        if (t.status === 'closed') cardStatus = 'closed';
+        else if (t.status === 'done') cardStatus = 'done';
+        else if (overdue) cardStatus = 'overdue';
+
+        html += '<div class="task-card status-' + cardStatus + '">';
+        html += '<div class="task-header"><div>';
+        html += '<div class="task-title">' + escapeHtml(t.title || 'Без названия') + ' <span class="badge" style="background:#0891b2;">ИТР</span></div>';
+        html += '<div class="task-from">Кому: ' + escapeHtml(targetItr) + '</div></div>';
+        if (t.status === 'closed') html += '<span class="badge" style="background:#6b7280;">Закрыто службой</span>';
+        else if (overdue && t.status !== 'done') html += '<span class="badge overdue">⚠ ПРОСРОЧЕНО</span>';
+        else if (t.status === 'done') html += '<span class="badge ok">✔ Выполнено</span>';
+        else html += '<span class="badge task">Новое</span>';
+        html += '</div>';
+
+        if (t.deadline) {
+          html += '<div class="task-deadline-alert" style="' + (overdue ? 'background:#fef2f2;border-color:#fecaca;color:#991b1b;font-weight:700;' : '') + '">📅 Срок: ' + formatDate(t.deadline) + (overdue ? ' · ПРОСРОЧЕНО' : '') + '</div>';
+        }
+
+        html += '<div class="task-desc">' + escapeHtml(t.desc || '') + '</div>';
+        html += '<div class="task-meta">🕒 Создано: ' + formatDate(t.createdAt) + '</div>';
+
+        html += '<div class="task-progress">';
+        html += '<div class="task-progress-label"><span>' + (t.acceptedBy ? ('✔ ' + escapeHtml(t.acceptedBy.name || '') + ' — ' + escapeHtml(t.acceptedBy.roleName || '') + ' (' + formatDate(t.doneAt) + ')') : '⏳ Не выполнено') + '</span><span>' + (t.status === 'done' ? '100%' : '0%') + '</span></div>';
+        html += '<div class="task-progress-bar"><div style="width:' + (t.status === 'done' ? '100' : '0') + '%"></div></div>';
+        html += '</div>';
+
+        if (t.status !== 'closed') {
+          html += '<div class="task-actions"><button class="btn red small" data-task-close="' + t.id + '">Закрыть принудительно</button></div>';
+        }
+        html += '</div>';
+        continue;
+      }
+
+      // ----- БРИГАДНОЕ задание (как было) -----
       var targetBrs = taskBrigadesList(t);
       var completions = t.completions || {};
       var doneCount = 0, overdueCount = 0;
@@ -2072,27 +2265,26 @@
       var progressPct = totalCount ? Math.round(doneCount / totalCount * 100) : 0;
       var target = t.targetType === 'all' ? 'Все бригады (' + totalCount + ')' : (t.targetBrigades || []).join(', ');
 
-      var cardStatus = 'new';
-      if (t.status === 'closed') cardStatus = 'closed';
-      else if (doneCount === totalCount && totalCount > 0) cardStatus = 'done';
-      else if (doneCount > 0) cardStatus = 'partial';
-      if (isTaskOverdue(t) && cardStatus !== 'done' && cardStatus !== 'closed') cardStatus = 'overdue';
+      var cardStatus2 = 'new';
+      if (t.status === 'closed') cardStatus2 = 'closed';
+      else if (doneCount === totalCount && totalCount > 0) cardStatus2 = 'done';
+      else if (doneCount > 0) cardStatus2 = 'partial';
+      if (isTaskOverdue(t) && cardStatus2 !== 'done' && cardStatus2 !== 'closed') cardStatus2 = 'overdue';
 
-      html += '<div class="task-card status-' + cardStatus + '">';
+      html += '<div class="task-card status-' + cardStatus2 + '">';
       html += '<div class="task-header"><div>';
-      html += '<div class="task-title">' + escapeHtml(t.title || 'Без названия') + '</div>';
+      html += '<div class="task-title">' + escapeHtml(t.title || 'Без названия') + ' <span class="badge brigade">Бригады</span></div>';
       html += '<div class="task-from">Кому: ' + escapeHtml(target) + '</div></div>';
 
       if (t.status === 'closed') html += '<span class="badge" style="background:#6b7280;">Закрыто службой</span>';
-      else if (isTaskOverdue(t) && cardStatus !== 'done') html += '<span class="badge overdue">⚠ ПРОСРОЧЕНО</span>';
-      else if (cardStatus === 'done') html += '<span class="badge ok">✔ Выполнено</span>';
-      else if (cardStatus === 'partial') html += '<span class="badge progress">Выполняется</span>';
+      else if (isTaskOverdue(t) && cardStatus2 !== 'done') html += '<span class="badge overdue">⚠ ПРОСРОЧЕНО</span>';
+      else if (cardStatus2 === 'done') html += '<span class="badge ok">✔ Выполнено</span>';
+      else if (cardStatus2 === 'partial') html += '<span class="badge progress">Выполняется</span>';
       else html += '<span class="badge task">Новое</span>';
       html += '</div>';
 
       if (t.deadline) {
-        var overdue = isTaskOverdue(t);
-        html += '<div class="task-deadline-alert" style="' + (overdue ? 'background:#fef2f2;border-color:#fecaca;color:#991b1b;font-weight:700;' : '') + '">📅 Срок: ' + formatDate(t.deadline) + (overdue ? ' · ПРОСРОЧЕНО' : '') + '</div>';
+        html += '<div class="task-deadline-alert" style="' + (isTaskOverdue(t) ? 'background:#fef2f2;border-color:#fecaca;color:#991b1b;font-weight:700;' : '') + '">📅 Срок: ' + formatDate(t.deadline) + (isTaskOverdue(t) ? ' · ПРОСРОЧЕНО' : '') + '</div>';
       }
 
       html += '<div class="task-desc">' + escapeHtml(t.desc || '') + '</div>';
@@ -2162,11 +2354,30 @@
   });
   cancelCloseTaskBtn.addEventListener('click', function() { closeTaskModal.classList.add('hidden'); pendingCloseTaskId = null; });
 
+  // ===== ОТМЕТКА ВЫПОЛНЕНИЯ (разделено на ИТР / БРИГАДЫ) =====
   async function handleTaskDone(id) {
     var t = allTasks.find(function(x) { return x.id === id; });
     if (!t) return;
     var ce = t.events || [];
     var now = Date.now();
+
+    if (t.audience === 'itr') {
+      if (!isITRUser()) { showToast('Нет прав на это задание', true); return; }
+      var evItr = { text: '✅ Выполнено ИТР (' + loggedMaster.name + ', ' + loggedMaster.roleName + ')', time: now };
+      await update(ref(db, 'tasks/' + id), {
+        status: 'done', doneAt: now,
+        acceptedBy: { name: loggedMaster.name, phone: loggedMaster.phone, roleName: loggedMaster.roleName },
+        events: ce.concat([evItr])
+      });
+      showToast('Задание отмечено как выполненное');
+      if (currentTasksServiceId) {
+        var remItr = allTasks.filter(function(x) { return x.serviceId === currentTasksServiceId && isTaskActiveForMe(x); });
+        if (!remItr.length) backToMasterMain();
+        else renderTasksForService(currentTasksServiceId);
+      }
+      updateServiceTaskBadges();
+      return;
+    }
 
     if (t.targetType === 'all') {
       var completion = {};
@@ -2189,11 +2400,8 @@
 
     if (currentTasksServiceId) {
       var remaining = allTasks.filter(function(x) { return x.serviceId === currentTasksServiceId && isTaskActiveForMe(x); });
-      if (!remaining.length) {
-        backToMasterMain();
-      } else {
-        renderTasksForService(currentTasksServiceId);
-      }
+      if (!remaining.length) backToMasterMain();
+      else renderTasksForService(currentTasksServiceId);
     }
     updateServiceTaskBadges();
   }
@@ -2237,7 +2445,6 @@
     return (lastMsgTime > Number(lastRead)) && (lastMsgPhone !== myPhone);
   }
 
-  // ===== МОИ ЗАЯВКИ (крупный текст) =====
   function renderMyRequests() {
     if (!loggedMaster.name) { myRequestsList.innerHTML = '<p class="empty">Вы не авторизованы.</p>'; return; }
     var myList = allRequests.filter(function(r) { return r.phone === loggedMaster.phone; });
@@ -2285,7 +2492,6 @@
     renderDetailRequests(serviceId, mode);
   }
 
-  // ===== ДЕТАЛИ ЗАЯВОК (крупный текст) =====
   function renderDetailRequests(serviceId, mode) {
     var list = allRequests.filter(function (r) {
       if (r.serviceId !== serviceId) return false;
@@ -2636,7 +2842,6 @@
     });
   }
 
-  // ===== ПАНЕЛЬ ГЛАВНОГО ИНЖЕНЕРА (крупный текст) =====
   function renderChiefEngineerPanel() {
     if (!isChiefEngineerPanelUnlocked) return;
     fillCeServiceFilter();
